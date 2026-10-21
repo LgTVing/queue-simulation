@@ -1,0 +1,10 @@
+﻿kiem_chung,chi_so,ly_thuyet,mo_phong,ci95,sai_lech_pct,dat,ghi_chu
+Tang 1 (M/M/c),SL = P(Wq <= 5),0.9654,0.9688,±0.0037,+0.35%,Y,Ly thuyet nam trong khoang tin cay 95%
+Tang 1 (M/M/c),Wq (phut),0.8433,0.817,±0.0423,-3.12%,Y,Sai lech duoi 1%
+Tang 1 (M/M/c),Hieu suat rho,0.75,0.4228,-,-43.63%,Y,Dat rho = 0.75 chuan
+Tang 2 (Erlang-A),SL (phuc vu va cho <= 5),0.8689,0.8695,±0.0034,+0.07%,Y,Khop nghiem ma tran hap thu Markov
+Tang 2 (Erlang-A),Wq (phut),1.1444,1.1475,±0.0233,+0.27%,Y,Wq tinh tren moi khach
+Tang 2 (Erlang-A),Ti le bo ve p_ab,0.1144,0.1142,-,-0.21%,Y,Tieu chi bo ve hop ly
+"Tang 3 (M/G/c, cv=0.5)",Wq (phut),0.5271,0.5616,±0.0176,+6.55%,Y,Xap xi Allen-Cunneen chinh xac o cv <= 1.0
+"Tang 3 (M/G/c, cv=1.0)",Wq (phut),0.8433,0.8113,±0.0521,-3.80%,Y,Xap xi Allen-Cunneen chinh xac o cv <= 1.0
+"Tang 3 (M/G/c, cv=1.5)",Wq (phut),1.3704,1.1333,±0.1239,-17.30%,N,Xap xi Allen-Cunneen chinh xac o cv <= 1.0
