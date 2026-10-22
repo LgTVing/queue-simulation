@@ -210,6 +210,11 @@ def rep_stats(
     
     wq_all = df["wait"].mean()
     p_ab_all = (df["served"] == 0).mean()
+
+    # Hieu suat su dung toan bo quay
+    tot_svc_all = df[df["served"] == 1]["svc"].sum() if "svc" in df.columns else 0.0
+    tot_c_time = sum(schedule) * hour_len
+    util_all = tot_svc_all / tot_c_time if tot_c_time > 0 else 0.0
     
     # Theo tung khung gio
     hourly = []
@@ -244,6 +249,7 @@ def rep_stats(
         "sl_vip": float(sl_vip) if not np.isnan(sl_vip) else np.nan,
         "wq_all": float(wq_all),
         "p_ab_all": float(p_ab_all),
+        "util_all": float(util_all),
         "hourly": hourly
     }
 
@@ -262,10 +268,17 @@ def run_reps(
     reps_data = []
     hourly_reps = [[] for _ in range(len(schedule))]
     
+    # Xac dinh do dai gio hieu dung:
+    # Neu he dung chay dai (len(schedule) == 1 va co run_time), do dai thuc te la run_time - warm_up
+    if run_time is not None and len(schedule) == 1:
+        eff_hour_len = max(1.0, run_time - warm_up)
+    else:
+        eff_hour_len = model.hour_len
+    
     for i in range(n_reps):
         seed = seed_base + i * 1000
         df_rep = simulate(model, schedule, run_time, warm_up, seed)
-        st = rep_stats(df_rep, schedule, model.hour_len)
+        st = rep_stats(df_rep, schedule, eff_hour_len)
         reps_data.append(st)
         for h, h_st in enumerate(st["hourly"]):
             hourly_reps[h].append(h_st)
@@ -274,34 +287,53 @@ def run_reps(
     sl_vals = [r["sl_all"] for r in reps_data]
     wq_vals = [r["wq_all"] for r in reps_data]
     p_ab_vals = [r["p_ab_all"] for r in reps_data]
+    util_vals = [r.get("util_all", 0.0) for r in reps_data]
+    vip_vals = [r["sl_vip"] for r in reps_data if not np.isnan(r["sl_vip"])]
     
     m_sl, ci_sl, (low_sl, high_sl) = mean_ci(sl_vals)
     m_wq, ci_wq, (low_wq, high_wq) = mean_ci(wq_vals)
     m_ab, ci_ab, (low_ab, high_ab) = mean_ci(p_ab_vals)
+    m_ut, ci_ut, (low_ut, high_ut) = mean_ci(util_vals)
+    
+    if len(vip_vals) > 0:
+        m_vip, ci_vip, (low_vip, high_vip) = mean_ci(vip_vals)
+    else:
+        m_vip, ci_vip, low_vip, high_vip = np.nan, np.nan, np.nan, np.nan
     
     # Theo gio
     hourly_summary = []
     for h, h_list in enumerate(hourly_reps):
         sl_h_vals = [x["sl"] for x in h_list]
+        sl_vip_h = [x["sl_vip"] for x in h_list if not np.isnan(x["sl_vip"])]
         wq_h_vals = [x["wq"] for x in h_list]
         ab_h_vals = [x["p_ab"] for x in h_list]
         util_h_vals = [x["util"] for x in h_list]
         
-        m_sl_h, ci_sl_h, (low_sl_h, _) = mean_ci(sl_h_vals)
+        m_sl_h, ci_sl_h, (low_sl_h, high_sl_h) = mean_ci(sl_h_vals)
         m_wq_h, ci_wq_h, _ = mean_ci(wq_h_vals)
         m_ab_h, ci_ab_h, _ = mean_ci(ab_h_vals)
-        m_ut_h, _, _ = mean_ci(util_h_vals)
+        m_ut_h, ci_ut_h, _ = mean_ci(util_h_vals)
+        
+        if len(sl_vip_h) > 0:
+            m_vip_h, ci_vip_h, (low_vip_h, _) = mean_ci(sl_vip_h)
+        else:
+            m_vip_h, ci_vip_h, low_vip_h = np.nan, np.nan, np.nan
         
         hourly_summary.append({
             "hour": h,
             "c": schedule[h],
             "sl_mean": round(m_sl_h, 4),
             "sl_ci95_low": round(low_sl_h, 4),
+            "sl_ci95_high": round(high_sl_h, 4),
             "sl_ci_half": round(ci_sl_h, 4),
+            "sl_vip_mean": round(m_vip_h, 4) if not np.isnan(m_vip_h) else np.nan,
+            "sl_vip_ci95_low": round(low_vip_h, 4) if not np.isnan(low_vip_h) else np.nan,
             "wq_mean": round(m_wq_h, 4),
             "wq_ci_half": round(ci_wq_h, 4),
             "p_ab_mean": round(m_ab_h, 4),
-            "util_mean": round(m_ut_h, 4)
+            "p_ab_ci_half": round(ci_ab_h, 4),
+            "util_mean": round(m_ut_h, 4),
+            "util_ci_half": round(ci_ut_h, 4)
         })
         
     return {
@@ -309,9 +341,15 @@ def run_reps(
         "sl_mean": round(m_sl, 4),
         "sl_ci95": [round(low_sl, 4), round(high_sl, 4)],
         "sl_ci_half": round(ci_sl, 4),
+        "sl_vip_mean": round(m_vip, 4) if not np.isnan(m_vip) else np.nan,
+        "sl_vip_ci95": [round(low_vip, 4), round(high_vip, 4)] if not np.isnan(low_vip) else None,
+        "sl_vip_ci_half": round(ci_vip, 4) if not np.isnan(ci_vip) else np.nan,
         "wq_mean": round(m_wq, 4),
         "wq_ci_half": round(ci_wq, 4),
         "p_ab_mean": round(m_ab, 4),
+        "p_ab_ci_half": round(ci_ab, 4),
+        "util_mean": round(m_ut, 4),
+        "util_ci_half": round(ci_ut, 4),
         "hourly": hourly_summary
     }
 
@@ -416,3 +454,115 @@ def welch_curve(
     # Trung binh truot (Moving Average)
     smoothed = np.convolve(mean_curve, np.ones(window) / window, mode="valid")
     return mean_curve, smoothed
+
+# =============================================================================
+# 5. THUAT TOAN TOI UU LICH QUAY DUA TREN MO PHONG (SIMULATION OPTIMIZATION)
+# =============================================================================
+
+def is_schedule_feasible(eval_res: Dict, target_sla: float = TARGET_SLA) -> Tuple[bool, List[int]]:
+    """
+    Kiem tra lich co thoa man SLA (feasible) khong:
+    Dung can duoi CI95 cua SL theo tung gio: sl_ci95_low >= target_sla.
+    Tra ve (feasible, danh sach cac gio bi vi pham).
+    """
+    violated = []
+    for h_info in eval_res["hourly"]:
+        h = h_info["hour"]
+        if h_info["sl_ci95_low"] < target_sla:
+            violated.append(h)
+    return len(violated) == 0, violated
+
+def optimize_schedule(
+    model: Model,
+    initial_schedule: Optional[List[int]] = None,
+    target_sla: float = TARGET_SLA,
+    n_reps: int = 60,
+    c_cap: int = 15,
+    seed_base: int = 1000
+) -> Dict:
+    """
+    Thuat toan toi uu lich quay 2 pha dua tren mo phong SimPy:
+    - Khoi tao: Tu lich SIPP (hoac initial_schedule truyen vao).
+    - Pha 1 (Ramp-up): Chay mo phong n_reps lan lap voi CRN.
+      Moi vong kiem tra gio nao co can duoi CI95 < target_sla thi tang 1 quay.
+      Lap lai den khi moi gio deu dat SLA hoac dat c_cap.
+    - Pha 2 (Reduction/Pruning): Thu giam 1 quay o tung gio (bat dau tu gio nhieu quay nhat).
+      Giu nguyen giam neu toan bo lich van dat SLA (feasible).
+    Tra ve: {"schedule": optimal_schedule, "history": history, "eval": eval_final}
+    """
+    if initial_schedule is None:
+        import b_theory as th
+        sched = th.sipp_schedule(model.rates, 1.0 / model.mean_svc, model.theta, target=target_sla)
+    else:
+        sched = list(initial_schedule)
+        
+    history = []
+    
+    # --- PHA 1: TANG QUAY CHO DEN KHI DAT SLA ---
+    step = 0
+    max_steps_phase1 = 25
+    
+    while step < max_steps_phase1:
+        eval_res = run_reps(model, sched, n_reps=n_reps, seed_base=seed_base)
+        feas, violated = is_schedule_feasible(eval_res, target_sla)
+        
+        worst_hour = min(eval_res["hourly"], key=lambda x: x["sl_ci95_low"])
+        worst_sl_low = worst_hour["sl_ci95_low"]
+        
+        history.append({
+            "step": step,
+            "phase": 1,
+            "schedule": list(sched),
+            "total_c_hours": sum(sched),
+            "sl_mean": eval_res["sl_mean"],
+            "worst_hour": worst_hour["hour"],
+            "worst_sl_low": worst_sl_low,
+            "violated_hours": list(violated),
+            "feasible": feas
+        })
+        
+        if feas:
+            break
+            
+        # Tang 1 quay cho cac gio bi vi pham
+        for vh in violated:
+            if sched[vh] < c_cap:
+                sched[vh] += 1
+        step += 1
+        
+    # --- PHA 2: TIAT BOT QUAY DU THUA (PRUNING) ---
+    sorted_hours = sorted(range(len(sched)), key=lambda h: sched[h], reverse=True)
+    
+    for h in sorted_hours:
+        if sched[h] > 1:
+            test_sched = list(sched)
+            test_sched[h] -= 1
+            eval_test = run_reps(model, test_sched, n_reps=n_reps, seed_base=seed_base)
+            feas_test, violated_test = is_schedule_feasible(eval_test, target_sla)
+            
+            step += 1
+            worst_h_test = min(eval_test["hourly"], key=lambda x: x["sl_ci95_low"])
+            history.append({
+                "step": step,
+                "phase": 2,
+                "tried_hour_reduction": h,
+                "schedule": list(test_sched),
+                "total_c_hours": sum(test_sched),
+                "sl_mean": eval_test["sl_mean"],
+                "worst_hour": worst_h_test["hour"],
+                "worst_sl_low": worst_h_test["sl_ci95_low"],
+                "violated_hours": list(violated_test),
+                "feasible": feas_test,
+                "accepted": feas_test
+            })
+            
+            if feas_test:
+                sched = test_sched # Chap nhan cat giam
+                
+    # Danh gia lai lich cuoi cung
+    final_eval = run_reps(model, sched, n_reps=n_reps, seed_base=seed_base)
+    return {
+        "schedule": sched,
+        "history": history,
+        "eval": final_eval
+    }

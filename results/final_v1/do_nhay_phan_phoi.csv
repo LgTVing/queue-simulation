@@ -1,0 +1,5 @@
+﻿phan_phoi_phuc_vu,sl_toan_ngay,sl_gio_te_nhat,ti_le_bo_ve,wq_phut,dat_sla
+Gamma chuẩn (AIC tốt nhất),0.9393 ± 0.0034,0.9192 [Low: 0.9071],5.31%,0.4913,ĐẠT
+Bootstrap trực tiếp từ dữ liệu,0.9352 ± 0.0047,0.9180 [Low: 0.9042],5.52%,0.4952,ĐẠT
+Lognormal (cv tăng 20%),0.9295 ± 0.0048,0.9044 [Low: 0.8880],5.80%,0.5371,KHÔNG ĐẠT
+Mũ (Exponential - Mô hình đơn giản),0.9362 ± 0.0037,0.9148 [Low: 0.8997],5.47%,0.5065,KHÔNG ĐẠT

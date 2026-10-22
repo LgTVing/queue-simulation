@@ -1,0 +1,6 @@
+﻿chinh_sach,quay_gio,ti_le_bo_ve,so_khach_bo_ve_ngay,dat_sla,chi_phi_k_0.1,chi_phi_k_0.25,chi_phi_k_0.5,chi_phi_k_1.0,chi_phi_k_2.0
+Hằng số (Constant 6 quầy),54,0.0215,14.8,Y,55.48,57.69,61.38,68.76,83.53
+SIPP (Erlang-A),44,0.0535,36.7,Y,47.67,53.18,62.37,80.74,117.48
+Tối ưu mô phỏng (Sim-Optimized),44,0.0535,36.7,Y,47.67,53.18,62.37,80.74,117.48
+Bền vững (+10% nhu cầu),48,0.0373,25.6,Y,50.56,54.4,60.81,73.61,99.23
+Theo ca làm việc (Shift-based),52,0.0272,18.7,Y,53.87,56.67,61.34,70.68,89.36
