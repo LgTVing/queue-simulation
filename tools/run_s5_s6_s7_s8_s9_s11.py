@@ -78,7 +78,7 @@ def task_s8_mg1_and_tier_verification():
         
         # So lan lap cu: Tang 1 & 2 thuong 30 reps, Tang 3 cv=1.5 60 reps
         n_r = 30
-        if '60 reps' in tang:
+        if '60 reps' in tang or '60 lan' in tang:
             n_r = 60
         elif 'Kiem tra A' in tang:
             # Thay bang ket qua chay 40 reps o tren
@@ -101,6 +101,8 @@ def task_s8_mg1_and_tier_verification():
             note = f"Ly thuyet 14.625p nam trong CI95 [{l_wq:.2f}, {h_wq:.2f}]; khong bac bo duoc tinh dung"
         elif 'SimPy dung tuyet doi' in note:
             note = note.replace('SimPy dung tuyet doi', 'khong bac bo duoc tinh dung')
+        if 'Kiem tra B' in tang:
+            note = note.replace('Sai lech on dinh ~-17%', 'Sai lech cung chieu (-14% o 60 lan, -17% o 30 lan)')
             
         kc_v3.append({
             'kiem_chung': tang,
@@ -535,13 +537,18 @@ def task_s11_cost_analysis(model, policies):
         m_d, l_d, h_d, hw_d, _ = t_ci(diff_44_48)
         sig_diff = 'Co' if (l_d > 0 or h_d < 0) else 'Khong'
         
-        # Chon chinh sach re nhat co y nghia
-        if h_d < 0: # 44 re hon 48
-            best = 'Toi_uu_44'
-        elif l_d > 0: # 48 re hon 44
-            best = 'Ben_vung_48'
-        else:
-            best = 'Khong phan biet duoc giua 44 va 48'
+        # Chon chinh sach re nhat trong ca 3 chinh sach (hieu so theo cap, CRN)
+        costs = {'Toi_uu_44': c_44, 'Ben_vung_48': c_48, 'Moc_co_so_54': c_6}
+        best = min(costs, key=lambda name: costs[name].mean())
+        ties = []
+        for other, c_other in costs.items():
+            if other == best:
+                continue
+            _, l_o, h_o, _, _ = t_ci(c_other - costs[best])
+            if l_o <= 0 <= h_o:
+                ties.append(other)
+        if ties:
+            best = best + ' (khong phan biet duoc voi ' + ', '.join(ties) + ')'
             
         cost_rows.append({
             'k_he_so_mat_khach': k,

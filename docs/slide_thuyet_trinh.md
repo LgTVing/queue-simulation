@@ -54,11 +54,11 @@
 ---
 
 ### SLIDE 4: Thời Gian Phục Vụ và Độ Kiên Nhẫn Khách Hàng
-- **Thông điệp chính:** Thời gian phục vụ tuân theo phân phối Gamma ($cv = 1.10$); kiên nhẫn trung bình 9.2 phút
+- **Thông điệp chính:** Thời gian phục vụ được xấp xỉ tốt nhất bằng Gamma theo AIC ($cv$ thực nghiệm $= 1.10$); kiên nhẫn trung bình 9.2 phút
 - **Hình ảnh minh họa:** [`fig_a_fit.png`](file:///d:/KHDV/results/final_v1/hinh/fig_a_fit.png) (nửa dưới: Histogram thời gian phục vụ khớp đường cong Gamma).
 - **Kết quả ước lượng:**
   - $E[S] = 2.92$ phút (~2 phút 55 giây), độ lệch chuẩn $s = 3.21$ phút, $cv = 1.10, cs^2 = 1.20$.
-  - Tiêu chí thông tin Akaike (AIC): Gamma đạt AIC thấp nhất ($23.840$), vượt trội so với Exponential ($24.120$) và Weibull ($24.015$).
+  - Tiêu chí thông tin Akaike (AIC): Gamma đạt AIC thấp nhất ($26279.7$), so với Weibull ($26300.2$), Exponential ($26310.4$), Lognormal ($27483.0$). Lưu ý: với $n = 6.346$, cả 4 phân phối đều bị KS bác bỏ; Gamma là xấp xỉ tốt nhất, không phải phân phối đúng.
   - **Tốc độ bỏ về:** Ước lượng MLE có kiểm duyệt cho ra $\theta = 0.1087 \pm 0.0093$ (thời gian kiên nhẫn trung bình $1/\theta = 9.2$ phút).
   - **Khách hàng ưu tiên VIP:** Tỉ lệ $p_{vip} = 35.43\% \pm 1.13\%$.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên A

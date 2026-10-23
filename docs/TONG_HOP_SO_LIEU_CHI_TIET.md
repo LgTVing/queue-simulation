@@ -162,7 +162,7 @@ Toàn bộ tham số phân phối dịch vụ và hành vi bỏ về:
 | **$\text{std}[S]$ - Độ lệch chuẩn phục vụ** | **$3.1527$ phút** | - | Phản ánh biến thiên thời gian thao tác nghiệp vụ |
 | **$cv$ - Hệ số biến thiên** | **$1.0953$** | - | $cv > 1$ cho thấy biến thiên lớn hơn phân phối mũ chuẩn ($cv=1$) |
 | **$cs^2$ - Bình phương $cv$** | **$1.1996$** | - | Dùng trong công thức xấp xỉ Allen–Cunneen cho M/G/c |
-| **Phân phối phục vụ tốt nhất** | **Gamma / Lognormal**| - | Phân phối mũ bị bác bỏ do dữ liệu thực tế có đuôi phải dày |
+| **Phân phối phục vụ tốt nhất** | **Gamma (theo AIC)**| - | Cả 4 phân phối (Gamma, Weibull, Exponential, Lognormal) đều bị KS bootstrap bác bỏ; Lognormal có AIC kém nhất |
 | **$\theta$ - Tốc độ bỏ về** | **$0.1123 \text{ phút}^{-1}$**| [0.1040, 0.1206] | Ước lượng hợp lý cực đại (MLE) với dữ liệu bị kiểm duyệt |
 | **Kiên nhẫn TB ($1/\theta$)** | **$8.91$ phút** | [8.29, 9.62] | Thời gian khách sẵn sàng chờ đợi trước khi bỏ về |
 | **Tỉ lệ khách VIP ($p_{vip}$)** | **$0.3385$** | [0.3291, 0.3478] | Khách hàng priority level 2 trong hệ thống ngân hàng |
@@ -320,7 +320,7 @@ Mô hình hóa chi phí tổng thể $C(k) = \text{Quầy-giờ} + k \cdot N \cd
 | **$k = 0.10$** | **$47.60 \pm 0.15$** | $50.52 \pm 0.12$ | $55.43 \pm 0.09$ | **-2.92** | **[-2.99, -2.86]** | **Có** | **Lịch tối ưu 44** |
 | **$k = 0.25$** | **$52.99 \pm 0.38$** | $54.29 \pm 0.30$ | $57.58 \pm 0.22$ | **-1.30** | **[-1.46, -1.14]** | **Có** | **Lịch tối ưu 44** |
 | **$k = 0.50$** | $61.99 \pm 0.75$ | **$60.59 \pm 0.60$** | $61.16 \pm 0.45$ | **+1.40** | **[+1.07, +1.72]** | **Có** | **Lịch bền vững 48** |
-| **$k = 1.00$** | $79.97 \pm 1.51$ | **$73.18 \pm 1.21$** | $68.32 \pm 0.90$ | **+6.79** | **[+6.14, +7.44]** | **Có** | **Lịch bền vững 48** |
+| **$k = 1.00$** | $79.97 \pm 1.51$ | $73.18 \pm 1.21$ | **$68.32 \pm 0.90$** | **+6.79** | **[+6.14, +7.44]** | **Có** | Mốc 6 quầy |
 | **$k = 2.00$** | $115.94 \pm 3.01$ | $98.36 \pm 2.42$ | **$82.64 \pm 1.79$** | **+17.58** | **[+16.28, +18.88]** | **Có** | Mốc 6 quầy |
 
 *Điểm cân bằng kinh tế:*  
@@ -443,7 +443,7 @@ Dưới đây là bảng tổng kết quyết định quản trị vận hành c
 | **Tổng số quầy-giờ mở** | **44 quầy-giờ/ngày** | **48 quầy-giờ/ngày** | **54 quầy-giờ/ngày** |
 | **Hiệu quả cắt giảm chi phí** | **Tiết kiệm 18.52% (-10 q-h mở/ngày)**<br>*(Tiết kiệm 21.43% theo giờ công 44 vs 56)* | **Tiết kiệm 11.11% (-6 q-h mở/ngày)**<br>*(Tiết kiệm 14.29% theo giờ công 48 vs 56)* | Mốc cơ sở (0.0%) |
 | **Mức phục vụ $SL$ danh định (CI95)** | **$93.81\% \pm 0.23\%$** | **$95.82\% \pm 0.18\%$** | $97.70\% \pm 0.12\%$ |
-| **Mức phục vụ $SL$ giờ tệ nhất (Low CI95)** | **$90.78\%$** (Điểm ước lượng $90.60\%$) | **$93.64\%$** | $95.57\%$ |
+| **Mức phục vụ $SL$ giờ tệ nhất (Low CI95)** | **$90.78\%$** (H8, 300 lần lặp; lần chạy tối ưu 60 lần lặp: H3, $90.72\%$) | **$93.64\%$** | $95.57\%$ |
 | **$P(SL \text{ kỳ vọng ngày} \ge 90\%)$** | **$88.5\%$** (Wilson 95%: $[83.3\%, 92.2\%]$) | **$98.5\%$** (Wilson 95%: $[95.7\%, 99.5\%]$) | **$100.0\%$** (Wilson 95%: $[98.1\%, 100.0\%]$) |
 | **$P(\min_h E_h(m) \ge 90\%)$** | **$65.5\%$** (Wilson 95%: $[58.7\%, 71.7\%]$)<br>*Số giờ $E_h < 90\%$ TB: 1.17 giờ* | **$82.5\%$** (Wilson 95%: $[76.6\%, 87.1\%]$)<br>*Số giờ $E_h < 90\%$ TB: 0.35 giờ* | **$97.5\%$** (Wilson 95%: $[94.3\%, 98.9\%]$)<br>*Số giờ $E_h < 90\%$ TB: 0.03 giờ* |
 | **$P(\text{thực tế mọi giờ} \ge 90\%)$** | **$25.7\%$** (Wilson 95%: $[24.6\%, 26.8\%]$)<br>*(Chịu chi phối mạnh bởi cỡ mẫu giờ)* | **$46.1\%$** (Wilson 95%: $[44.9\%, 47.4\%]$)<br>*(Chịu chi phối mạnh bởi cỡ mẫu giờ)* | **$76.2\%$** (Wilson 95%: $[75.1\%, 77.2\%]$) |

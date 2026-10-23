@@ -9,8 +9,10 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 def build_erlang_excel():
-    excel_path = os.path.join(r"d:\KHDV", "excel", "erlang.xlsx")
+    excel_path = os.path.join(BASE_DIR, "excel", "erlang.xlsx")
     os.makedirs(os.path.dirname(excel_path), exist_ok=True)
     
     wb = openpyxl.Workbook()
@@ -260,19 +262,33 @@ def build_erlang_excel():
             ws_ac[f'{col_l}{r}'].alignment = Alignment(horizontal='center')
 
     # =========================================================================
-    # 5. SHEET Quyet_dinh
+    # 5. SHEET Quyet_dinh (tham so TRAIN tu results/final_v3/params.json)
     # =========================================================================
+    import sys, json
+    sys.path.insert(0, BASE_DIR)
+    import b_theory as bt
+
+    with open(os.path.join(BASE_DIR, "results", "final_v3", "params.json"), encoding="utf-8") as f:
+        prm = json.load(f)
+    train_lambdas = prm["rates_per_min"]
+    es_train = prm["service"]["mean"]
+    cs2_train = prm["service"]["cs2"]
+    theta_train = prm["theta"]
+    mu_train = 1.0 / es_train
+
     ws_qd = wb.create_sheet('Quyet_dinh')
     ws_qd.views.sheetView[0].showGridLines = True
 
-    ws_qd['A1'] = "BẢNG QUYẾT ĐỊNH SỐ QUẦY THEO KHUNG GIỜ (SIPP LÝ THUYẾT)"
+    ws_qd['A1'] = "BẢNG QUYẾT ĐỊNH SỐ QUẦY THEO KHUNG GIỜ (SIPP LÝ THUYẾT - ERLANG C VÀ ERLANG-A)"
     ws_qd['A1'].font = font_title
-    ws_qd['A2'] = "Tham số thực tế: E[S] = 2.88 phút, cs² = 1.20, SLA: P(Wq <= 5 phút) >= 90%"
+    ws_qd['A2'] = (f"Tham số tập train (10 ngày): E[S] = {es_train:.4f} phút, cs² = {cs2_train:.4f}, "
+                   f"θ = {theta_train:.4f}/phút. SLA: P(phục vụ và chờ <= 5 phút) >= 90%")
     ws_qd['A2'].font = font_bold
 
     headers_qd = [
-        "Khung giờ", "λ (khách/phút)", "E[S] (phút)", "cs²", 
-        "Tải a (Erlang)", "Số quầy c (Erlang C)", "Hiệu suất ρ", "P(Wq <= 5) dự kiến", "Đạt SLA?"
+        "Khung giờ", "λ train (khách/phút)", "E[S] (phút)", "Tải a (Erlang)",
+        "Số quầy c (Erlang C)", "SL Erlang C", "Số quầy c (Erlang-A)", "SL Erlang-A",
+        "p_ab Erlang-A", "Hiệu suất ρ (Erlang-A)"
     ]
     for idx, h_text in enumerate(headers_qd, start=1):
         cell = ws_qd.cell(row=4, column=idx, value=h_text)
@@ -280,64 +296,44 @@ def build_erlang_excel():
         cell.fill = fill_header_dark
         cell.alignment = Alignment(horizontal='center', vertical='center')
 
-    real_lambdas = [1.0190, 1.4333, 1.6440, 1.4393, 1.2393, 1.2429, 1.3214, 1.3048, 1.0655]
-    es_real = 2.8784
-    mu_real = 1.0 / es_real
-
-    for idx, lam in enumerate(real_lambdas, start=5):
+    for idx, lam in enumerate(train_lambdas, start=5):
         h_label = f"{idx+3}h - {idx+4}h"
+        c_c = bt.sipp_schedule([lam], mu_train, theta_train, use_erlang_a=False)[0]
+        c_a = bt.sipp_schedule([lam], mu_train, theta_train, use_erlang_a=True)[0]
+        res_c = bt.mmc(lam, mu_train, c_c)
+        res_a = bt.erlang_a(lam, mu_train, theta_train, c_a)
+
         ws_qd[f'A{idx}'] = h_label
         ws_qd[f'B{idx}'] = lam
-        ws_qd[f'C{idx}'] = round(es_real, 2)
-        ws_qd[f'D{idx}'] = 1.20
-        ws_qd[f'E{idx}'] = f'=B{idx}*C{idx}'
-        
-        c_opt = find_min_c(lam, es_real)
-        ws_qd[f'F{idx}'] = c_opt
-        ws_qd[f'G{idx}'] = f'=E{idx}/F{idx}'
-        
-        C_val = erlang_c_prob(c_opt, lam * es_real)
-        sl_val = 1.0 - C_val * math.exp(-(c_opt * mu_real - lam) * 5.0)
-        ws_qd[f'H{idx}'] = round(sl_val, 4)
-        ws_qd[f'I{idx}'] = "ĐẠT"
+        ws_qd[f'C{idx}'] = es_train
+        ws_qd[f'D{idx}'] = f'=B{idx}*C{idx}'
+        ws_qd[f'E{idx}'] = c_c
+        ws_qd[f'F{idx}'] = round(res_c["P_sla"], 4)
+        ws_qd[f'G{idx}'] = c_a
+        ws_qd[f'H{idx}'] = round(res_a["SL"], 4)
+        ws_qd[f'I{idx}'] = round(res_a["p_ab"], 4)
+        ws_qd[f'J{idx}'] = round(res_a["util"], 4)
 
         ws_qd[f'A{idx}'].font = font_bold
-        ws_qd[f'A{idx}'].alignment = Alignment(horizontal='center')
         ws_qd[f'B{idx}'].number_format = '0.0000'
-        ws_qd[f'B{idx}'].alignment = Alignment(horizontal='center')
-        ws_qd[f'C{idx}'].number_format = '0.00'
-        ws_qd[f'C{idx}'].alignment = Alignment(horizontal='center')
+        ws_qd[f'C{idx}'].number_format = '0.0000'
         ws_qd[f'D{idx}'].number_format = '0.00'
-        ws_qd[f'D{idx}'].alignment = Alignment(horizontal='center')
-        ws_qd[f'E{idx}'].number_format = '0.00'
-        ws_qd[f'E{idx}'].alignment = Alignment(horizontal='center')
-        ws_qd[f'F{idx}'].font = Font(name='Segoe UI', size=11, bold=True, color='006100')
-        ws_qd[f'F{idx}'].fill = fill_pass
-        ws_qd[f'F{idx}'].alignment = Alignment(horizontal='center')
-        ws_qd[f'G{idx}'].number_format = '0.0%'
-        ws_qd[f'G{idx}'].alignment = Alignment(horizontal='center')
-        ws_qd[f'H{idx}'].number_format = '0.0%'
-        ws_qd[f'H{idx}'].alignment = Alignment(horizontal='center')
-        ws_qd[f'I{idx}'].font = font_bold
-        ws_qd[f'I{idx}'].alignment = Alignment(horizontal='center')
-
-        for col_l in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+        for col_l in ['F', 'H', 'I', 'J']:
+            ws_qd[f'{col_l}{idx}'].number_format = '0.0%'
+        for col_l in ['E', 'G']:
+            ws_qd[f'{col_l}{idx}'].font = Font(name='Segoe UI', size=11, bold=True, color='006100')
+            ws_qd[f'{col_l}{idx}'].fill = fill_pass
+        for col_l in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']:
             ws_qd[f'{col_l}{idx}'].border = border_thin
+            ws_qd[f'{col_l}{idx}'].alignment = Alignment(horizontal='center')
 
-    ws_qd['A14'] = "TỔNG CỘNG / TRUNG BÌNH"
+    ws_qd['A14'] = "TỔNG QUẦY-GIỜ"
     ws_qd['A14'].font = font_bold
     ws_qd['A14'].alignment = Alignment(horizontal='center')
-    ws_qd['F14'] = "=SUM(F5:F13)"
-    ws_qd['F14'].font = Font(name='Segoe UI', size=12, bold=True, color='1F4E78')
-    ws_qd['F14'].alignment = Alignment(horizontal='center')
-    ws_qd['G14'] = "=AVERAGE(G5:G13)"
-    ws_qd['G14'].number_format = '0.0%'
-    ws_qd['G14'].font = font_bold
-    ws_qd['G14'].alignment = Alignment(horizontal='center')
-    ws_qd['H14'] = "=AVERAGE(H5:H13)"
-    ws_qd['H14'].number_format = '0.0%'
-    ws_qd['H14'].font = font_bold
-    ws_qd['H14'].alignment = Alignment(horizontal='center')
+    for col_l in ['E', 'G']:
+        ws_qd[f'{col_l}14'] = f"=SUM({col_l}5:{col_l}13)"
+        ws_qd[f'{col_l}14'].font = Font(name='Segoe UI', size=12, bold=True, color='1F4E78')
+        ws_qd[f'{col_l}14'].alignment = Alignment(horizontal='center')
 
     for sheet in wb.sheetnames:
         ws = wb[sheet]

@@ -110,13 +110,13 @@ Bảng dưới đây tổng hợp các đặc trưng thống kê mô tả then c
 |---|:---:|:---:|:---:|
 | **Tổng số lượt khách** | 6.867 lượt | 2.969 lượt | 9.836 lượt |
 | **Số khách trung bình / ngày** | 686.7 khách/ngày | 742.3 khách/ngày | 702.6 khách/ngày |
-| **Thời gian phục vụ TB ($E[S]$)** | **$2.9236$ phút** | $2.7561$ phút | $2.8730$ phút |
-| **Độ lệch chuẩn thời gian phục vụ** | $3.2051$ phút | $3.0789$ phút | $3.1685$ phút |
-| **Hệ số biến thiên ($cv = s/\bar{x}$)** | **$1.0963$** | $1.1171$ | $1.1029$ |
-| **Bình phương hệ số biến thiên ($cs^2$)**| **$1.2018$** | $1.2480$ | $1.2163$ |
-| **Tỉ lệ khách hàng ưu tiên (VIP)** | **$35.43\%$** | $34.12\%$ | $35.03\%$ |
-| **Thời gian chờ trung bình thực tế** | $1.0912$ phút | $1.1450$ phút | $1.1075$ phút |
-| **Tỉ lệ khách bỏ về thực tế** | $5.32\%$ | $5.49\%$ | $5.37\%$ |
+| **Thời gian phục vụ TB ($E[S]$)** | **$2.9236$ phút** | $2.7755$ phút | $2.8784$ phút |
+| **Độ lệch chuẩn thời gian phục vụ** | $3.2051$ phút | $3.0280$ phút | $3.1527$ phút |
+| **Hệ số biến thiên ($cv = s/\bar{x}$)** | **$1.0963$** | $1.0910$ | $1.0953$ |
+| **Bình phương hệ số biến thiên ($cs^2$)**| **$1.2018$** | $1.1903$ | $1.1996$ |
+| **Tỉ lệ khách hàng ưu tiên (VIP)** | **$35.43\%$** | $30.18\%$ | $33.85\%$ |
+| **Thời gian chờ trung bình thực tế (mọi khách)** | $0.6981$ phút | $0.4940$ phút | $0.6365$ phút |
+| **Tỉ lệ khách bỏ về thực tế** | $7.59\%$ | $6.13\%$ | $7.15\%$ |
 
 ---
 
@@ -125,36 +125,36 @@ Bảng dưới đây tổng hợp các đặc trưng thống kê mô tả then c
 ### 4.1 Ước lượng Tốc độ Khách đến ($\lambda_h$) và Kiểm định Quá trình Poisson
 Tốc độ khách đến được ước lượng độc lập cho từng khung giờ 60 phút trên 10 ngày của tập Train:
 $$\hat{\lambda}_h = \frac{\bar{N}_h}{60.0} \quad (\text{khách/phút}), \quad \text{SE}(\hat{\lambda}_h) = \frac{\sqrt{\bar{N}_h / 10}}{60.0}$$
-Khoảng tin cậy 95% được xác định bởi $\hat{\lambda}_h \pm 1.96 \cdot \text{SE}(\hat{\lambda}_h)$.
+Vì số khách theo ngày bị quá phân tán (bảng dưới), công thức Poisson $\pm 1.96 \cdot \text{SE}$ cho khoảng quá hẹp. Khoảng tin cậy 95% được tính bằng Student-t trên 10 ngày train: $\hat{\lambda}_h \pm t_{0.975;9} \cdot s_h / (60\sqrt{10})$ (lưu trong `results/final_v3/params.json`).
 
 Kiểm định tính thuần nhất Poisson cục bộ trong từng giờ được thực hiện thông qua chỉ số phân tán (*Dispersion Index*):
 $$D = \frac{\sum_{d=1}^{10} (N_{d,h} - \bar{N}_h)^2}{\bar{N}_h} \sim \chi^2(9)$$
 
-| Khung giờ | $\bar{N}_h$ (khách/giờ) | $\hat{\lambda}_h$ (khách/phút) | Khoảng tin cậy 95% | Chỉ số phân tán $D$ | $p$-value Poisson | Kết luận kiểm định |
+| Khung giờ | $\bar{N}_h$ (khách/giờ) | $\hat{\lambda}_h$ (khách/phút) | Khoảng tin cậy 95% (Student-t) | Chỉ số phân tán $D$ | $p$-value Poisson | Kết luận kiểm định ($\alpha = 0.05$) |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **8h - 9h** | 59.4 | **0.9900** | [0.9104, 1.0696] | 10.24 | 0.3314 | Chấp nhận Poisson |
-| **9h - 10h** | 82.6 | **1.3767** | [1.2828, 1.4706] | 11.45 | 0.2462 | Chấp nhận Poisson |
-| **10h - 11h (Đỉnh)**| 92.1 | **1.5350** | [1.4359, 1.6341] | 8.92 | 0.4447 | Chấp nhận Poisson |
-| **11h - 12h** | 83.4 | **1.3900** | [1.2957, 1.4843] | 7.61 | 0.5739 | Chấp nhận Poisson |
-| **12h - 13h** | 74.4 | **1.2400** | [1.1509, 1.3291] | 12.18 | 0.2033 | Chấp nhận Poisson |
-| **13h - 14h** | 72.1 | **1.2017** | [1.1140, 1.2894] | 9.87 | 0.3611 | Chấp nhận Poisson |
-| **14h - 15h** | 80.3 | **1.3383** | [1.2457, 1.4309] | 14.82 | 0.0960 | Chấp nhận Poisson |
-| **15h - 16h** | 79.0 | **1.3167** | [1.2249, 1.4085] | 13.56 | 0.1388 | Chấp nhận Poisson |
-| **16h - 17h** | 63.4 | **1.0567** | [0.9744, 1.1390] | 11.08 | 0.2702 | Chấp nhận Poisson |
+| **8h - 9h** | 59.4 | **0.9900** | [0.8522, 1.1278] | 20.24 | 0.0165 | Bác bỏ Poisson |
+| **9h - 10h** | 82.6 | **1.3767** | [1.2357, 1.5177] | 15.23 | 0.0847 | Chưa bác bỏ |
+| **10h - 11h (Đỉnh)**| 92.1 | **1.5350** | [1.3299, 1.7401] | 28.91 | 0.0007 | Bác bỏ Poisson |
+| **11h - 12h** | 83.4 | **1.3900** | [1.1870, 1.5930] | 31.28 | 0.0003 | Bác bỏ Poisson |
+| **12h - 13h** | 74.4 | **1.2400** | [1.0852, 1.3948] | 20.38 | 0.0157 | Bác bỏ Poisson |
+| **13h - 14h** | 72.1 | **1.2017** | [1.0490, 1.3544] | 20.48 | 0.0151 | Bác bỏ Poisson |
+| **14h - 15h** | 80.3 | **1.3383** | [1.1401, 1.5365] | 30.96 | 0.0003 | Bác bỏ Poisson |
+| **15h - 16h** | 79.0 | **1.3167** | [1.1285, 1.5049] | 28.38 | 0.0008 | Bác bỏ Poisson |
+| **16h - 17h** | 63.4 | **1.0567** | [0.9079, 1.2055] | 22.12 | 0.0085 | Bác bỏ Poisson |
 
-Kiểm định tính cố định của tốc độ đến qua cả ngày cho giá trị $\chi^2 = 184.20$ ($p$-value $< 10^{-6}$), bác bỏ mạnh mẽ giả thuyết tốc độ đến không đổi. Điều này chứng minh việc sử dụng mô hình tốc độ đến biến thiên theo giờ $\lambda_h$ là hoàn toàn bắt buộc về mặt toán học. Biểu đồ trực quan hóa được lưu tại [`fig_a_fit.png`](file:///d:/KHDV/results/final_v1/hinh/fig_a_fit.png).
+Trên tập train, 8/9 khung giờ bác bỏ giả thuyết số khách/ngày tuân theo Poisson (quá phân tán giữa các ngày). Hiện tượng này được mô hình hóa bằng nhân tử biến thiên ngày $m_d \sim \text{Gamma}$ với $CV_{\text{ngày}} = 11.8\%$. Kiểm định tính cố định của tốc độ đến qua cả ngày cho giá trị $\chi^2 = 109.61$ ($df = 8$, $p$-value $< 10^{-6}$), bác bỏ mạnh giả thuyết tốc độ đến không đổi; vì vậy cần mô hình tốc độ đến biến thiên theo giờ $\lambda_h$.
 
 ### 4.2 Ước lượng Phân phối Thời gian Phục vụ
-Bốn phân phối xác suất liên tục ứng viên đã được fit vào $6.867$ quan sát thời gian phục vụ bằng phương pháp hợp lý cực đại (MLE, ràng buộc gốc `floc=0`). Kết quả so sánh theo tiêu chí AIC (*Akaike Information Criterion*) và kiểm định Kolmogorov-Smirnov (KS):
+Bốn phân phối xác suất liên tục ứng viên đã được fit vào $6.346$ quan sát thời gian phục vụ (khách được phục vụ trong tập train) bằng phương pháp hợp lý cực đại (MLE, ràng buộc gốc `floc=0`). Kết quả so sánh theo tiêu chí AIC (*Akaike Information Criterion*) và kiểm định Kolmogorov-Smirnov (KS):
 
 | Phân phối ứng viên | Tham số ước lượng MLE | Tiêu chí AIC | Thống kê KS ($D$) | $p$-value KS | Thứ hạng tối ưu |
 |---|---|:---:|:---:|:---:|:---:|
-| **Gamma** | **$\alpha = 1.0955, \beta = 2.6688$** | **23.840,2** | **0.0215** | **0.0034** | **Hạng 1 (Tốt nhất)** |
-| **Lognormal** | $\mu_{\ln} = 0.5514, \sigma_{\ln} = 1.2150$ | 23.895,4 | 0.0289 | $< 10^{-4}$ | Hạng 2 |
-| **Weibull** | $k = 0.9852, \lambda = 2.8912$ | 24.015,8 | 0.0341 | $< 10^{-5}$ | Hạng 3 |
-| **Exponential** | $\lambda_{exp} = 0.3420$ ($\mu = 2.9236$) | 24.120,5 | 0.0412 | $< 10^{-6}$ | Hạng 4 (Kém nhất) |
+| **Gamma** | **$\alpha = 1.0955, \beta = 2.6688$** | **26279.7** | 0.0717 | $< 0.001$ | Hạng 1 theo AIC (bị bác bỏ) |
+| **Weibull** | $k = 1.0335, \lambda = 2.9650$ | 26300.2 | 0.0799 | $< 0.001$ | Hạng 2 (bị bác bỏ) |
+| **Exponential** | $\lambda_{exp} = 0.3420$ ($\mu = 2.9236$) | 26310.4 | 0.0913 | $< 0.001$ | Hạng 3 (bị bác bỏ) |
+| **Lognormal** | $\mu_{\ln} = 0.5514, \sigma_{\ln} = 1.2150$ | 27483.0 | 0.1159 | $< 0.001$ | Hạng 4 (bị bác bỏ) |
 
-Phân phối Gamma với $\alpha = 1.0955$ và scale $\beta = 2.6688$ đạt chỉ số AIC thấp nhất, phản ánh trung thực đặc tính phân phối thực nghiệm có đuôi dày về bên phải (nhiều giao dịch hoàn tất nhanh trong 1-2 phút, nhưng có một lượng nhỏ giao dịch kéo dài 10-20 phút).
+Phân phối Gamma với $\alpha = 1.0955$ và scale $\beta = 2.6688$ đạt chỉ số AIC thấp nhất. Tuy vậy, với cỡ mẫu lớn, **cả 4 phân phối đều bị kiểm định KS (bootstrap) bác bỏ** (`results/final_v3/kiem_dinh_phan_phoi_chi_tiet.csv`), nên Gamma chỉ là xấp xỉ làm việc. Lưu ý thêm: Gamma MLE có $cs^2 = 1/\alpha \approx 0.91$, thấp hơn $cs^2$ thực nghiệm $1.20$, tức mô phỏng hơi đánh giá thấp độ biến động phục vụ. Phân tích độ nhạy với bootstrap thực tế (S9) cho SL thấp hơn khoảng 0.8 điểm %.
 
 ### 4.3 Ước lượng Tốc độ Bỏ về ($\theta$) bằng Dữ liệu Bị Kiểm duyệt
 Do không thể quan sát được thời gian kiên nhẫn của những khách hàng đã được phục vụ thành công, thời gian kiên nhẫn bị kiểm duyệt bên phải (*right-censored*). Áp dụng ước lượng hợp lý cực đại MLE cho phân phối mũ có kiểm duyệt:
@@ -225,15 +225,15 @@ $$c_h^* = \min \left\{ c \in \mathbb{Z}^+ \mid SL_h(5.0; \lambda_h, \mu, \theta,
 
 | Khung giờ | $\lambda_h$ (khách/phút) | Nhu cầu tải $a_h$ | Số quầy Erlang C | $SL$ Erlang C | Số quầy Erlang-A | $SL$ Erlang-A | $p_{ab}$ Erlang-A |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **8h - 9h** | 0.9900 | 2.89 | 4 | 93.6% | **4** | **94.8%** | 4.8% |
-| **9h - 10h** | 1.3767 | 4.02 | 6 | 98.1% | **5** | **92.2%** | 6.5% |
-| **10h - 11h (Đỉnh)** | 1.5350 | 4.49 | 6 | 95.7% | **6** | **96.5%** | 3.2% |
-| **11h - 12h** | 1.3900 | 4.06 | 6 | 97.9% | **5** | **91.9%** | 6.7% |
-| **12h - 13h** | 1.2400 | 3.63 | 5 | 92.8% | **5** | **95.1%** | 4.4% |
-| **13h - 14h** | 1.2017 | 3.51 | 5 | 94.1% | **5** | **95.9%** | 3.8% |
-| **14h - 15h** | 1.3383 | 3.91 | 5 | 90.5% | **5** | **93.2%** | 5.8% |
-| **15h - 16h** | 1.3167 | 3.85 | 5 | 91.2% | **5** | **93.7%** | 5.5% |
-| **16h - 17h** | 1.0567 | 3.09 | 5 | 97.5% | **4** | **93.5%** | 5.7% |
+| **8h - 9h** | 0.9900 | 2.89 | 4 | 93.0% | **4** | **93.6%** | 5.8% |
+| **9h - 10h** | 1.3767 | 4.02 | 6 | 99.0% | **5** | **93.1%** | 6.4% |
+| **10h - 11h (Đỉnh)** | 1.5350 | 4.49 | 6 | 96.9% | **6** | **95.8%** | 4.1% |
+| **11h - 12h** | 1.3900 | 4.06 | 6 | 98.9% | **5** | **92.8%** | 6.6% |
+| **12h - 13h** | 1.2400 | 3.63 | 5 | 96.0% | **5** | **95.2%** | 4.5% |
+| **13h - 14h** | 1.2017 | 3.51 | 5 | 97.0% | **5** | **95.7%** | 4.1% |
+| **14h - 15h** | 1.3383 | 3.91 | 5 | 91.9% | **5** | **93.7%** | 5.9% |
+| **15h - 16h** | 1.3167 | 3.85 | 5 | 93.0% | **5** | **94.1%** | 5.5% |
+| **16h - 17h** | 1.0567 | 3.09 | 5 | 99.0% | **4** | **92.2%** | 7.0% |
 | **Tổng quầy-giờ** | | | **47 q-h** | | **44 q-h** | | |
 
 *Nhận xét then chốt:* 
@@ -343,7 +343,7 @@ Mô hình mô phỏng sự kiện rời rạc (*Discrete-Event Simulation - DES*
 | **Tầng 3 (M/G/c, cv=1.0)** | $W_q$ (phút) | 0.8433 | **0.8113** | ±0.0544 | $-3.79\%$ | **Y** | Tốt | Khớp Erlang C chuẩn (sai lệch < 5%) |
 | **Tầng 3 (M/G/c, cv=1.5)** | $W_q$ (phút) | 1.3704 | **1.1333** | ±0.1293 | $-17.30\%$ | - | Kém, cần giải thích | Allen–Cunneen đánh giá cao; kiểm tra bằng M/G/1 |
 | **Kiểm tra A (M/G/1 P-K exact, 40k phút, 40 reps)** | $W_q$ (phút) | 14.6250 | **14.7856** | ±1.0137 | $+1.10\%$ | **Y** | Tốt | Lý thuyết 14.625p nằm trong CI95 [13.77, 15.80]; không bác bỏ được tính đúng của SimPy |
-| **Kiểm tra B (M/G/6, cv=1.5, 60 reps)** | $W_q$ (phút) | 1.3704 | **1.1815** | ±0.0753 | $-13.78\%$ | - | Kém, cần giải thích | Sai lệch ổn định ~-14% đến -17% do Allen-Cunneen |
+| **Kiểm tra B (M/G/6, cv=1.5, 60 lần lặp)** | $W_q$ (phút) | 1.3704 | **1.1815** | ±0.0737 | $-13.78\%$ | - | Kém, cần giải thích | Sai lệch cùng chiều (-14% ở 60 lần, -17% ở 30 lần) do Allen-Cunneen |
 
 ### Phân tích Chuyên sâu về Hai Kiểm tra Độc lập:
 1. **Khắc phục lỗi tồn đọng $\rho$ của Tuần 2:**

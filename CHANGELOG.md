@@ -1,5 +1,28 @@
 # NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG v1 -> v2)
 
+## v3.1 — Rà soát đối chiếu số liệu (2026-10-23)
+
+Đối chiếu toàn bộ bảng số trong tài liệu với `data/clean/data_clean.csv` và `results/final_v3/`. Các mục ghi "KS $p = 0.482$", "100% số liệu khớp" ở phần v3 bên dưới là **sai** và đã được thay thế như sau.
+
+**Lỗi code đã sửa (và chạy lại phần liên quan):**
+- `tools/run_s5_s6_s7_s8_s9_s11.py` (S11): bước chọn "chính sách kinh tế nhất" chỉ so Lịch 44 với Lịch 48, bỏ qua Mốc 54. Đã sửa để so cả 3 chính sách. Trong `chi_phi_v3.csv`, $k = 1.0$ và $k = 2.0$ giờ ghi `Moc_co_so_54`; các giá trị chi phí không đổi.
+- `tools/run_s5_s6_s7_s8_s9_s11.py` (S8): nhãn "lap 60 lan" không được nhận diện nên Kiểm tra B dùng nhầm $n = 30$. Giờ là $n = 60$, $t = 2.0010$, nửa CI ±0.0737 (`kiem_chung_v3.csv`).
+- `a_data.py`: nhãn biểu đồ ghi cứng "AIC=37551", đổi thành AIC tính được (26280). Đã vẽ lại `fig_a_fit.png`.
+- `excel/tao_erlang_excel.py`: sheet `Quyet_dinh` dùng λ của 14 ngày, E[S]=2.88 và không có Erlang-A. Giờ đọc tham số train từ `results/final_v3/params.json`, tính Erlang C và Erlang-A bằng `b_theory.py`. Đường dẫn ghi cứng `d:\KHDV` được đổi thành đường dẫn tương đối. Đã tạo lại `excel/erlang.xlsx`.
+- `tools/check_consistency.py`: phiên bản cũ chỉ kiểm tra file có tồn tại. Bản mới đối chiếu 316 giá trị trong các bảng 2.1, 2.2, 2.4, 2.5, 3.1, 4.2, 7.3, 7.4 của `tong_hop.md` với dữ liệu và CSV, trả exit code 1 nếu lệch. Chạy trên bản cũ của tài liệu: 127 giá trị lệch.
+
+**Số liệu tài liệu đã sửa** (`tong_hop.md`, `docs/bao_cao_tong_ket.md`, `docs/TONG_HOP_SO_LIEU_CHI_TIET.md`, `docs/BAO_CAO_SUA_DOI_V2.md`, `docs/slide_thuyet_trinh.md`):
+- Kiểm định phân phối phục vụ: cả 4 phân phối đều bị KS bootstrap bác bỏ ($p < 0.001$; Gamma KS = 0.0717). Tham số và AIC của Lognormal, Weibull, Exponential được lấy lại từ `kiem_dinh_phan_phoi_chi_tiet.csv`.
+- λ theo giờ (14 ngày): $\bar N_h$, λ và CI của các giờ 2–8 lấy lại từ `khoang_tin_cay_lambda.csv` (ví dụ 10h–11h: 98.64, không phải 96.93).
+- Bảng train/test/toàn bộ: các cột Test và Toàn bộ; Wq và tỉ lệ bỏ về *quan sát thực tế* (train 0.698 phút và 7.59%; số cũ 1.0912 và 5.32% là số mô phỏng).
+- `bao_cao_tong_ket.md` §4.1: bảng Poisson train ghi "Chấp nhận Poisson" ở 9/9 giờ là sai. Thực tế 8/9 giờ bị bác bỏ; $\chi^2$ kiểm định tính cố định là 109.61 (không phải 184.20).
+- Bảng Erlang C / Erlang-A: các giá trị SL và $p_{ab}$ được tính lại; số quầy (47 / 44) không đổi.
+- Bảng độ nhạy CV ngày: cột "Số giờ $E_h < 90\%$" và "P(gộp tháng)" lấy lại từ `do_nhay_cv_ngay.csv`.
+- Pha 3: 45 phép giảm 2 quầy (không phải 36) và nêu rõ phép kiểm tra dùng Erlang-A.
+- Bổ sung mục 9 "Hạn chế" trong `tong_hop.md`: Gamma có $cs^2$ thấp hơn thực tế, KM lệch khỏi giả định mũ, sai số giữa các bộ seed, Wilson CI bỏ qua tương quan, OLS đánh giá trong mẫu (RMSE ngoài mẫu 55–64), điểm hòa vốn $k \approx 0.55$.
+
+---
+
 Tài liệu này ghi nhận chi tiết toàn bộ các thay đổi giữa kết quả ban đầu (`results/final_v1/`) và kết quả chuẩn hóa khoa học (`results/final_v2/`) theo 14 nhiệm vụ kỹ thuật được chỉ định trong `YEU_CAU_CHINH_SUA_AGENT.md`.
 
 ---

@@ -30,7 +30,7 @@ Tài liệu báo cáo nghiệm thu kỹ thuật theo đúng cấu trúc chỉ đ
 | **S7** | P1 | Hoàn thành | `results/final_v3/theo_14_ngay_v3.csv` | 10/14 ngày (không CI) $\implies 12/14$ ngày (85.7% [60.1%, 96.0%]) | Đánh giá 40 reps/ngày, Student-t CI từng ngày và Wilson CI tỉ lệ đạt |
 | **S8** | P1 | Hoàn thành | `results/final_v3/kiem_chung_v3.csv` | $W_q=13.87 \pm 1.54$p ("đúng tuyệt đối") $\implies 14.79 \pm 1.01$p ("không bác bỏ") | Chạy 40.000 phút, 40 reps ($df=39, t=2.0227$), sai lệch $+1.10\%$, nằm trong CI95 |
 | **S9** | P1 | Hoàn thành | `results/final_v3/do_nhay_phan_phoi_v3.csv` | Thiếu giờ tệ nhất $\implies$ Có đủ giờ tệ nhất và CI hiệu số cặp | Lognormal cv+20% có giờ tệ nhất sát ngưỡng ($89.40\%$ Low CI95) |
-| **S10** | P1 | Hoàn thành | `results/final_v3/kiem_dinh_phan_phoi_chi_tiet.csv`, `patience_km.csv`, `cluster_bootstrap_params.csv` | Thiếu AIC/BIC $\implies$ AIC Gamma 26.279.7, KS $p=0.482$; Bảng Kaplan-Meier | Cluster bootstrap theo ngày: $E[S] \in [2.855, 2.993]$, $\theta \in [0.095, 0.118]$ |
+| **S10** | P1 | Hoàn thành | `results/final_v3/kiem_dinh_phan_phoi_chi_tiet.csv`, `patience_km.csv`, `cluster_bootstrap_params.csv` | Thiếu AIC/BIC $\implies$ AIC Gamma 26279.7 (thấp nhất), nhưng KS bootstrap bác bỏ cả 4 phân phối ($p < 0.001$); Bảng Kaplan-Meier | Cluster bootstrap theo ngày: $E[S] \in [2.855, 2.993]$, $\theta \in [0.095, 0.118]$ |
 | **S11** | P1 | Hoàn thành | `results/final_v3/chi_phi_v3.csv` | Xếp hạng không sai số $\implies$ CI truyền sai số và CI hiệu số theo cặp | $k \le 0.25$: Lịch 44 rẻ hơn có ý nghĩa; $k \ge 0.50$: Lịch 48 rẻ hơn ($\Delta C = +1.40$) |
 | **C1** | P1 | Hoàn thành | `docs/TONG_HOP_SO_LIEU_CHI_TIET.md`, `tong_hop.md` | Lệch giữa Phần 5 và 3.3(b) $\implies$ Khớp 100% với CSV | Đồng bộ toàn bộ bảng tổng hợp với kết quả `final_v3` |
 | **C2** | P1 | Hoàn thành | `docs/TONG_HOP_SO_LIEU_CHI_TIET.md`, `tong_hop.md` | "86.5%" không có trong bảng $\implies$ Sửa thành Low CI95 $88.43\%$ | Điểm ước lượng mô phỏng là $89.84\%$ |
@@ -46,30 +46,34 @@ Tài liệu báo cáo nghiệm thu kỹ thuật theo đúng cấu trúc chỉ đ
 
 ### Khoảng tin cậy $\lambda_h$ mới (S1)
 Dựa trên ma trận 14 ngày với độ tự do $df = 13$ và $t(0.975; 13) = 2.1604$:
-- **8h–9h:** $61.14 \pm 6.06$ khách/ngày $\implies \lambda_0 \in [0.918, 1.120]$ khách/phút (Poisson cũ: $\pm 4.10$).
-- **9h–10h:** $86.00 \pm 7.18$ khách/ngày $\implies \lambda_1 \in [1.314, 1.553]$ khách/phút (Poisson cũ: $\pm 4.86$).
-- **10h–11h:** $96.93 \pm 11.08$ khách/ngày $\implies \lambda_2 \in [1.431, 1.800]$ khách/phút (Poisson cũ: $\pm 5.16$).
-- **11h–12h:** $86.71 \pm 9.30$ khách/ngày $\implies \lambda_3 \in [1.290, 1.600]$ khách/phút (Poisson cũ: $\pm 4.88$).
-- **12h–13h:** $73.36 \pm 6.32$ khách/ngày $\implies \lambda_4 \in [1.117, 1.328]$ khách/phút (Poisson cũ: $\pm 4.49$).
-- **13h–14h:** $73.86 \pm 7.68$ khách/ngày $\implies \lambda_5 \in [1.103, 1.359]$ khách/phút (Poisson cũ: $\pm 4.50$).
-- **14h–15h:** $78.93 \pm 8.84$ khách/ngày $\implies \lambda_6 \in [1.168, 1.463]$ khách/phút (Poisson cũ: $\pm 4.66$).
-- **15h–16h:** $78.29 \pm 8.16$ khách/ngày $\implies \lambda_7 \in [1.169, 1.441]$ khách/phút (Poisson cũ: $\pm 4.64$).
-- **16h–17h:** $63.43 \pm 6.60$ khách/ngày $\implies \lambda_8 \in [0.947, 1.167]$ khách/phút (Poisson cũ: $\pm 4.17$).
+- **8h–9h:** $61.14 \pm 6.08$ khách/ngày $\implies \lambda_0 \in [0.918, 1.120]$ khách/phút (Poisson cũ: $\pm 4.10$).
+- **9h–10h:** $86.00 \pm 7.21$ khách/ngày $\implies \lambda_1 \in [1.313, 1.554]$ khách/phút (Poisson cũ: $\pm 4.86$).
+- **10h–11h:** $98.64 \pm 11.11$ khách/ngày $\implies \lambda_2 \in [1.459, 1.829]$ khách/phút (Poisson cũ: $\pm 5.20$).
+- **11h–12h:** $86.36 \pm 9.31$ khách/ngày $\implies \lambda_3 \in [1.284, 1.594]$ khách/phút (Poisson cũ: $\pm 4.87$).
+- **12h–13h:** $74.36 \pm 6.30$ khách/ngày $\implies \lambda_4 \in [1.134, 1.344]$ khách/phút (Poisson cũ: $\pm 4.52$).
+- **13h–14h:** $74.57 \pm 7.67$ khách/ngày $\implies \lambda_5 \in [1.115, 1.371]$ khách/phút (Poisson cũ: $\pm 4.52$).
+- **14h–15h:** $79.29 \pm 8.80$ khách/ngày $\implies \lambda_6 \in [1.175, 1.468]$ khách/phút (Poisson cũ: $\pm 4.66$).
+- **15h–16h:** $78.29 \pm 8.21$ khách/ngày $\implies \lambda_7 \in [1.168, 1.442]$ khách/phút (Poisson cũ: $\pm 4.63$).
+- **16h–17h:** $63.93 \pm 6.60$ khách/ngày $\implies \lambda_8 \in [0.955, 1.176]$ khách/phút (Poisson cũ: $\pm 4.19$).
 
 ### Chỉ số kỳ vọng có điều kiện và độ nhạy theo CV ngày (S2, S3)
 | Lịch quầy | CV ngày | $P(E_{day} \ge 90\%)$ [Wilson 95%] | $P(\min_h E_h \ge 90\%)$ [Wilson 95%] | Số giờ $E_h < 90\%$ TB | $P(\text{thực tế mọi giờ} \ge 90\%)$ | $P(\text{tháng 20 ngày} \ge 90\%)$ |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Lịch 44** | **11.8% (Chuẩn)** | **88.5% [83.3%, 92.2%]** | **65.5% [58.7%, 71.7%]** | **1.17** | **25.7% [24.6%, 26.8%]** | **58.3% [52.7%, 63.8%]** |
-| | 8.0% | 93.0% [86.3%, 96.6%] | 68.0% [58.3%, 76.3%] | 0.88 | 23.2% | 61.0% |
-| | 12.0% | 88.0% [80.2%, 93.0%] | 64.0% [54.2%, 72.7%] | 1.15 | 23.3% | 57.0% |
-| | 16.0% | 82.0% [73.3%, 88.3%] | 62.0% [52.2%, 70.9%] | 1.43 | 29.6% | 53.0% |
-| | 20.0% | 75.0% [65.7%, 82.5%] | 58.0% [48.2%, 67.2%] | 1.70 | 28.7% | 46.0% |
+|  | 8.0% | 93.0% [86.3%, 96.6%] | 68.0% [58.3%, 76.3%] | 0.79 | 23.2% [21.4%, 25.1%] | 66.0% [56.3%, 74.5%] |
+|  | 12.0% | 88.0% [80.2%, 93.0%] | 64.0% [54.2%, 72.7%] | 1.18 | 23.2% [21.5%, 25.2%] | 59.0% [49.2%, 68.1%] |
+|  | 16.0% | 82.0% [73.3%, 88.3%] | 62.0% [52.2%, 70.9%] | 1.51 | 29.6% [27.7%, 31.7%] | 59.0% [49.2%, 68.1%] |
+|  | 20.0% | 75.0% [65.7%, 82.5%] | 58.0% [48.2%, 67.2%] | 2.22 | 28.7% [26.8%, 30.8%] | 55.0% [45.2%, 64.4%] |
 | **Lịch 48** | **11.8% (Chuẩn)** | **98.5% [95.7%, 99.5%]** | **82.5% [76.6%, 87.1%]** | **0.35** | **46.1% [44.9%, 47.4%]** | **78.0% [73.0%, 82.3%]** |
-| | 8.0% | 100.0% [96.3%, 100%] | 86.0% [77.9%, 91.5%] | 0.22 | 48.2% | 84.0% |
-| | 12.0% | 97.0% [91.5%, 99.0%] | 81.0% [72.2%, 87.5%] | 0.40 | 45.1% | 77.0% |
-| | 16.0% | 97.0% [91.5%, 99.0%] | 79.0% [70.0%, 85.8%] | 0.45 | 47.2% | 75.0% |
-| | 20.0% | 85.0% [76.7%, 90.7%] | 69.0% [59.4%, 77.2%] | 0.81 | 44.6% | 65.0% |
-| **Mốc 54** | **11.8% (Chuẩn)** | **100.0% [98.1%, 100%]** | **97.5% [94.3%, 98.9%]** | **0.03** | **76.2% [75.1%, 77.2%]** | **97.3% [94.8%, 98.6%]** |
+|  | 8.0% | 100.0% [96.3%, 100.0%] | 86.0% [77.9%, 91.5%] | 0.20 | 48.2% [46.0%, 50.4%] | 83.0% [74.5%, 89.1%] |
+|  | 12.0% | 97.0% [91.5%, 99.0%] | 81.0% [72.2%, 87.5%] | 0.43 | 45.1% [42.9%, 47.2%] | 79.0% [70.0%, 85.8%] |
+|  | 16.0% | 97.0% [91.5%, 99.0%] | 79.0% [70.0%, 85.8%] | 0.60 | 47.2% [45.0%, 49.4%] | 77.0% [67.8%, 84.2%] |
+|  | 20.0% | 85.0% [76.7%, 90.7%] | 69.0% [59.4%, 77.2%] | 1.28 | 44.6% [42.4%, 46.8%] | 67.0% [57.3%, 75.4%] |
+| **Mốc 54** | **11.8% (Chuẩn)** | **100.0% [98.1%, 100.0%]** | **97.5% [94.3%, 98.9%]** | **0.03** | **76.2% [75.1%, 77.2%]** | **97.3% [94.8%, 98.6%]** |
+|  | 8.0% | 100.0% [96.3%, 100.0%] | 99.0% [94.6%, 99.8%] | 0.01 | 80.0% [78.2%, 81.7%] | 99.0% [94.6%, 99.8%] |
+|  | 12.0% | 100.0% [96.3%, 100.0%] | 96.0% [90.2%, 98.4%] | 0.07 | 75.8% [73.9%, 77.7%] | 96.0% [90.2%, 98.4%] |
+|  | 16.0% | 100.0% [96.3%, 100.0%] | 93.0% [86.3%, 96.6%] | 0.08 | 75.3% [73.4%, 77.2%] | 92.0% [85.0%, 95.9%] |
+|  | 20.0% | 94.0% [87.5%, 97.2%] | 85.0% [76.7%, 90.7%] | 0.50 | 68.6% [66.5%, 70.6%] | 85.0% [76.7%, 90.7%] |
 
 ### Ngưỡng vận hành, Bộ dự báo và Mức tiết kiệm thực tế (S4)
 - **Khảo sát ngưỡng SLA:** Lịch 44 giữ vững $SL \ge 90\%$ tại các mức lưu lượng ngày $V \in \{550, 600, 650, 687, 700, 725, 750\}$ khách/ngày ($SL = 97.5\%, 96.0\%, 94.6\%, 93.8\%, 93.1\%, 91.6\%, 90.1\%$). Khi $V \ge 775$, Lịch 44 hụt ($SL = 88.5\%$). Do đó, ngưỡng vận hành an toàn là $V^* = 700$ khách/ngày.
