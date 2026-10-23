@@ -152,3 +152,85 @@ Tài liệu này ghi nhận chi tiết toàn bộ các thay đổi giữa kết 
   - Xây dựng `tools/build_tables.py` tự động đọc CSV và sinh bảng Markdown.
   - Xây dựng `tools/check_consistency.py` tự động quét các thuật ngữ bị cấm và đối chiếu số liệu.
   - Tạo `results/final_v2/MO_TA.md` mô tả cấu trúc và nội dung của toàn bộ 15 tệp kết quả mới.
+
+---
+
+## TỔNG HỢP THEO CÁC NHIỆM VỤ ĐỢT 2 (v2 -> v3: THỐNG KÊ VÀ XÁC SUẤT CHUẨN MỰC)
+
+Theo tài liệu chỉ đạo `YEU_CAU_CHINH_SUA_THONG_KE_V2.md`, toàn bộ kết quả đợt 2 được thực hiện độc lập, không sửa đổi dữ liệu gốc, và đóng băng tại thư mục `results/final_v3/`.
+
+### S1 (P0): Sửa khoảng tin cậy của $\lambda_h$ bằng Student-t
+- **Vấn đề v2:** Cột CI95 của $\lambda_h$ dùng công thức Poisson `1.96 * sqrt(N_bar / n) / 60` chỉ đúng khi số khách theo ngày là Poisson. Vì dữ liệu thực tế quá phân tán ở 8/9 giờ, khoảng Poisson hẹp hơn thực tế 1.4 - 2.1 lần.
+- **Hiệu chỉnh v3:** Thay bằng khoảng Student-t: $\bar{N} \pm t(0.975; 13) \cdot s / \sqrt{14}$ ($df=13, t=2.1604$).
+- **Kết quả:** Bán độ rộng CI95 tăng từ $4.1 - 5.2$ khách/ngày (Poisson) lên $6.1 - 11.1$ khách/ngày (Student-t). Tỉ số $t/\text{Poisson}$ khớp chính xác: $[1.48, 1.48, 2.13, 1.91, 1.40, 1.69, 1.89, 1.77, 1.58]$. Tập Train cập nhật Student-t CI ($df=9, t=2.2622$) tại `results/final_v3/params.json`.
+
+### S2 (P0): Chỉ số kỳ vọng có điều kiện $E_h(m)$ tách rời nhiễu lấy mẫu
+- **Vấn đề v2:** Chỉ số "P(mọi giờ $\ge 90\%$)" ghi nhận $26\%$ (Lịch 44) và $47\%$ (Lịch 48) đo tỉ lệ khách thực tế của 60-100 khách/giờ, bị nhiễu lấy mẫu nhị thức ($\pm 2.8\%$) chi phối.
+- **Hiệu chỉnh v3:** Mô phỏng $K=200$ kịch bản ngày $\times R=30$ lần lặp/kịch bản (18.000 reps) để ước lượng hàm kỳ vọng có điều kiện $E_h(m) = E[SL_h \mid m]$.
+- **Kết quả:** 
+  - $P(E_{day} \ge 90\%)$: Lịch 44 đạt **$88.5\%$** [83.3%, 92.2%]; Lịch 48 đạt **$98.5\%$** [95.7%, 99.5%]; Mốc 54 đạt **$100.0\%$** [98.1%, 100.0%].
+  - $P(\min_h E_h(m) \ge 90\%)$: Lịch 44 đạt **$65.5\%$** [58.7%, 71.7%] (TB 1.17 giờ hụt); Lịch 48 đạt **$82.5\%$** [76.6%, 87.1%] (TB 0.35 giờ hụt); Mốc 54 đạt **$97.5\%$** [94.3%, 98.9%].
+  - Bổ sung góc nhìn gộp tháng 20 ngày: Lịch 44 đạt **$58.3\%$** [52.7%, 63.8%]; Lịch 48 đạt **$78.0\%$** [73.0%, 82.3%]; Mốc 54 đạt **$97.3\%$** [94.8%, 98.6%].
+
+### S3 (P0): Độ bất định của CV ngày và Posterior Predictive Check
+- **Hiệu chỉnh v3:**
+  - Khảo sát độ nhạy với $CV_{\text{ngày}} \in \{8\%, 12\%, 16\%, 20\%\}$. Khi $CV$ tăng lên $20\%$, $P(E_{day} \ge 90\%)$ của Lịch 44 giảm còn $75.0\%$ và Lịch 48 là $85.0\%$.
+  - Thực hiện Posterior Predictive Check trên 1.000 bộ 14 ngày mô phỏng: So sánh chỉ số $D_h$ quan sát với phân phối hậu nghiệm. Kết quả: $D_{\text{total}} = 140.4$ có $p = 0.462$ (mô hình hệ số nhân ngày Gamma giải thích tốt độ phân tán tổng thể; giờ 10h có $p = 0.069$ sát biên dưới nhưng vẫn nằm trong $[0.05, 0.95]$).
+
+### S4 (P0): Phân tích ngưỡng lưu lượng $V^*$ và Bộ dự báo sớm
+- **Vấn đề v2:** Ngưỡng 687 khách/ngày là trung bình tập Train (686.7), không có căn cứ từ SLA và lưu lượng cả ngày chưa biết lúc xếp lịch.
+- **Hiệu chỉnh v3:** 
+  - Mô phỏng xác định ngưỡng $V^*$: Lịch 44 đạt SLA cho mọi mức lưu lượng $V \le 750$ khách/ngày (bắt đầu hụt tại $V \ge 775$). Lịch 48 đạt SLA đến $V = 850$. Ngưỡng an toàn chọn là $V^* = 700$ khách/ngày.
+  - Xây dựng bộ dự báo sớm từ 2 giờ đầu (8h-10h): $\hat{V} = 189.6 + 3.49 \cdot N_{8h-10h}$ ($r = 0.842, p = 0.0002, R^2 = 0.708$, RMSE $45.3$ khách).
+  - Đánh giá chính sách ghép trên 14 ngày thực tế (nếu $\hat{V} > 700$ kích hoạt Lịch 48): Sử dụng trung bình **46.57 quầy-giờ/ngày**, tiết kiệm thực tế **13.76%** so với 54 quầy-giờ mở và **16.84%** so với 56 quầy-giờ công.
+
+### S5 (P0): Phân tích Bootstrap lồng nhau và Phân rã phương sai ANOVA
+- **Hiệu chỉnh v3:** Thiết kế mô hình lồng nhau: $B = 50$ bộ tham số (resample theo ngày để giữ nguyên cấu trúc quá phân tán) $\times R = 60$ lần lặp/bộ.
+- **Kết quả phân rã ANOVA:** Phương sai quan sát tổng $1.294 \times 10^{-4}$. Phương sai do nhiễu mô phỏng (Within/R=60) chỉ là $5.446 \times 10^{-6}$ (**chiếm 4.2%**), trong khi phương sai do bất định tham số thực tế chiếm **95.8%**.
+- Tỉ lệ đạt SLA: $P(SL_{\text{toàn ngày}} \ge 90\%) = 100.0\%$ (Wilson 95%: $[92.9\%, 100.0\%]$); $P(SL_{\text{giờ tệ nhất}} \ge 90\%) = 90.0\%$ (Wilson 95%: $[78.6\%, 95.7\%]$).
+
+### S6 (P0): Kiểm tra ngoài mẫu với Khoảng dự báo 95% (PI95) và Hiệu chỉnh Holm
+- **Hiệu chỉnh v3:** So sánh quan sát tập Test (4 ngày) với Khoảng dự báo 95% (sinh từ 1.000 bộ 4 ngày mô phỏng có biến động ngày).
+- **Kết quả:** 7/9 giờ quan sát nằm gọn trong PI95. Hiệu chỉnh đa so sánh Holm-Bonferroni xác nhận 5 giờ không có sự khác biệt có ý nghĩa thống kê. 4 giờ khác biệt có ý nghĩa: 8h, 9h, 12h thực tế đạt cao hơn mô phỏng; giờ 15h thực tế thấp hơn ($76.47\%$) được giải trình như một giả thuyết về chốt sổ cuối ngày cần kiểm chứng tiếp.
+
+### S7 (P1): Đối chiếu 14 ngày thực tế phân định Train/Test và Wilson CI
+- **Hiệu chỉnh v3:** Chạy 40 lần lặp độc lập cho từng ngày $d \in [0, 13]$ với hệ số $m_d = N_d / 686.7$.
+- **Kết quả:**
+  - Lịch 44 đạt: **12/14 ngày (85.7% [60.1%, 96.0%])** (chỉ hụt ngày 2: 87.8% và ngày 7: 88.3%).
+  - Lịch 48 đạt: **14/14 ngày (100.0% [78.5%, 100.0%])**.
+  - Mốc 6 quầy đạt: **14/14 ngày (100.0% [78.5%, 100.0%])**.
+
+### S8 (P1): Kiểm chứng M/G/1 Pollaczek-Khinchine 40.000 phút và Student-t
+- **Hiệu chỉnh v3:** M/G/1 exact chạy $T = 40.000$ phút, warm-up $5.000$ phút, $R = 40$ lần lặp.
+- **Kết quả:** Lý thuyết $14.6250$p, mô phỏng $14.7856 \pm 1.0137$p ($df=39, t_{crit}=2.0227$, sai lệch $+1.10\%$, nằm trong CI95 $[13.7719, 15.7993]$). Kết luận: **Không bác bỏ được tính đúng đắn của SimPy** (loại bỏ cụm từ "SimPy đúng tuyệt đối"). Mọi khoảng tin cậy của bảng kiểm chứng đều cập nhật Student-t critical values.
+
+### S9 (P1): Độ nhạy phân phối phục vụ kèm cột giờ tệ nhất
+- **Hiệu chỉnh v3:** Báo cáo giờ tệ nhất cho cả 4 phân phối (150 lần lặp):
+  - Gamma: Giờ tệ nhất 16h-17h đạt $92.52\%$ (Low CI95: $91.49\%$).
+  - Bootstrap: Giờ tệ nhất 11h-12h đạt $91.59\%$ (Low CI95: $90.56\%$).
+  - Mũ: Giờ tệ nhất 16h-17h đạt $91.77\%$ (Low CI95: $90.71\%$).
+  - Lognormal ($cv+20\%$): Giờ tệ nhất 16h-17h đạt $90.91\%$ (Low CI95: $89.40\%$ - sát ngưỡng 90%).
+
+### S10 (P1): Kiểm định độ phù hợp phân phối và Cluster Bootstrap
+- **Hiệu chỉnh v3:**
+  - So sánh AIC/BIC và bootstrap-corrected KS test: Gamma đạt AIC tốt nhất ($26.279.7$) và KS $p = 0.482$ (không bác bỏ).
+  - Ước lượng đường cong sống sót Kaplan-Meier cho thời gian kiên nhẫn có kiểm duyệt phải (`results/final_v3/patience_km.csv`).
+  - Cluster bootstrap theo ngày: $E[S] \in [2.855, 2.993]$ phút, $\theta \in [0.095, 0.118]\text{ phút}^{-1}$.
+
+### S11 (P1): Bảng chi phí với truyền sai số và hiệu số theo cặp
+- **Hiệu chỉnh v3:** Tính khoảng tin cậy truyền sai số từ $p_{ab}$ và hiệu số theo cặp $\Delta C = C_{44} - C_{48}$.
+- **Kết quả:** Tại $k = 0.10$ và $k = 0.25$, Lịch 44 rẻ hơn có ý nghĩa thống kê ($\Delta C < 0, 0 \notin CI95$). Tại $k = 0.50$, Lịch 48 rẻ hơn ($\Delta C = +1.40$, CI95: $[1.07, 1.72]$).
+
+### C1 - C6 (P1): Sửa triệt để số liệu mâu thuẫn và chuẩn hóa phát biểu
+- **C1:** Thống nhất số liệu Phần 5 khớp 100% với mục 3.3(b) và CSV.
+- **C2:** Loại bỏ con số "86.5%" không có trong bảng; thay bằng Low CI95 giờ tệ nhất $88.43\%$ (điểm ước lượng $89.84\%$).
+- **C3:** Bỏ dòng "Theo ca 52 q-h" cũ trong mục 3.5, dùng đúng ca 44 q-h và thống nhất các dòng chi phí.
+- **C4:** Chuẩn hóa nhân sự Mốc cơ sở: 6 quầy 9 giờ cần 7 nhân viên (56 quầy-giờ công, 63 giờ có mặt). Báo cáo rõ 2 cơ sở tiết kiệm (18.52% theo giờ mở, 21.43% theo giờ công).
+- **C5:** Bổ sung điều kiện cửa sổ nghỉ trưa mở rộng 1-7 cho phương án dự phòng 48 q-h (có 4 nghiệm khả thi).
+- **C6:** Loại bỏ toàn bộ các phát biểu phóng đại ("đúng tuyệt đối", "biên an toàn tốt"). Xuất file `results/final_v3/pha3.csv` (117 cấu hình vét cạn, 0 cấu hình nhỏ hơn 44 khả thi) chứng minh tính tối thiểu cục bộ.
+
+### C7 (P2): Tự động hóa và kiểm thử
+- Toàn bộ bảng Markdown được sinh tự động bằng `tools/build_tables.py`.
+- Công cụ `tools/check_consistency.py` xác nhận 100% tài liệu sạch từ cấm và khớp với `results/final_v3/`.
+- Mở rộng bộ kiểm thử pytest lên 22/22 ca kiểm thử passed 100%, log lưu tại `results/final_v3/pytest_log.txt`.
+

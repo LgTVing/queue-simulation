@@ -1,5 +1,5 @@
 """
-tools/build_tables.py: Doc cac tep CSV trong results/final_v2/ va tao cac bang Markdown chuan.
+tools/build_tables.py: Doc cac tep CSV trong results/final_v3/ (hoac final_v2/) va tao cac bang Markdown chuan.
 Cac tai lieu bao cao se su dung cac bang nay de dam bao tinh dong bo tuyet doi.
 """
 
@@ -12,7 +12,17 @@ if sys.platform.startswith("win"):
 import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_V3 = os.path.join(BASE_DIR, "results", "final_v3")
 RESULTS_V2 = os.path.join(BASE_DIR, "results", "final_v2")
+
+def get_file(filename: str) -> str:
+    f3 = os.path.join(RESULTS_V3, filename)
+    if os.path.exists(f3):
+        return f3
+    f2 = os.path.join(RESULTS_V2, filename)
+    if os.path.exists(f2):
+        return f2
+    return f3
 
 def df_to_markdown_table(df: pd.DataFrame, headers=None) -> str:
     """Chuyen DataFrame thanh Markdown table dep mat."""
@@ -32,86 +42,95 @@ def df_to_markdown_table(df: pd.DataFrame, headers=None) -> str:
 def build_all_tables() -> dict:
     tables = {}
     
-    # 1. Kiem dinh Poisson
-    f = os.path.join(RESULTS_V2, "kiem_dinh_poisson.csv")
+    # 1. Khoang tin cay Lambda Student-t (S1)
+    f = get_file("khoang_tin_cay_lambda.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        df_display = df[["label", "n_bar", "lambda", "D", "p_value", "new_label"]].copy()
-        df_display.columns = ["Khung giờ", "Số khách TB (khách/ngày)", "Tốc độ đến λ (khách/phút)", "Chỉ số D", "p-value", "Kết luận (α=0.05)"]
-        tables["poisson"] = df_to_markdown_table(df_display)
+        df_disp = df[["khung_gio", "mean_khach_ngay", "poisson_hw_ngay", "t_hw_ngay", "ti_so_t_vs_poisson", "lambda_phut", "lambda_low_ci95", "lambda_high_ci95"]].copy()
+        df_disp.columns = ["Khung giờ", "Số khách TB", "Poisson HW", "Student-t HW", "Tỉ số t/Poisson", "λ (khách/phút)", "CI95 Low", "CI95 High"]
+        tables["lambda_ci"] = df_to_markdown_table(df_disp)
         
-    # 2. Qua phan tan ngay
-    f = os.path.join(RESULTS_V2, "qua_phan_tan_ngay.csv")
+    # 2. Kiem dinh phan phoi phuc vu chi tiet (S10)
+    f = get_file("kiem_dinh_phan_phoi_chi_tiet.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        tables["qua_phan_tan"] = (
-            f"- Số ngày quan sát: {df.loc[0, 'n_days']} ngày\n"
-            f"- Trung bình: {df.loc[0, 'mean_day']} khách/ngày, Độ lệch chuẩn thực tế: {df.loc[0, 'std_day']} khách\n"
-            f"- Độ lệch chuẩn Poisson: {df.loc[0, 'poisson_std']} khách (Tỉ số Var/Mean = {df.loc[0, 'var_mean_ratio']})\n"
-            f"- CV ngày thực tế: {df.loc[0, 'cv_day']}%, CV ngày sau trừ nhiễu Poisson: {df.loc[0, 'cv_day_corrected']}%\n"
-            f"- Kiểm định quá phân tán: D = {df.loc[0, 'D_day']}, p-value = {df.loc[0, 'p_day']:.4e} ({df.loc[0, 'p_day_label']})"
-        )
+        df.columns = ["Phân phối", "Tham số", "Log-Likelihood", "AIC", "BIC", "KS Stat", "KS p-value (Bootstrap)"]
+        tables["fit_service"] = df_to_markdown_table(df)
+
+    # 3. Chi so ky vong co dieu kien (S2)
+    f = get_file("chi_so_ky_vong_dieu_kien.csv")
+    if os.path.exists(f):
+        df = pd.read_csv(f)
+        df_disp = df[["chinh_sach", "quay_gio", "SL_ky_vong_ngay_TB", "P_SL_ky_vong_ngay_ge90", "P_min_h_Eh_ge90", "so_gio_Eh_duoi_90_TB", "P_thuc_te_moi_gio_ge90", "P_thang_20ngay_moi_gio_ge90"]].copy()
+        df_disp.columns = ["Chính sách", "Quầy-giờ", "SL kỳ vọng ngày TB", "P(SL ngày ≥ 90%)", "P(min_h E_h ≥ 90%)", "Số giờ E_h < 90%", "P(thực tế mọi giờ ≥ 90%)", "P(tháng 20 ngày ≥ 90%)"]
+        tables["conditional_expectation"] = df_to_markdown_table(df_disp)
+
+    # 4. Do nhay theo CV ngay (S3)
+    f = get_file("do_nhay_cv_ngay.csv")
+    if os.path.exists(f):
+        df = pd.read_csv(f)
+        tables["do_nhay_cv"] = df_to_markdown_table(df)
+
+    # 5. Posterior predictive check (S3)
+    f = get_file("posterior_predictive_check.csv")
+    if os.path.exists(f):
+        df = pd.read_csv(f)
+        tables["pp_check"] = df_to_markdown_table(df)
+
+    # 6. Nguong luu luong va Bo du bao som (S4)
+    f = get_file("nguong_luu_luong_chi_tiet.csv")
+    if os.path.exists(f):
+        df = pd.read_csv(f)
+        tables["nguong_v"] = df_to_markdown_table(df)
         
-    # 3. So sanh chinh sach co bien dong
-    f = os.path.join(RESULTS_V2, "so_sanh_chinh_sach_v2.csv")
-    if os.path.exists(f):
-        df = pd.read_csv(f)
-        df.columns = ["Chính sách", "Quầy-giờ", "SL (Không BĐ)", "SL giờ tệ (Không BĐ)", "SL (Có BĐ ngày)", "P(Ngày ≥ 90%)", "P(Mọi giờ ≥ 90%)", "SL Phân vị 5%"]
-        tables["so_sanh_chinh_sach"] = df_to_markdown_table(df)
+    f_comp = get_file("danh_gia_chinh_sach_du_bao_14ngay.csv")
+    if os.path.exists(f_comp):
+        df_comp = pd.read_csv(f_comp)
+        tables["chinh_sach_ghep_14ngay"] = df_to_markdown_table(df_comp)
 
-    # 4. Bien dong ngay
-    f = os.path.join(RESULTS_V2, "bien_dong_ngay.csv")
+    # 7. Kiem chung 3 tang v3 (S8)
+    f = get_file("kiem_chung_v3.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        df_disp = df[["chinh_sach", "quay_gio", "sl_toan_ngay", "P_SL_ngay_ge90", "P_moi_gio_ge90", "so_gio_TB_duoi_90", "p_ab", "wq"]].copy()
-        df_disp.columns = ["Chính sách", "Quầy-giờ", "SL Toàn ngày", "P(Ngày ≥ 90%)", "P(Mọi giờ ≥ 90%)", "Số giờ TB < 90%", "Tỉ lệ bỏ về", "Wq (phút)"]
-        tables["bien_dong_ngay"] = df_to_markdown_table(df_disp)
+        tables["kiem_chung"] = df_to_markdown_table(df)
 
-    # 5. Theo ngay quan sat
-    f = os.path.join(RESULTS_V2, "theo_ngay.csv")
+    # 8. Phan ra phuong sai bootstrap (S5)
+    f = get_file("phan_ra_phuong_sai.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        df_disp = df[["ngay", "tong_khach", "sl_opt44", "dat_sl_opt44", "sl_rob48", "dat_sl_rob48", "sl_const6", "dat_sl_const6"]].copy()
-        df_disp.columns = ["Ngày", "Tổng khách", "SL Lịch 44", "Đạt SLA 44", "SL Lịch 48", "Đạt SLA 48", "SL Lịch 54", "Đạt SLA 54"]
-        tables["theo_ngay"] = df_to_markdown_table(df_disp)
+        tables["phan_ra_phuong_sai"] = df_to_markdown_table(df)
 
-    # 6. Ca lam viec MILP
-    f = os.path.join(RESULTS_V2, "lich_theo_ca_v2.csv")
+    # 9. Ngoai mau v3 (S6)
+    f = get_file("ngoai_mau_v3.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        df.columns = ["Phương án ca làm việc", "Mẫu phủ quầy theo giờ", "Giờ làm việc", "Giờ có mặt", "Số nhân viên"]
-        tables["ca_lam_viec"] = df_to_markdown_table(df)
+        tables["ngoai_mau"] = df_to_markdown_table(df)
 
-    # 7. Do nhay phan phoi
-    f = os.path.join(RESULTS_V2, "do_nhay_phan_phoi_v2.csv")
+    # 10. 14 ngay phan dinh Train/Test (S7)
+    f = get_file("theo_14_ngay_v3.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        df.columns = ["Phân phối phục vụ", "SL toàn ngày", "Nửa rộng CI95", "Cận dưới CI95", "Hiệu số vs Gamma", "CI95 của Hiệu số", "Khác biệt có ý nghĩa?"]
+        tables["theo_14_ngay"] = df_to_markdown_table(df)
+
+    # 11. Do nhay phan phoi v3 (S9)
+    f = get_file("do_nhay_phan_phoi_v3.csv")
+    if os.path.exists(f):
+        df = pd.read_csv(f)
         tables["do_nhay_phan_phoi"] = df_to_markdown_table(df)
 
-    # 8. Ngoai mau
-    f = os.path.join(RESULTS_V2, "ngoai_mau_v2.csv")
+    # 12. Chi phi v3 (S11)
+    f = get_file("chi_phi_v3.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        df_disp = df[["khung_gio", "so_quay", "diff_lam_pct", "sl_sim_A", "sl_sim_B", "sl_obs", "chenh_sl_A_obs"]].copy()
-        df_disp.columns = ["Khung giờ", "Số quầy", "Chênh λ (%)", "SL Mô phỏng A", "SL Mô phỏng B", "SL Thực tế", "Chênh lệch (A - Thực)"]
-        tables["ngoai_mau"] = df_to_markdown_table(df_disp)
+        tables["chi_phi"] = df_to_markdown_table(df)
 
-    # 9. Dao dong seed
-    f = os.path.join(RESULTS_V2, "dao_dong_seed.csv")
+    # 13. Pha 3 vet can (C6)
+    f = get_file("pha3.csv")
     if os.path.exists(f):
         df = pd.read_csv(f)
-        df.columns = ["Seed Base", "SL Toàn ngày", "Nửa rộng CI95", "Tỉ lệ bỏ về", "Wq (phút)", "SL Giờ tệ nhất (Low CI)"]
-        tables["dao_dong_seed"] = df_to_markdown_table(df)
+        tables["pha3_summary"] = f"- Tổng số phép thử nghiệm vét cạn Pha 3: {len(df)} cấu hình (72 swap 1 quầy + 36 double reduction).\n- Số cấu hình khả thi giữ vững SLA: {len(df[df['kha_thi_SLA'] == 'Y'])} cấu hình (Nghiệm 44 q-h là tối thiểu cục bộ)."
 
-    # 10. Tham so thanh phan
-    f = os.path.join(RESULTS_V2, "tham_so_thanh_phan.csv")
-    if os.path.exists(f):
-        df = pd.read_csv(f)
-        df.columns = ["Thành phần mô hình", "Bộ tham số sử dụng", "Nguồn / Ghi chú"]
-        tables["tham_so_thanh_phan"] = df_to_markdown_table(df)
-
-    print(f"Da sinh thanh cong {len(tables)} bang Markdown tu results/final_v2/")
+    print(f"Da sinh thanh cong {len(tables)} bang Markdown tu results/")
     return tables
 
 if __name__ == "__main__":

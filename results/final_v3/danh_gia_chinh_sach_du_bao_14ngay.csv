@@ -1,0 +1,15 @@
+ngay,tap,N_8h_10h,V_thuc_te,V_du_bao,sai_so_du_bao,chinh_sach_chon,quay_gio_su_dung
+0,Train,165,690,764.8,74.8,Ben_vung_48,48
+1,Train,163,776,757.9,-18.1,Ben_vung_48,48
+2,Train,162,826,754.4,-71.6,Ben_vung_48,48
+3,Train,136,634,663.7,29.7,Toi_uu_44,44
+4,Train,121,580,611.4,31.4,Toi_uu_44,44
+5,Train,118,600,601.0,1.0,Toi_uu_44,44
+6,Train,106,539,559.1,20.1,Toi_uu_44,44
+7,Train,162,820,754.4,-65.6,Ben_vung_48,48
+8,Train,149,715,709.0,-6.0,Ben_vung_48,48
+9,Train,138,687,670.7,-16.3,Toi_uu_44,44
+10,Test,153,740,723.0,-17.0,Ben_vung_48,48
+11,Test,148,748,705.6,-42.4,Ben_vung_48,48
+12,Test,158,753,740.4,-12.6,Ben_vung_48,48
+13,Test,181,728,820.6,92.6,Ben_vung_48,48

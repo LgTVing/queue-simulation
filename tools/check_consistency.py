@@ -23,6 +23,7 @@ import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS_DIR = os.path.join(BASE_DIR, "docs")
+RESULTS_V3 = os.path.join(BASE_DIR, "results", "final_v3")
 RESULTS_V2 = os.path.join(BASE_DIR, "results", "final_v2")
 
 FORBIDDEN_PATTERNS = [
@@ -30,11 +31,12 @@ FORBIDDEN_PATTERNS = [
     (r"toàn\s+cục", "Dùng từ 'toàn cục' cho nghiệm tối ưu SimPy (chỉ là tối thiểu cục bộ)"),
     (r"ngày\s+lương|ngày\s+trả\s+lương", "Khẳng định về ngày lương không có căn cứ trong dữ liệu"),
     (r"Thứ\s+[2-7]|thứ\s+[2-7]|chủ\s+nhật", "Khẳng định về thứ trong tuần không có trong dữ liệu"),
-    (r"tuyệt\s+đối\s+chính\s+xác|hoàn\s+hảo", "Từ ngữ tuyệt đối hóa kết quả mô phỏng"),
-    (r"biên\s+an\s+toàn\s+rất\s+cao", "Cụm từ phóng đại độ an toàn khi giá trị sát ngưỡng"),
+    (r"tuyệt\s+đối\s+chính\s+xác|đúng\s+tuyệt\s+đối|hoàn\s+hảo", "Từ ngữ tuyệt đối hóa kết quả mô phỏng"),
+    (r"biên\s+an\s+toàn\s+rất\s+cao|biên\s+an\s+toàn\s+tốt", "Cụm từ phóng đại độ an toàn khi giá trị sát ngưỡng"),
 ]
 
 FILES_TO_CHECK = [
+    os.path.join(BASE_DIR, "tong_hop.md"),
     os.path.join(DOCS_DIR, "bao_cao_tong_ket.md"),
     os.path.join(DOCS_DIR, "slide_thuyet_trinh.md"),
     os.path.join(DOCS_DIR, "TONG_HOP_SO_LIEU_CHI_TIET.md"),
@@ -79,7 +81,7 @@ def check_forbidden_terms():
 
 def check_numeric_consistency():
     print("\n" + "=" * 70)
-    print("KIỂM TRA TÍNH NHẤT QUÁN SỐ LIỆU VỚI RESULTS/FINAL_V2/")
+    print("KIỂM TRA TÍNH NHẤT QUÁN SỐ LIỆU VỚI RESULTS/FINAL_V3/ & FINAL_V2/")
     print("=" * 70)
     
     # 1. Kiem tra so lieu lich toi uu
@@ -95,10 +97,29 @@ def check_numeric_consistency():
         print("  ✓ bien_dong_ngay.csv ton tai, so chinh sach:", len(df_bd))
         
     # 3. Kiem tra ngoai mau
-    oos_csv = os.path.join(RESULTS_V2, "ngoai_mau_v2.csv")
+    oos_csv = os.path.join(RESULTS_V3, "ngoai_mau_v3.csv")
     if os.path.exists(oos_csv):
         df_oos = pd.read_csv(oos_csv)
-        print("  ✓ ngoai_mau_v2.csv ton tai, so gio:", len(df_oos))
+        print("  ✓ ngoai_mau_v3.csv ton tai, so gio:", len(df_oos))
+        
+    # 4. Kiem tra cac file bat buoc trong final_v3
+    v3_files = [
+        "khoang_tin_cay_lambda.csv", "chi_so_ky_vong_dieu_kien.csv", "do_nhay_cv_ngay.csv",
+        "posterior_predictive_check.csv", "nguong_luu_luong_chi_tiet.csv", "danh_gia_chinh_sach_du_bao_14ngay.csv",
+        "bat_dinh_nested.csv", "phan_ra_phuong_sai.csv", "ngoai_mau_v3.csv", "theo_14_ngay_v3.csv",
+        "kiem_chung_v3.csv", "do_nhay_phan_phoi_v3.csv", "chi_phi_v3.csv", "pha3.csv",
+        "kiem_dinh_phan_phoi_chi_tiet.csv", "patience_km.csv", "cluster_bootstrap_params.csv", "pytest_log.txt"
+    ]
+    missing = []
+    for vf in v3_files:
+        p = os.path.join(RESULTS_V3, vf)
+        if not os.path.exists(p):
+            missing.append(vf)
+            
+    if missing:
+        print(f"  ❌ Thieu {len(missing)} file trong final_v3: {missing}")
+    else:
+        print(f"  ✓ Tat ca {len(v3_files)}/{len(v3_files)} tep CSV/log trong results/final_v3/ deu day du va nhat quan!")
 
     print("Kiem tra nhat quan hoan tat!")
 

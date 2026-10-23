@@ -272,20 +272,20 @@ Toàn bộ các tệp số liệu dưới đây được sinh ra trực tiếp t
 
 Kiểm chứng tính đúng đắn khoa học của mô hình mô phỏng SimPy so với lý thuyết giải tích dừng (chạy 30–60 lần lặp độc lập, thời gian chạy $5.000$ phút, cắt $500$ phút warm-up):
 
-| Tầng kiểm chứng | Chỉ số đánh giá | Giá trị Lý thuyết | Giá trị Mô phỏng | Khoảng tin cậy 95% | Sai lệch tương đối | Đạt chuẩn? (`dat`) | Mức xấp xỉ (`muc_xap_xi`) | Ghi chú kỹ thuật |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|---|
-| **Tầng 1 (M/M/c)** | $SL = P(W_q \le 5\text{p})$ | 0.9654 | **0.9688** | ±0.0037 | $+0.35\%$ | **Y** | Tot | Lý thuyết nằm trong CI95 |
-| **Tầng 1 (M/M/c)** | $W_q$ (phút) | 0.8433 | **0.8170** | ±0.0423 | $-3.12\%$ | **Y** | Tot | Lý thuyết nằm trong CI95 (0.817 ± 0.042) |
-| **Tầng 1 (M/M/c)** | Hiệu suất quầy $\rho$ | 0.7500 | **0.7517** | ±0.0047 | $+0.23\%$ | **Y** | Tot | Khớp định luật Little ($\rho = 0.75$) |
-| **Tầng 2 (Erlang-A)** | $SL$ (phục vụ & chờ $\le 5$p) | 0.8689 | **0.8695** | ±0.0034 | $+0.07\%$ | **Y** | Tot | Khớp nghiệm ma trận hấp thụ Markov |
-| **Tầng 2 (Erlang-A)** | $W_q$ (phút) | 1.1444 | **1.1475** | ±0.0233 | $+0.27\%$ | **Y** | Tot | $W_q$ tính trên mọi khách ($L_q / \lambda$) |
-| **Tầng 2 (Erlang-A)** | Tỉ lệ bỏ về $p_{ab}$ | 0.1144 | **0.1142** | ±0.0022 | $-0.21\%$ | **Y** | Tot | Lý thuyết nằm trong CI95 |
-| **Tầng 2 (Erlang-A)** | Hiệu suất quầy $\rho$ | 0.8856 | **0.8871** | ±0.0031 | $+0.17\%$ | **Y** | Tot | Khớp $\rho = \lambda(1-p_{ab})E[S]/c$ |
-| **Tầng 3 (M/G/c, cv=0.5)** | $W_q$ (phút) | 0.5271 | **0.5616** | ±0.0176 | $+6.55\%$ | - | Chap nhan duoc | Allen–Cunneen đánh giá thấp ~6-7% ở cv=0.5 |
-| **Tầng 3 (M/G/c, cv=1.0)** | $W_q$ (phút) | 0.8433 | **0.8113** | ±0.0521 | $-3.80\%$ | - | Tot | Khớp Erlang C chuẩn (sai lệch < 5%) |
-| **Tầng 3 (M/G/c, cv=1.5)** | $W_q$ (phút) | 1.3704 | **1.1333** | ±0.1239 | $-17.30\%$ | - | Kem, can giai thich | Allen–Cunneen đánh giá cao; kiểm tra bằng M/G/1 |
-| **Kiểm tra A (M/G/1 P-K exact)** | $W_q$ (phút) | **14.6250** | **13.8669** | ±1.5388 | **$-5.18\%$** | **Y** | Tot | Lý thuyết $14.625$p nằm trong CI95; SimPy đúng tuyệt đối |
-| **Kiểm tra B (M/G/6, cv=1.5, 60 reps)** | $W_q$ (phút) | 1.3704 | **1.1815** | ±0.0722 | $-13.78\%$ | - | Kem, can giai thich | Sai lệch ổn định ~-14% đến -17% do Allen-Cunneen |
+| Tầng kiểm chứng | Chỉ số đánh giá | Giá trị Lý thuyết | Giá trị Mô phỏng | n_reps | $t_{\text{crit}}$ | Khoảng tin cậy 95% | Sai lệch tương đối | Đạt chuẩn? (`dat`) | Mức xấp xỉ (`muc_xap_xi`) | Ghi chú kỹ thuật |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| **Tầng 1 (M/M/c)** | $SL = P(W_q \le 5\text{p})$ | 0.9654 | **0.9688** | 30 | 2.0452 | ±0.0039 | $+0.35\%$ | **Y** | Tot | Lý thuyết nằm trong CI95 (Student-t $df=29$) |
+| **Tầng 1 (M/M/c)** | $W_q$ (phút) | 0.8433 | **0.8170** | 30 | 2.0452 | ±0.0441 | $-3.12\%$ | **Y** | Tot | Lý thuyết nằm trong CI95 (0.817 ± 0.044) |
+| **Tầng 1 (M/M/c)** | Hiệu suất quầy $\rho$ | 0.7500 | **0.7517** | 30 | 2.0452 | ±0.0049 | $+0.23\%$ | **Y** | Tot | Khớp định luật Little ($\rho = 0.75$) |
+| **Tầng 2 (Erlang-A)** | $SL$ (phục vụ & chờ $\le 5$p) | 0.8689 | **0.8695** | 30 | 2.0452 | ±0.0035 | $+0.07\%$ | **Y** | Tot | Khớp nghiệm ma trận hấp thụ Markov |
+| **Tầng 2 (Erlang-A)** | $W_q$ (phút) | 1.1444 | **1.1475** | 30 | 2.0452 | ±0.0243 | $+0.27\%$ | **Y** | Tot | $W_q$ tính trên mọi khách ($L_q / \lambda$) |
+| **Tầng 2 (Erlang-A)** | Tỉ lệ bỏ về $p_{ab}$ | 0.1144 | **0.1142** | 30 | 2.0452 | ±0.0023 | $-0.17\%$ | **Y** | Tot | Lý thuyết nằm trong CI95 |
+| **Tầng 2 (Erlang-A)** | Hiệu suất quầy $\rho$ | 0.8856 | **0.8871** | 30 | 2.0452 | ±0.0032 | $+0.17\%$ | **Y** | Tot | Khớp $\rho = \lambda(1-p_{ab})E[S]/c$ |
+| **Tầng 3 (M/G/c, cv=0.5)** | $W_q$ (phút) | 0.5271 | **0.5616** | 30 | 2.0452 | ±0.0184 | $+6.55\%$ | - | Chap nhan duoc | Allen–Cunneen đánh giá thấp ~6-7% ở cv=0.5 |
+| **Tầng 3 (M/G/c, cv=1.0)** | $W_q$ (phút) | 0.8433 | **0.8113** | 30 | 2.0452 | ±0.0544 | $-3.79\%$ | **Y** | Tot | Khớp Erlang C chuẩn (sai lệch < 5%) |
+| **Tầng 3 (M/G/c, cv=1.5)** | $W_q$ (phút) | 1.3704 | **1.1333** | 30 | 2.0452 | ±0.1293 | $-17.30\%$ | - | Kem, can giai thich | Allen–Cunneen đánh giá cao; kiểm tra bằng M/G/1 |
+| **Kiểm tra A (M/G/1 P-K exact, 40k phút, 40 reps)** | $W_q$ (phút) | **14.6250** | **14.7856** | 40 | 2.0227 | ±1.0137 | **$+1.10\%$** | **Y** | Tot | Lý thuyết $14.625$p nằm trong CI95 [13.77, 15.80]; không bác bỏ được tính đúng của SimPy |
+| **Kiểm tra B (M/G/6, cv=1.5, 60 reps)** | $W_q$ (phút) | 1.3704 | **1.1815** | 30 | 2.0452 | ±0.0753 | $-13.78\%$ | - | Kem, can giai thich | Sai lệch ổn định ~-14% đến -17% do Allen-Cunneen |
 
 ---
 
@@ -526,19 +526,21 @@ Dưới đây là bảng tổng kết quyết định quản trị vận hành c
 | Tiêu chí quản trị | Phương án Tối ưu Thường nhật (Khuyến nghị 1) | Phương án Dự phòng Bền vững (Khuyến nghị 2) | Mốc cơ sở: Hằng số 6 quầy (không phải nhân sự thực tế) |
 |---|---|---|---|
 | **Lịch quầy chi tiết theo giờ** | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` | `[5, 6, 6, 6, 5, 5, 5, 5, 5]` | `[6, 6, 6, 6, 6, 6, 6, 6, 6]` |
-| **Tổng số quầy-giờ nhân sự** | **44 quầy-giờ/ngày** | **48 quầy-giờ/ngày** | **54 quầy-giờ/ngày** |
-| **Hiệu quả cắt giảm chi phí** | **Tiết kiệm 18.52% (-10 q-h/ngày)** | **Tiết kiệm 11.11% (-6 q-h/ngày)** | Mốc cơ sở (0.0%) |
+| **Tổng số quầy-giờ mở** | **44 quầy-giờ/ngày** | **48 quầy-giờ/ngày** | **54 quầy-giờ/ngày** |
+| **Hiệu quả cắt giảm chi phí** | **Tiết kiệm 18.52% (-10 q-h mở/ngày)**<br>*(Tiết kiệm 21.43% theo giờ công 44 vs 56)* | **Tiết kiệm 11.11% (-6 q-h mở/ngày)**<br>*(Tiết kiệm 14.29% theo giờ công 48 vs 56)* | Mốc cơ sở (0.0%) |
 | **Mức phục vụ $SL$ danh định (CI95)** | **$93.81\% \pm 0.23\%$** | **$95.82\% \pm 0.18\%$** | $97.70\% \pm 0.12\%$ |
-| **Mức phục vụ $SL$ giờ tệ nhất (Low CI95)** | **$90.78\%$ (Đạt mục tiêu $\ge 90\%$)**| **$93.64\%$ (Biên an toàn tốt)** | $95.57\%$ |
-| **Xác suất ngày đạt SLA toàn ngày ($SL \ge 90\%$)** | **$85.0\%$ (với biến động ngày $CV=11.8\%$)** | **$95.3\%$** | $99.4\%$ |
-| **Xác suất đạt SLA tất cả 9 giờ trong ngày** | **$26.0\%$** | **$47.0\%$** | $77.8\%$ |
-| **Số ngày thực tế 14 ngày đạt SLA** | **10/14 ngày (hụt 4 ngày tải cao: ngày 1, 2, 7, 12)** | **13/14 ngày (chỉ hụt ngày 7 tải cực đại)** | 14/14 ngày |
+| **Mức phục vụ $SL$ giờ tệ nhất (Low CI95)** | **$90.78\%$** (Điểm ước lượng $90.60\%$) | **$93.64\%$** | $95.57\%$ |
+| **$P(SL \text{ kỳ vọng ngày} \ge 90\%)$** | **$88.5\%$** (Wilson 95%: $[83.3\%, 92.2\%]$) | **$98.5\%$** (Wilson 95%: $[95.7\%, 99.5\%]$) | **$100.0\%$** (Wilson 95%: $[98.1\%, 100.0\%]$) |
+| **$P(\min_h E_h(m) \ge 90\%)$** | **$65.5\%$** (Wilson 95%: $[58.7\%, 71.7\%]$)<br>*Số giờ $E_h < 90\%$ TB: 1.17 giờ* | **$82.5\%$** (Wilson 95%: $[76.6\%, 87.1\%]$)<br>*Số giờ $E_h < 90\%$ TB: 0.35 giờ* | **$97.5\%$** (Wilson 95%: $[94.3\%, 98.9\%]$)<br>*Số giờ $E_h < 90\%$ TB: 0.03 giờ* |
+| **$P(\text{thực tế mọi giờ} \ge 90\%)$** | **$25.7\%$** (Wilson 95%: $[24.6\%, 26.8\%]$)<br>*(Chịu chi phối mạnh bởi cỡ mẫu giờ)* | **$46.1\%$** (Wilson 95%: $[44.9\%, 47.4\%]$)<br>*(Chịu chi phối mạnh bởi cỡ mẫu giờ)* | **$76.2\%$** (Wilson 95%: $[75.1\%, 77.2\%]$) |
+| **$P(\text{gộp tháng 20 ngày mọi giờ} \ge 90\%)$** | **$58.3\%$** (Wilson 95%: $[52.7\%, 63.8\%]$) | **$78.0\%$** (Wilson 95%: $[73.0\%, 82.3\%]$) | **$97.3\%$** (Wilson 95%: $[94.8\%, 98.6\%]$) |
+| **Số ngày thực tế 14 ngày đạt SLA** | **12/14 ngày (85.7% [60.1%, 96.0%])**<br>*(Hụt ngày 2: 87.8% và ngày 7: 88.3%)* | **14/14 ngày (100.0% [78.5%, 100.0%])** | **14/14 ngày (100.0% [78.5%, 100.0%])** |
 | **Mức phục vụ Khách VIP ($W_q \le 2$p)** | **$94.96\% \pm 0.25\%$** | **$96.64\% \pm 0.19\%$** | $98.15\% \pm 0.14\%$ |
 | **Thời gian chờ trung bình $W_q$** | **$0.4908 \pm 0.0155$ phút (~29.4 giây)** | **$0.3424 \pm 0.0120$ phút (~20.5 giây)** | $0.1958 \pm 0.0089$ phút (~11.7 giây) |
 | **Tỉ lệ khách hàng bỏ về trung bình** | **$5.35\% \pm 0.17\%$** | **$3.73\% \pm 0.14\%$ (Giảm 30% khách mất)** | $2.15\% \pm 0.10\%$ |
 | **Hiệu suất sử dụng quầy $\rho$** | **$72.15\% \pm 0.38\%$ (Tối ưu năng suất)**| **$67.25\% \pm 0.37\%$** | $60.75\% \pm 0.36\%$ (Lãng phí quầy) |
-| **Phương án tổ chức ca làm việc** | **Mô hình B: 4 NV 8h (nghỉ trưa) + 3 NV 4h** | Mô hình B: 5 NV 8h (nghỉ trưa) + 2 NV 4h | 6 NV 8h (nghỉ trưa 1-7: 6 NV làm việc 48 q-h) |
-| **Chi phí phụ trội do tổ chức ca** | **+0.0% (Phủ chính xác 44 q-h)** | +0.0% (Phủ chính xác 48 q-h) | +0.0% |
-| **Độ bền khi nhu cầu tăng +10%** | Giờ đỉnh rơi xuống $86.5\%$ | **Giờ đỉnh giữ vững $\ge 90.0\%$** | Giờ đỉnh giữ vững $93.3\%$ |
-| **Quy tắc kích hoạt vận hành** | Áp dụng khi lưu lượng $\le 687$ khách/ngày | Kích hoạt khi lưu lượng $> 687$ khách/ngày | Mốc lý thuyết đối chiếu |
+| **Phương án tổ chức ca làm việc** | **Mô hình B: 4 NV 8h (nghỉ trưa) + 3 NV 4h**<br>*(Nghỉ trưa 11h-14h, duy nhất 1 nghiệm)* | **Mô hình B: 5 NV 8h (nghỉ trưa) + 2 NV 4h**<br>*(Cửa sổ nghỉ 1-7: có 4 nghiệm khả thi)* | **7 NV 8h (56 q-h công làm việc)**<br>*(6 NV có nghỉ chỉ làm được 48 q-h)* |
+| **Chi phí phụ trội do tổ chức ca** | **+0.0% (Phủ chính xác 44 q-h)** | **+0.0% (Phủ chính xác 48 q-h)** | +0.0% |
+| **Độ bền khi nhu cầu tăng +10%** | Giờ tệ nhất Low CI95 là **$88.43\%$** (Điểm ước lượng $89.84\%$) | **Giờ tệ nhất giữ vững $\ge 90.00\%$** (Low CI95: $90.00\%$, Điểm ước lượng $92.68\%$) | Giờ tệ nhất giữ vững $93.30\%$ |
+| **Quy tắc kích hoạt vận hành** | Áp dụng khi $\hat{V} \le 700$ khách/ngày (dự báo sớm 8h-10h: $r=0.842, p=0.0002$) | Kích hoạt chuyển quầy lúc 10h khi $\hat{V} > 700$ khách/ngày | Mốc lý thuyết đối chiếu |
 

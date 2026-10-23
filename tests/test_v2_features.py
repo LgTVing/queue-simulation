@@ -81,3 +81,69 @@ def test_c6_coverage_cannot_be_done_by_6_staff():
     c_6 = [6] * 9
     res_6 = b_shifts.solve_shift_scheduling(c_6, model_type="B", lunch_window=(1, 7), allow_4h=False)
     assert res_6["total_staff"] >= 7
+
+def test_wilson_ci_properties():
+    """Kiem tra tinh chat cua khoang tin cay Wilson Score."""
+    from tools.stats_helpers import wilson_ci
+    
+    # 50/50: [92.9%, 100%]
+    p, l, h, hw = wilson_ci(50, 50, conf=0.95)
+    assert p == 1.0
+    assert l == pytest.approx(0.9289, abs=0.005)
+    assert h == 1.0
+    
+    # 10/14: [45.3%, 88.3%]
+    p14, l14, h14, hw14 = wilson_ci(10, 14, conf=0.95)
+    assert p14 == pytest.approx(10/14, abs=0.001)
+    assert l14 == pytest.approx(0.453, abs=0.01)
+    assert h14 == pytest.approx(0.883, abs=0.01)
+    
+    # 0/14: lower = 0, upper > 0
+    p0, l0, h0, _ = wilson_ci(0, 14, conf=0.95)
+    assert p0 == 0.0
+    assert l0 == 0.0
+    assert h0 > 0.0
+
+def test_student_t_ci_degrees_of_freedom():
+    """Kiem tra Student-t CI co do nua rong lon hon 1.96*s/sqrt(n) voi n < 100."""
+    from tools.stats_helpers import t_ci
+    import scipy.stats as st
+    
+    data = [10.0, 12.0, 11.5, 9.8, 10.5, 11.2, 12.8, 10.1, 9.9, 11.0, 10.4, 12.1, 11.7, 10.3] # n=14
+    m, l, h, hw, s = t_ci(data, conf=0.95)
+    
+    n = len(data)
+    t_crit = st.t.ppf(0.975, df=n - 1) # df=13 -> ~2.1604
+    assert t_crit == pytest.approx(2.1604, abs=0.001)
+    
+    hw_z = 1.96 * s / np.sqrt(n)
+    assert hw > hw_z
+    assert hw == pytest.approx(t_crit * s / np.sqrt(n), abs=1e-5)
+
+def test_holm_bonferroni_adjustment():
+    """Kiem tra thuat toan Holm-Bonferroni dieu chinh p-value va bao toan tinh don dieu."""
+    from tools.stats_helpers import holm_bonferroni
+    
+    raw_p = [0.01, 0.04, 0.03, 0.80]
+    adj_p, reject = holm_bonferroni(raw_p, alpha=0.05)
+    
+    # Kiem tra p-value dieu chinh khong vuot qua 1.0 va >= raw_p
+    for r, a in zip(raw_p, adj_p):
+        assert a >= r
+        assert a <= 1.0
+
+def test_early_hour_predictor_correlation():
+    """Kiem tra tuong quan giua so luong khach 8h-10h va tong luu luong ngay tren du lieu 14 ngay."""
+    import pandas as pd
+    import scipy.stats as st
+    
+    df_raw = pd.read_csv('data/clean/data_clean.csv')
+    mat = df_raw.groupby(['day', 'hour']).size().unstack(fill_value=0)
+    
+    x_early = (mat[0] + mat[1]).values
+    v_total = mat.sum(axis=1).values
+    
+    r, p = st.pearsonr(x_early, v_total)
+    assert r > 0.70
+    assert p < 0.01
+

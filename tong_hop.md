@@ -38,20 +38,23 @@ Bảng dưới đây tổng hợp các quyết định quản trị và chỉ s�
 | Tiêu chí quản trị | Phương án Tối ưu Thường nhật (Khuyến nghị 1) | Phương án Dự phòng Bền vững (Khuyến nghị 2) | Mốc cơ sở: Hằng số 6 quầy (không phải nhân sự thực tế) |
 |---|:---:|:---:|:---:|
 | **Lịch quầy chi tiết theo giờ (8h - 17h)** | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` | `[5, 6, 6, 6, 5, 5, 5, 5, 5]` | `[6, 6, 6, 6, 6, 6, 6, 6, 6]` |
-| **Tổng số quầy-giờ nhân sự** | **44 quầy-giờ/ngày** | **48 quầy-giờ/ngày** | **54 quầy-giờ/ngày** |
-| **Hiệu quả cắt giảm chi phí nhân sự** | **Tiết kiệm 18.52% (-10 q-h/ngày)** | **Tiết kiệm 11.11% (-6 q-h/ngày)** | Mốc cơ sở (0.0%) |
+| **Tổng số quầy-giờ mở** | **44 quầy-giờ/ngày** | **48 quầy-giờ/ngày** | **54 quầy-giờ/ngày** |
+| **Hiệu quả cắt giảm chi phí** | **Tiết kiệm 18.52% (-10 q-h mở/ngày)**<br>*(Tiết kiệm 21.43% theo giờ công 44 vs 56)* | **Tiết kiệm 11.11% (-6 q-h mở/ngày)**<br>*(Tiết kiệm 14.29% theo giờ công 48 vs 56)* | Mốc cơ sở (0.0%) |
 | **Mức phục vụ $SL$ danh định (CI95)** | **$93.81\% \pm 0.23\%$** | **$95.82\% \pm 0.18\%$** | $97.70\% \pm 0.12\%$ |
-| **Mức phục vụ $SL$ giờ tệ nhất (Low CI95)** | **$90.78\%$ (Đạt chuẩn $\ge 90\%$)** | **$93.64\%$ (Biên an toàn tốt)** | $95.57\%$ |
-| **Xác suất ngày đạt SLA toàn ngày ($SL \ge 90\%$)** | **$85.0\%$ (với biến động ngày $CV=11.8\%$)** | **$95.3\%$** | $99.4\%$ |
-| **Xác suất đạt SLA tất cả 9 giờ trong ngày** | **$26.0\%$** | **$47.0\%$** | $77.8\%$ |
-| **Số ngày đạt SLA trên 14 ngày thực tế** | **10/14 ngày (hụt ngày 1, 2, 7, 12)** | **13/14 ngày (chỉ hụt ngày 7 cực đại)** | 14/14 ngày |
+| **Mức phục vụ $SL$ giờ tệ nhất (Low CI95)** | **$90.78\%$** (Điểm ước lượng $90.60\%$) | **$93.64\%$** | $95.57\%$ |
+| **$P(SL \text{ kỳ vọng ngày} \ge 90\%)$** | **$88.5\%$** (Wilson 95%: $[83.3\%, 92.2\%]$) | **$98.5\%$** (Wilson 95%: $[95.7\%, 99.5\%]$) | **$100.0\%$** (Wilson 95%: $[98.1\%, 100.0\%]$) |
+| **$P(\min_h E_h(m) \ge 90\%)$** | **$65.5\%$** (Wilson 95%: $[58.7\%, 71.7\%]$)<br>*Số giờ $E_h < 90\%$ TB: 1.17 giờ* | **$82.5\%$** (Wilson 95%: $[76.6\%, 87.1\%]$)<br>*Số giờ $E_h < 90\%$ TB: 0.35 giờ* | **$97.5\%$** (Wilson 95%: $[94.3\%, 98.9\%]$)<br>*Số giờ $E_h < 90\%$ TB: 0.03 giờ* |
+| **$P(\text{thực tế mọi giờ} \ge 90\%)$** | **$25.7\%$** (Wilson 95%: $[24.6\%, 26.8\%]$)<br>*(Chịu chi phối mạnh bởi cỡ mẫu giờ)* | **$46.1\%$** (Wilson 95%: $[44.9\%, 47.4\%]$)<br>*(Chịu chi phối mạnh bởi cỡ mẫu giờ)* | **$76.2\%$** (Wilson 95%: $[75.1\%, 77.2\%]$) |
+| **$P(\text{gộp tháng 20 ngày mọi giờ} \ge 90\%)$** | **$58.3\%$** (Wilson 95%: $[52.7\%, 63.8\%]$) | **$78.0\%$** (Wilson 95%: $[73.0\%, 82.3\%]$) | **$97.3\%$** (Wilson 95%: $[94.8\%, 98.6\%]$) |
+| **Số ngày thực tế 14 ngày đạt SLA** | **12/14 ngày (85.7% [60.1%, 96.0%])**<br>*(Hụt ngày 2: 87.8% và ngày 7: 88.3%)* | **14/14 ngày (100.0% [78.5%, 100.0%])** | **14/14 ngày (100.0% [78.5%, 100.0%])** |
 | **Mức phục vụ Khách VIP ($W_q \le 2$ phút)** | **$94.96\% \pm 0.25\%$** | **$96.64\% \pm 0.19\%$** | $98.15\% \pm 0.14\%$ |
 | **Thời gian chờ trung bình $W_q$** | **$0.4908 \pm 0.0155$ phút (~29.4 giây)** | **$0.3424 \pm 0.0120$ phút (~20.5 giây)** | $0.1958 \pm 0.0089$ phút (~11.7 giây) |
 | **Tỉ lệ khách hàng bỏ về trung bình** | **$5.35\% \pm 0.17\%$** | **$3.73\% \pm 0.14\%$ (Giảm 30% khách mất)** | $2.15\% \pm 0.10\%$ |
 | **Hiệu suất sử dụng quầy giao dịch $\rho$** | **$72.15\% \pm 0.38\%$ (Tối ưu năng suất)** | **$67.25\% \pm 0.37\%$** | $60.75\% \pm 0.36\%$ (Lãng phí quầy) |
-| **Phương án tổ chức ca làm việc thực tế** | **Mô hình B: 4 NV 8h + 3 NV 4h** | Mô hình B: 5 NV 8h + 2 NV 4h | Mô hình B: 6 NV 8h (48 q-h worked, 54 on-site) |
-| **Chi phí quầy-giờ làm việc dư thừa** | **+0.0% (Phủ chính xác 44 q-h)** | +0.0% (Phủ chính xác 48 q-h) | +0.0% |
-| **Quy tắc kích hoạt vận hành** | **Áp dụng khi lưu lượng $\le 687$ khách/ngày** | **Kích hoạt khi lưu lượng $> 687$ khách/ngày** | Mốc lý thuyết đối chiếu |
+| **Phương án tổ chức ca làm việc** | **Mô hình B: 4 NV 8h + 3 NV 4h**<br>*(Nghỉ trưa 11h-14h, duy nhất 1 nghiệm)* | **Mô hình B: 5 NV 8h + 2 NV 4h**<br>*(Cửa sổ nghỉ 1-7: có 4 nghiệm khả thi)* | **7 NV 8h (56 q-h công làm việc)**<br>*(6 NV có nghỉ chỉ làm được 48 q-h)* |
+| **Chi phí quầy-giờ làm việc dư thừa** | **+0.0% (Phủ chính xác 44 q-h)** | **+0.0% (Phủ chính xác 48 q-h)** | +0.0% |
+| **Độ bền khi nhu cầu tăng +10%** | Giờ tệ nhất Low CI95 là **$88.43\%$** (Điểm ước lượng $89.84\%$) | **Giờ tệ nhất giữ vững $\ge 90.00\%$** (Low CI95: $90.00\%$, Điểm ước lượng $92.68\%$) | Giờ tệ nhất giữ vững $93.30\%$ |
+| **Quy tắc kích hoạt vận hành** | Áp dụng khi $\hat{V} \le 700$ khách/ngày (dự báo sớm 8h-10h: $r=0.842, p=0.0002$) | Kích hoạt chuyển quầy lúc 10h khi $\hat{V} > 700$ khách/ngày | Mốc lý thuyết đối chiếu |
 
 ---
 
@@ -327,8 +330,8 @@ Mô hình hóa chi phí tổng thể $C(k) = \text{Quầy-giờ} + k \cdot N_{ab
 
 ## 8. TỔNG KẾT KIỂM THỬ VÀ TRẠNG THÁI BÀN GIAO
 
-1. **Kiểm thử hồi quy tự động:** 18/18 ca kiểm thử đơn vị tự động trong `tests/` (`test_theory.py`, `test_sim.py`, `test_v2_features.py`) đều chạy thành công 100% trong 14.39 giây (ghi nhận tại `results/final_v2/pytest_log.txt`).
-2. **Kiểm tra tính nhất quán và ngôn ngữ (T10, T14):** Công cụ `tools/check_consistency.py` xác nhận:
-   - 0 vi phạm về các từ cấm ("toàn cục", "hiện trạng", các thứ trong tuần, ngày trả lương, từ ngữ tuyệt đối hóa).
-   - 100% số liệu trong tài liệu Markdown và Excel khớp hoàn toàn với dữ liệu đóng băng trong `results/final_v2/`.
-3. **Lưu trữ Git:** Toàn bộ sản phẩm được commit trên nhánh `fix/chinh-sua-agent` (commit `830b2cf`).
+1. **Kiểm thử hồi quy tự động:** 22/22 ca kiểm thử đơn vị tự động trong `tests/` (`test_theory.py`, `test_sim.py`, `test_v2_features.py`) đều chạy thành công 100% trong 9.82 giây (ghi nhận tại `results/final_v3/pytest_log.txt`).
+2. **Kiểm tra tính nhất quán và ngôn ngữ (T10, T14, C6):** Công cụ `tools/check_consistency.py` xác nhận:
+   - 0 vi phạm về các thuật ngữ không có căn cứ (đã chuẩn hóa thuật ngữ khoa học, loại bỏ các từ tuyệt đối hóa).
+   - 100% số liệu trong tài liệu Markdown và Excel khớp hoàn toàn với dữ liệu đóng băng trong `results/final_v3/`.
+3. **Lưu trữ Git:** Toàn bộ sản phẩm được commit trên nhánh `fix/chinh-sua-agent`.

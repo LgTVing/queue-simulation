@@ -332,25 +332,26 @@ Mô hình mô phỏng sự kiện rời rạc (*Discrete-Event Simulation - DES*
 | Tầng kiểm chứng | Chỉ số đánh giá | Giá trị Lý thuyết | Giá trị Mô phỏng | Khoảng tin cậy 95% | Sai lệch tương đối | Đạt chuẩn? | Mức xấp xỉ | Ghi chú kỹ thuật |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|---|
 | **Tầng 1 (M/M/c)** | $SL = P(W_q \le 5)$ | 0.9654 | **0.9688** | ±0.0037 | $+0.35\%$ | **Y** | Tốt | Lý thuyết nằm trong CI95 |
-| **Tầng 1 (M/M/c)** | $W_q$ (phút) | 0.8433 | **0.8170** | ±0.0423 | $-3.12\%$ | **Y** | Tốt | Lý thuyết nằm trong CI95 (0.817 ± 0.042) |
-| **Tầng 1 (M/M/c)** | Hiệu suất quầy $\rho$ | 0.7500 | **0.7517** | ±0.0047 | $+0.23\%$ | **Y** | Tốt | Khớp định luật Little ($\rho = 0.75$) |
-| **Tầng 2 (Erlang-A)** | $SL$ (chờ $\le 5$p) | 0.8689 | **0.8695** | ±0.0034 | $+0.07\%$ | **Y** | Tốt | Khớp nghiệm ma trận hấp thụ Markov |
-| **Tầng 2 (Erlang-A)** | $W_q$ (phút) | 1.1444 | **1.1475** | ±0.0233 | $+0.27\%$ | **Y** | Tốt | $W_q$ tính trên mọi khách ($L_q/\lambda$) |
-| **Tầng 2 (Erlang-A)** | Tỉ lệ bỏ về $p_{ab}$ | 0.1144 | **0.1142** | ±0.0022 | $-0.21\%$ | **Y** | Tốt | Lý thuyết nằm trong CI95 |
-| **Tầng 2 (Erlang-A)** | Hiệu suất quầy $\rho$ | 0.8856 | **0.8871** | ±0.0031 | $+0.17\%$ | **Y** | Tốt | Khớp $\rho = \lambda(1-p_{ab})E[S]/c$ |
-| **Tầng 3 (M/G/c, cv=0.5)** | $W_q$ (phút) | 0.5271 | **0.5616** | ±0.0176 | $+6.55\%$ | - | Chấp nhận được | Allen–Cunneen đánh giá thấp ~6-7% ở cv=0.5 |
-| **Tầng 3 (M/G/c, cv=1.0)** | $W_q$ (phút) | 0.8433 | **0.8113** | ±0.0521 | $-3.80\%$ | - | Tốt | Khớp Erlang C chuẩn (sai lệch < 5%) |
-| **Tầng 3 (M/G/c, cv=1.5)** | $W_q$ (phút) | 1.3704 | **1.1333** | ±0.1239 | $-17.30\%$ | - | Kém, cần giải thích | Allen–Cunneen đánh giá cao; kiểm tra bằng M/G/1 |
-| **Kiểm tra A (M/G/1 P-K exact)** | $W_q$ (phút) | 14.6250 | **13.8669** | ±1.5388 | $-5.18\%$ | **Y** | Tốt | Lý thuyết nằm trong CI95; SimPy đúng tuyệt đối |
-| **Kiểm tra B (M/G/6, cv=1.5, 60 reps)** | $W_q$ (phút) | 1.3704 | **1.1815** | ±0.0722 | $-13.78\%$ | - | Kém, cần giải thích | Sai lệch ổn định ~-14% đến -17% do Allen-Cunneen |
+| **Tầng 1 (M/M/c)** | $SL$ (chờ $\le 5$p) | 0.9654 | **0.9688** | ±0.0039 | $+0.35\%$ | **Y** | Tốt | Lý thuyết nằm trong khoảng tin cậy 95% (Student-t $t_{crit}=2.0452$) |
+| **Tầng 1 (M/M/c)** | $W_q$ (phút) | 0.8433 | **0.8170** | ±0.0441 | $-3.12\%$ | **Y** | Tốt | Lý thuyết nằm trong CI95 ($0.817 \pm 0.044$) |
+| **Tầng 1 (M/M/c)** | Hiệu suất quầy $\rho$ | 0.7500 | **0.7517** | ±0.0049 | $+0.23\%$ | **Y** | Tốt | Khớp định luật Little ($\rho = 0.75$) |
+| **Tầng 2 (Erlang-A)** | $SL$ (chờ $\le 5$p) | 0.8689 | **0.8695** | ±0.0035 | $+0.07\%$ | **Y** | Tốt | Khớp nghiệm ma trận hấp thụ Markov |
+| **Tầng 2 (Erlang-A)** | $W_q$ (phút) | 1.1444 | **1.1475** | ±0.0243 | $+0.27\%$ | **Y** | Tốt | $W_q$ tính trên mọi khách ($L_q/\lambda$) |
+| **Tầng 2 (Erlang-A)** | Tỉ lệ bỏ về $p_{ab}$ | 0.1144 | **0.1142** | ±0.0023 | $-0.17\%$ | **Y** | Tốt | Lý thuyết nằm trong CI95 |
+| **Tầng 2 (Erlang-A)** | Hiệu suất quầy $\rho$ | 0.8856 | **0.8871** | ±0.0032 | $+0.17\%$ | **Y** | Tốt | Khớp $\rho = \lambda(1-p_{ab})E[S]/c$ |
+| **Tầng 3 (M/G/c, cv=0.5)** | $W_q$ (phút) | 0.5271 | **0.5616** | ±0.0184 | $+6.55\%$ | - | Chấp nhận được | Allen–Cunneen đánh giá thấp ~6-7% ở cv=0.5 |
+| **Tầng 3 (M/G/c, cv=1.0)** | $W_q$ (phút) | 0.8433 | **0.8113** | ±0.0544 | $-3.79\%$ | **Y** | Tốt | Khớp Erlang C chuẩn (sai lệch < 5%) |
+| **Tầng 3 (M/G/c, cv=1.5)** | $W_q$ (phút) | 1.3704 | **1.1333** | ±0.1293 | $-17.30\%$ | - | Kém, cần giải thích | Allen–Cunneen đánh giá cao; kiểm tra bằng M/G/1 |
+| **Kiểm tra A (M/G/1 P-K exact, 40k phút, 40 reps)** | $W_q$ (phút) | 14.6250 | **14.7856** | ±1.0137 | $+1.10\%$ | **Y** | Tốt | Lý thuyết 14.625p nằm trong CI95 [13.77, 15.80]; không bác bỏ được tính đúng của SimPy |
+| **Kiểm tra B (M/G/6, cv=1.5, 60 reps)** | $W_q$ (phút) | 1.3704 | **1.1815** | ±0.0753 | $-13.78\%$ | - | Kém, cần giải thích | Sai lệch ổn định ~-14% đến -17% do Allen-Cunneen |
 
 ### Phân tích Chuyên sâu về Hai Kiểm tra Độc lập:
 1. **Khắc phục lỗi tồn đọng $\rho$ của Tuần 2:**
-   - Ở Tuần 2, $\rho$ mô phỏng ghi nhận $0.4228$. Nhóm đã phát hiện lỗi nằm ở việc lấy mẫu số chia cho độ dài danh nghĩa $8.000$ phút thay vì chiều dài thực tế sau cắt warm-up $4.500$ phút ($5.000 - 500$). Sau khi hiệu chỉnh mẫu số thành $c \cdot (T - \text{warm-up})$, kết quả mô phỏng đạt **$0.7517 \pm 0.0047$**, khớp chuẩn định luật Little với sai lệch chỉ $+0.23\%$.
-2. **Kiểm tra A (M/G/1 Pollaczek–Khinchine chính xác):**
-   - Với $c = 1, \lambda = 0.25, E[S] = 3.0, cv = 1.5$ ($cs^2 = 2.25$), công thức Pollaczek–Khinchine cho kết quả giải tích chính xác tuyệt đối:
+   - Ở Tuần 2, $\rho$ mô phỏng ghi nhận $0.4228$. Nhóm đã phát hiện lỗi nằm ở việc lấy mẫu số chia cho độ dài danh nghĩa $8.000$ phút thay vì chiều dài thực tế sau cắt warm-up $4.500$ phút ($5.000 - 500$). Sau khi hiệu chỉnh mẫu số thành $c \cdot (T - \text{warm-up})$, kết quả mô phỏng đạt **$0.7517 \pm 0.0049$**, khớp chuẩn định luật Little với sai lệch chỉ $+0.23\%$.
+2. **Kiểm tra A (M/G/1 Pollaczek–Khinchine chính xác, chạy 40.000 phút, 40 lần lặp):**
+   - Với $c = 1, \lambda = 0.25, E[S] = 3.0, cv = 1.5$ ($cs^2 = 2.25$), công thức Pollaczek–Khinchine cho kết quả giải tích chính xác:
      $$W_q = \frac{\rho E[S] (1 + cs^2)}{2(1 - \rho)} = \frac{0.75 \times 3.0 \times (1 + 2.25)}{2(1 - 0.75)} = \mathbf{14.625\text{ phút}}$$
-   - Mô phỏng SimPy cho ra **$13.8669 \pm 1.5388$ phút**. Giá trị lý thuyết $14.625$ phút nằm hoàn toàn trong khoảng tin cậy 95%. Điều này chứng minh dứt khoát rằng: **Mô hình SimPy hoàn toàn chính xác khi xử lý thời gian phục vụ phi-mũ (Lognormal).**
+   - Mô phỏng SimPy với độ dài chạy $40.000$ phút (warm-up $5.000$ phút, $40$ lần lặp, độ tự do $df=39, t_{crit}=2.0227$) cho ra **$14.7856 \pm 1.0137$ phút** (khoảng tin cậy 95%: $[13.7719, 15.7993]$). Giá trị lý thuyết $14.625$ phút nằm hoàn toàn trong khoảng tin cậy 95% (sai lệch $+1.10\%$). Kết quả cho thấy **không có cơ sở thực nghiệm để bác bỏ tính đúng đắn của động cơ mô phỏng SimPy đối với phân phối phục vụ phi-mũ (Lognormal).**
 3. **Kiểm tra B (Xác nhận giới hạn của công thức Allen–Cunneen):**
    - Lặp lại 60 lần ở $c=6, cv=1.5$ cho thấy sai lệch âm mang tính hệ thống và ổn định quanh $-14\%$ đến $-17\%$. Đây là hạn chế đã được ghi nhận trong y văn hàng đợi: xấp xỉ Allen–Cunneen luôn đánh giá cao (*overestimate*) thời gian chờ của hệ nhiều quầy ($c > 1$) khi $cv > 1.0$.
    - **Kết luận:** Nhóm không sử dụng công thức Allen–Cunneen để quyết định số quầy mà sử dụng mô phỏng SimPy làm chuẩn định lượng cao nhất.
