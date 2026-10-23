@@ -1,0 +1,118 @@
+loai_thu_nghiem,gio_giam,gio_tang,tong_quay_gio,lich_thu_nghiem,SL_gio_bi_giam_ErlangA,kha_thi_SLA
+Swap 1 quay,8h-9h (tu 4 xuong 3),9h-10h (tu 5 len 6),44,"[3, 6, 6, 5, 5, 5, 5, 5, 4]",0.8061,N
+Swap 1 quay,8h-9h (tu 4 xuong 3),10h-11h (tu 6 len 7),44,"[3, 5, 7, 5, 5, 5, 5, 5, 4]",0.8061,N
+Swap 1 quay,8h-9h (tu 4 xuong 3),11h-12h (tu 5 len 6),44,"[3, 5, 6, 6, 5, 5, 5, 5, 4]",0.8061,N
+Swap 1 quay,8h-9h (tu 4 xuong 3),12h-13h (tu 5 len 6),44,"[3, 5, 6, 5, 6, 5, 5, 5, 4]",0.8061,N
+Swap 1 quay,8h-9h (tu 4 xuong 3),13h-14h (tu 5 len 6),44,"[3, 5, 6, 5, 5, 6, 5, 5, 4]",0.8061,N
+Swap 1 quay,8h-9h (tu 4 xuong 3),14h-15h (tu 5 len 6),44,"[3, 5, 6, 5, 5, 5, 6, 5, 4]",0.8061,N
+Swap 1 quay,8h-9h (tu 4 xuong 3),15h-16h (tu 5 len 6),44,"[3, 5, 6, 5, 5, 5, 5, 6, 4]",0.8061,N
+Swap 1 quay,8h-9h (tu 4 xuong 3),16h-17h (tu 4 len 5),44,"[3, 5, 6, 5, 5, 5, 5, 5, 5]",0.8061,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),8h-9h (tu 4 len 5),44,"[5, 4, 6, 5, 5, 5, 5, 5, 4]",0.8239,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),10h-11h (tu 6 len 7),44,"[4, 4, 7, 5, 5, 5, 5, 5, 4]",0.8239,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),11h-12h (tu 5 len 6),44,"[4, 4, 6, 6, 5, 5, 5, 5, 4]",0.8239,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),12h-13h (tu 5 len 6),44,"[4, 4, 6, 5, 6, 5, 5, 5, 4]",0.8239,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),13h-14h (tu 5 len 6),44,"[4, 4, 6, 5, 5, 6, 5, 5, 4]",0.8239,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),14h-15h (tu 5 len 6),44,"[4, 4, 6, 5, 5, 5, 6, 5, 4]",0.8239,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),15h-16h (tu 5 len 6),44,"[4, 4, 6, 5, 5, 5, 5, 6, 4]",0.8239,N
+Swap 1 quay,9h-10h (tu 5 xuong 4),16h-17h (tu 4 len 5),44,"[4, 4, 6, 5, 5, 5, 5, 5, 5]",0.8239,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),8h-9h (tu 4 len 5),44,"[5, 5, 5, 5, 5, 5, 5, 5, 4]",0.8986,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),9h-10h (tu 5 len 6),44,"[4, 6, 5, 5, 5, 5, 5, 5, 4]",0.8986,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),11h-12h (tu 5 len 6),44,"[4, 5, 5, 6, 5, 5, 5, 5, 4]",0.8986,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),12h-13h (tu 5 len 6),44,"[4, 5, 5, 5, 6, 5, 5, 5, 4]",0.8986,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),13h-14h (tu 5 len 6),44,"[4, 5, 5, 5, 5, 6, 5, 5, 4]",0.8986,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),14h-15h (tu 5 len 6),44,"[4, 5, 5, 5, 5, 5, 6, 5, 4]",0.8986,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),15h-16h (tu 5 len 6),44,"[4, 5, 5, 5, 5, 5, 5, 6, 4]",0.8986,N
+Swap 1 quay,10h-11h (tu 6 xuong 5),16h-17h (tu 4 len 5),44,"[4, 5, 5, 5, 5, 5, 5, 5, 5]",0.8986,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),8h-9h (tu 4 len 5),44,"[5, 5, 6, 4, 5, 5, 5, 5, 4]",0.8188,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),9h-10h (tu 5 len 6),44,"[4, 6, 6, 4, 5, 5, 5, 5, 4]",0.8188,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),10h-11h (tu 6 len 7),44,"[4, 5, 7, 4, 5, 5, 5, 5, 4]",0.8188,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),12h-13h (tu 5 len 6),44,"[4, 5, 6, 4, 6, 5, 5, 5, 4]",0.8188,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),13h-14h (tu 5 len 6),44,"[4, 5, 6, 4, 5, 6, 5, 5, 4]",0.8188,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),14h-15h (tu 5 len 6),44,"[4, 5, 6, 4, 5, 5, 6, 5, 4]",0.8188,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),15h-16h (tu 5 len 6),44,"[4, 5, 6, 4, 5, 5, 5, 6, 4]",0.8188,N
+Swap 1 quay,11h-12h (tu 5 xuong 4),16h-17h (tu 4 len 5),44,"[4, 5, 6, 4, 5, 5, 5, 5, 5]",0.8188,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),8h-9h (tu 4 len 5),44,"[5, 5, 6, 5, 4, 5, 5, 5, 4]",0.8717,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),9h-10h (tu 5 len 6),44,"[4, 6, 6, 5, 4, 5, 5, 5, 4]",0.8717,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),10h-11h (tu 6 len 7),44,"[4, 5, 7, 5, 4, 5, 5, 5, 4]",0.8717,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),11h-12h (tu 5 len 6),44,"[4, 5, 6, 6, 4, 5, 5, 5, 4]",0.8717,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),13h-14h (tu 5 len 6),44,"[4, 5, 6, 5, 4, 6, 5, 5, 4]",0.8717,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),14h-15h (tu 5 len 6),44,"[4, 5, 6, 5, 4, 5, 6, 5, 4]",0.8717,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),15h-16h (tu 5 len 6),44,"[4, 5, 6, 5, 4, 5, 5, 6, 4]",0.8717,N
+Swap 1 quay,12h-13h (tu 5 xuong 4),16h-17h (tu 4 len 5),44,"[4, 5, 6, 5, 4, 5, 5, 5, 5]",0.8717,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),8h-9h (tu 4 len 5),44,"[5, 5, 6, 5, 5, 4, 5, 5, 4]",0.8835,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),9h-10h (tu 5 len 6),44,"[4, 6, 6, 5, 5, 4, 5, 5, 4]",0.8835,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),10h-11h (tu 6 len 7),44,"[4, 5, 7, 5, 5, 4, 5, 5, 4]",0.8835,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),11h-12h (tu 5 len 6),44,"[4, 5, 6, 6, 5, 4, 5, 5, 4]",0.8835,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),12h-13h (tu 5 len 6),44,"[4, 5, 6, 5, 6, 4, 5, 5, 4]",0.8835,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),14h-15h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 4, 6, 5, 4]",0.8835,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),15h-16h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 4, 5, 6, 4]",0.8835,N
+Swap 1 quay,13h-14h (tu 5 xuong 4),16h-17h (tu 4 len 5),44,"[4, 5, 6, 5, 5, 4, 5, 5, 5]",0.8835,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),8h-9h (tu 4 len 5),44,"[5, 5, 6, 5, 5, 5, 4, 5, 4]",0.8383,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),9h-10h (tu 5 len 6),44,"[4, 6, 6, 5, 5, 5, 4, 5, 4]",0.8383,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),10h-11h (tu 6 len 7),44,"[4, 5, 7, 5, 5, 5, 4, 5, 4]",0.8383,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),11h-12h (tu 5 len 6),44,"[4, 5, 6, 6, 5, 5, 4, 5, 4]",0.8383,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),12h-13h (tu 5 len 6),44,"[4, 5, 6, 5, 6, 5, 4, 5, 4]",0.8383,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),13h-14h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 6, 4, 5, 4]",0.8383,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),15h-16h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 5, 4, 6, 4]",0.8383,N
+Swap 1 quay,14h-15h (tu 5 xuong 4),16h-17h (tu 4 len 5),44,"[4, 5, 6, 5, 5, 5, 4, 5, 5]",0.8383,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),8h-9h (tu 4 len 5),44,"[5, 5, 6, 5, 5, 5, 5, 4, 4]",0.846,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),9h-10h (tu 5 len 6),44,"[4, 6, 6, 5, 5, 5, 5, 4, 4]",0.846,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),10h-11h (tu 6 len 7),44,"[4, 5, 7, 5, 5, 5, 5, 4, 4]",0.846,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),11h-12h (tu 5 len 6),44,"[4, 5, 6, 6, 5, 5, 5, 4, 4]",0.846,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),12h-13h (tu 5 len 6),44,"[4, 5, 6, 5, 6, 5, 5, 4, 4]",0.846,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),13h-14h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 6, 5, 4, 4]",0.846,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),14h-15h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 5, 6, 4, 4]",0.846,N
+Swap 1 quay,15h-16h (tu 5 xuong 4),16h-17h (tu 4 len 5),44,"[4, 5, 6, 5, 5, 5, 5, 4, 5]",0.846,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),8h-9h (tu 4 len 5),44,"[5, 5, 6, 5, 5, 5, 5, 5, 3]",0.7716,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),9h-10h (tu 5 len 6),44,"[4, 6, 6, 5, 5, 5, 5, 5, 3]",0.7716,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),10h-11h (tu 6 len 7),44,"[4, 5, 7, 5, 5, 5, 5, 5, 3]",0.7716,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),11h-12h (tu 5 len 6),44,"[4, 5, 6, 6, 5, 5, 5, 5, 3]",0.7716,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),12h-13h (tu 5 len 6),44,"[4, 5, 6, 5, 6, 5, 5, 5, 3]",0.7716,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),13h-14h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 6, 5, 5, 3]",0.7716,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),14h-15h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 5, 6, 5, 3]",0.7716,N
+Swap 1 quay,16h-17h (tu 4 xuong 3),15h-16h (tu 5 len 6),44,"[4, 5, 6, 5, 5, 5, 5, 6, 3]",0.7716,N
+Giam 2 quay,8h va 8h,Khong,42,"[2, 5, 6, 5, 5, 5, 5, 5, 4]",0.4751,N
+Giam 2 quay,8h va 9h,Khong,42,"[3, 4, 6, 5, 5, 5, 5, 5, 4]",0.8061,N
+Giam 2 quay,8h va 10h,Khong,42,"[3, 5, 5, 5, 5, 5, 5, 5, 4]",0.8061,N
+Giam 2 quay,8h va 11h,Khong,42,"[3, 5, 6, 4, 5, 5, 5, 5, 4]",0.8061,N
+Giam 2 quay,8h va 12h,Khong,42,"[3, 5, 6, 5, 4, 5, 5, 5, 4]",0.8061,N
+Giam 2 quay,8h va 13h,Khong,42,"[3, 5, 6, 5, 5, 4, 5, 5, 4]",0.8061,N
+Giam 2 quay,8h va 14h,Khong,42,"[3, 5, 6, 5, 5, 5, 4, 5, 4]",0.8061,N
+Giam 2 quay,8h va 15h,Khong,42,"[3, 5, 6, 5, 5, 5, 5, 4, 4]",0.8061,N
+Giam 2 quay,8h va 16h,Khong,42,"[3, 5, 6, 5, 5, 5, 5, 5, 3]",0.7716,N
+Giam 2 quay,9h va 9h,Khong,42,"[4, 3, 6, 5, 5, 5, 5, 5, 4]",0.5766,N
+Giam 2 quay,9h va 10h,Khong,42,"[4, 4, 5, 5, 5, 5, 5, 5, 4]",0.8239,N
+Giam 2 quay,9h va 11h,Khong,42,"[4, 4, 6, 4, 5, 5, 5, 5, 4]",0.8188,N
+Giam 2 quay,9h va 12h,Khong,42,"[4, 4, 6, 5, 4, 5, 5, 5, 4]",0.8239,N
+Giam 2 quay,9h va 13h,Khong,42,"[4, 4, 6, 5, 5, 4, 5, 5, 4]",0.8239,N
+Giam 2 quay,9h va 14h,Khong,42,"[4, 4, 6, 5, 5, 5, 4, 5, 4]",0.8239,N
+Giam 2 quay,9h va 15h,Khong,42,"[4, 4, 6, 5, 5, 5, 5, 4, 4]",0.8239,N
+Giam 2 quay,9h va 16h,Khong,42,"[4, 4, 6, 5, 5, 5, 5, 5, 3]",0.7716,N
+Giam 2 quay,10h va 10h,Khong,42,"[4, 5, 4, 5, 5, 5, 5, 5, 4]",0.7576,N
+Giam 2 quay,10h va 11h,Khong,42,"[4, 5, 5, 4, 5, 5, 5, 5, 4]",0.8188,N
+Giam 2 quay,10h va 12h,Khong,42,"[4, 5, 5, 5, 4, 5, 5, 5, 4]",0.8717,N
+Giam 2 quay,10h va 13h,Khong,42,"[4, 5, 5, 5, 5, 4, 5, 5, 4]",0.8835,N
+Giam 2 quay,10h va 14h,Khong,42,"[4, 5, 5, 5, 5, 5, 4, 5, 4]",0.8383,N
+Giam 2 quay,10h va 15h,Khong,42,"[4, 5, 5, 5, 5, 5, 5, 4, 4]",0.846,N
+Giam 2 quay,10h va 16h,Khong,42,"[4, 5, 5, 5, 5, 5, 5, 5, 3]",0.7716,N
+Giam 2 quay,11h va 11h,Khong,42,"[4, 5, 6, 3, 5, 5, 5, 5, 4]",0.5679,N
+Giam 2 quay,11h va 12h,Khong,42,"[4, 5, 6, 4, 4, 5, 5, 5, 4]",0.8188,N
+Giam 2 quay,11h va 13h,Khong,42,"[4, 5, 6, 4, 5, 4, 5, 5, 4]",0.8188,N
+Giam 2 quay,11h va 14h,Khong,42,"[4, 5, 6, 4, 5, 5, 4, 5, 4]",0.8188,N
+Giam 2 quay,11h va 15h,Khong,42,"[4, 5, 6, 4, 5, 5, 5, 4, 4]",0.8188,N
+Giam 2 quay,11h va 16h,Khong,42,"[4, 5, 6, 4, 5, 5, 5, 5, 3]",0.7716,N
+Giam 2 quay,12h va 12h,Khong,42,"[4, 5, 6, 5, 3, 5, 5, 5, 4]",0.6643,N
+Giam 2 quay,12h va 13h,Khong,42,"[4, 5, 6, 5, 4, 4, 5, 5, 4]",0.8717,N
+Giam 2 quay,12h va 14h,Khong,42,"[4, 5, 6, 5, 4, 5, 4, 5, 4]",0.8383,N
+Giam 2 quay,12h va 15h,Khong,42,"[4, 5, 6, 5, 4, 5, 5, 4, 4]",0.846,N
+Giam 2 quay,12h va 16h,Khong,42,"[4, 5, 6, 5, 4, 5, 5, 5, 3]",0.7716,N
+Giam 2 quay,13h va 13h,Khong,42,"[4, 5, 6, 5, 5, 3, 5, 5, 4]",0.688,N
+Giam 2 quay,13h va 14h,Khong,42,"[4, 5, 6, 5, 5, 4, 4, 5, 4]",0.8383,N
+Giam 2 quay,13h va 15h,Khong,42,"[4, 5, 6, 5, 5, 4, 5, 4, 4]",0.846,N
+Giam 2 quay,13h va 16h,Khong,42,"[4, 5, 6, 5, 5, 4, 5, 5, 3]",0.7716,N
+Giam 2 quay,14h va 14h,Khong,42,"[4, 5, 6, 5, 5, 5, 3, 5, 4]",0.6016,N
+Giam 2 quay,14h va 15h,Khong,42,"[4, 5, 6, 5, 5, 5, 4, 4, 4]",0.8383,N
+Giam 2 quay,14h va 16h,Khong,42,"[4, 5, 6, 5, 5, 5, 4, 5, 3]",0.7716,N
+Giam 2 quay,15h va 15h,Khong,42,"[4, 5, 6, 5, 5, 5, 5, 3, 4]",0.6156,N
+Giam 2 quay,15h va 16h,Khong,42,"[4, 5, 6, 5, 5, 5, 5, 4, 3]",0.7716,N
+Giam 2 quay,16h va 16h,Khong,42,"[4, 5, 6, 5, 5, 5, 5, 5, 2]",0.4224,N

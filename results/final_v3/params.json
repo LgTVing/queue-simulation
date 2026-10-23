@@ -1,0 +1,46 @@
+{
+  "version": "v3.0",
+  "ngay_chot": "2026-10-23",
+  "nguon": "Anonymous Bank (Technion SEE Center), PS activity, 8h-17h, 14 standard workdays",
+  "don_vi_thoi_gian": "phut",
+  "rates_per_min": [
+    0.99,
+    1.3767,
+    1.535,
+    1.39,
+    1.24,
+    1.2017,
+    1.3383,
+    1.3167,
+    1.0567
+  ],
+  "rates_ci95": [
+    0.1378,
+    0.141,
+    0.2051,
+    0.203,
+    0.1548,
+    0.1527,
+    0.1982,
+    0.1882,
+    0.1488
+  ],
+  "service": {
+    "kieu": "gamma",
+    "mean": 2.9236,
+    "std": 3.2051,
+    "cv": 1.0963,
+    "cs2": 1.2018,
+    "gamma_shape": 1.0955,
+    "gamma_scale": 2.6688,
+    "lognorm_s": 1.215,
+    "lognorm_scale": 1.7357
+  },
+  "theta": 0.1087,
+  "theta_ci95": 0.0093,
+  "mean_patience": 9.2,
+  "p_vip": 0.3543,
+  "p_vip_ci95": 0.0113,
+  "ghi_chu": "Uoc luong tren tap train (10 ngay lam viec dau tien). Phan phoi Gamma dat AIC thap nhat.",
+  "rates_ci95_method": "Student-t across 10 train days (accounting for empirical overdispersion)"
+}

@@ -46,10 +46,10 @@
   - Giờ cao điểm (10h-11h): $\lambda_2 = 1.535 \pm 0.099$ khách/phút (đỉnh tải toàn ngày).
   - Giờ chiều (14h-16h): $\lambda \approx 1.32 - 1.34$ khách/phút.
   - Giờ đóng cửa (16h-17h): $\lambda_8 = 1.057 \pm 0.082$ khách/phút.
-- **Kiểm định thống kê:** Kiểm định chỉ số phân tán $D = s^2/\bar{x}$ chấp nhận giả định Poisson cục bộ trong từng giờ ($p$-value $> 0.05$ ở 8/9 khung giờ), nhưng bác bỏ giả định tốc độ đến không đổi cả ngày ($\chi^2 = 184.2, p < 10^{-6}$).
+- **Kiểm định thống kê:** Kiểm định chỉ số phân tán $D = s^2/\bar{x}$: Ở mức ý nghĩa $\alpha = 0.05$, có 8/9 khung giờ bác bỏ giả định Poisson (chỉ duy nhất khung 12h-13h có $p=0.0763$ chưa đủ bằng chứng bác bỏ). Dữ liệu có hiện tượng quá phân tán (overdispersion, $D = 1.63 - 2.87$, Var/Mean toàn ngày = 10.8, biến động ngày $CV_{\text{ngày}} = 11.8\%$). Mô hình xử lý hiện tượng này bằng nhân tử biến thiên ngày $m_d \sim \text{Gamma}$.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên A
 - **Lời thoại:**  
-  > *"Dữ liệu được trích xuất từ 14 ngày làm việc tiêu chuẩn (9.836 giao dịch). Chúng em chia 70% (10 ngày) làm tập ước lượng và 30% (4 ngày) làm tập kiểm tra. Kết quả kiểm định cho thấy dòng khách đến tuân theo quá trình Poisson không thuần nhất (NHPP): trong từng khung giờ 60 phút, khách đến ngẫu nhiên theo phân phối Poisson; nhưng giữa các khung giờ, tốc độ đến $\lambda_h$ biến thiên tới hơn 55% giữa giờ thấp điểm và giờ cao điểm 10h-11h."*
+  > *"Dữ liệu được trích xuất từ 14 ngày làm việc tiêu chuẩn (9.836 giao dịch). Chúng em chia 70% (10 ngày) làm tập ước lượng và 30% (4 ngày) làm tập kiểm tra. Kết quả kiểm định cho thấy dòng khách đến biến thiên mạnh theo giờ: tốc độ đến $\lambda_h$ dao động hơn 55% giữa giờ mở cửa và giờ cao điểm 10h-11h. Trong từng giờ, dữ liệu có hiện tượng quá phân tán so với phân phối Poisson chuẩn, được mô hình hóa bằng nhân tử biến thiên ngày để đảm bảo độ tin cậy thực nghiệm."*
 
 ---
 
@@ -72,10 +72,10 @@
 - **Hình ảnh minh họa:** [`fig_a_bat_dinh.png`](file:///d:/KHDV/results/final_v1/hinh/fig_a_bat_dinh.png) và [`fig_a_ngoai_mau.png`](file:///d:/KHDV/results/final_v1/hinh/fig_a_ngoai_mau.png).
 - **Kết quả trọng tâm:**
   - **Bootstrap 50 bộ tham số (E4):** Khi $\lambda_h$, $E[S]$, $\theta$, $p_{vip}$ cùng dao động ngẫu nhiên trong khoảng tin cậy, xác suất để lịch tối ưu đạt SLA toàn ngày $\ge 90\%$ là **$100.0\%$** (khoảng $5\% - 95\%$ đạt $[92.9\%, 94.6\%]$).
-  - **Kiểm tra ngoài mẫu (E6):** Kiểm định Kolmogorov-Smirnov 2 mẫu trên tập test 4 ngày (2.969 cuộc gọi) cho $D = 0.0326$. Khi áp dụng lịch tối ưu sang tập test, SLA toàn ngày vẫn đạt $93.6\%$.
+  - **Kiểm tra ngoài mẫu (E6):** So sánh với tập test 4 ngày (2.969 cuộc gọi). Lưu ý rằng tập test được quan sát dưới điều kiện vận hành thực tế của ngân hàng (chưa áp dụng lịch tối ưu); khung 15h-16h thực tế sụt giảm SLA (76.5%) do hiện tượng chốt sổ/rút bớt quầy cuối ngày, trong khi mô phỏng dự báo $95.1\%$ với 5 quầy.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên A
 - **Lời thoại:**  
-  > *"Một câu hỏi phản biện tất yếu: 'Nếu tham số ước lượng bị sai số mẫu thì sao?' Nhóm đã thực hiện Bootstrap 50 bộ tham số ngẫu nhiên. Kết quả cho thấy 100% các bộ tham số đều giữ mức SLA toàn ngày trên 90%. Đồng thời, kiểm tra ngoài mẫu độc lập trên 4 ngày chưa từng sử dụng cũng khẳng định mô hình không bị quá khớp."*
+  > *"Một câu hỏi phản biện tất yếu: 'Nếu tham số ước lượng bị sai số mẫu thì sao?' Nhóm đã thực hiện Bootstrap 50 bộ tham số ngẫu nhiên. Kết quả cho thấy 100% các bộ tham số đều giữ mức SLA toàn ngày trên 90%. Đồng thời, kiểm tra ngoài mẫu độc lập trên 4 ngày chưa từng sử dụng cũng giúp xác nhận tính ổn định của mô hình và nhận diện sự khác biệt vận hành cuối ngày ở khung 15h-16h."*
 - **Câu chuyển tiếp sang Slide 6:** *"Từ các tham số thực tế đã được kiểm định vững chắc, Bạn B sẽ trình bày cách tiếp cận giải tích để tìm số quầy cơ sở."*
 
 ---
@@ -126,15 +126,15 @@
 ---
 
 ### SLIDE 9: Lập Lịch Theo Ca Làm Việc Thực Tế (MILP)
-- **Thông điệp chính:** Lịch ca hỗn hợp (8h + 4h) phủ hoàn hảo 44 quầy-giờ mà không phát sinh chi phí dư thừa
+- **Thông điệp chính:** Lịch ca hỗn hợp (8h + 4h) Mô hình B phủ đúng 44 quầy-giờ làm việc mà không phát sinh quầy-giờ dư thừa
 - **Hình ảnh minh họa:** [`fig_b_ca_lam.png`](file:///d:/KHDV/results/final_v1/hinh/fig_b_ca_lam.png).
-- **So sánh 3 phương án tổ chức ca làm (`scipy.optimize.milp`):**
+- **So sánh các phương án tổ chức ca làm (`scipy.optimize.milp`):**
   1. **Lịch tự do theo giờ:** 44 quầy-giờ (Giả định lý tưởng).
-  2. **Hỗn hợp linh hoạt (4 NV 8h + 3 NV 4h):** Đạt đúng **44 quầy-giờ** ($+0.0\%$ chi phí dư thừa). 4 nhân viên chính thức làm ca 8h có giờ ăn trưa so le (1 người 11h-12h, 2 người 12h-13h, 1 người 13h-14h), kết hợp 3 nhân viên bán thời gian vào các đợt cao điểm.
-  3. **Thuần ca 8 giờ (Full-time only):** Buộc phải sử dụng **64 quầy-giờ** ($+45.5\%$ chi phí do dư thừa nhân viên ở đầu và cuối ngày).
+  2. **Hỗn hợp linh hoạt (4 NV 8h + 3 NV 4h, Mô hình B có nghỉ trưa 1h):** Đạt đúng **44 quầy-giờ làm việc** (+0.0% dư thừa quầy-giờ làm việc, tổng 48 q-h có mặt). 4 nhân viên chính thức làm ca 8h có giờ ăn trưa so le trong khung 11h-14h (1 người 11h-12h, 2 người 12h-13h, 1 người 13h-14h), kết hợp 3 nhân viên bán thời gian vào các đợt cao điểm.
+  3. **Mô hình A (Ca 8h liên tục không nghỉ):** Không có nghiệm khả thi cho cấu hình 4 NV 8h + 3 NV 4h. Nếu dùng thuần ca 8h liên tục, buộc phải dùng **64 quầy-giờ** (+45.5% chi phí do dư thừa đầu và cuối ngày).
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên B
 - **Lời thoại:**  
-  > *"Thực tế nhân viên không thể đến làm việc 1 tiếng rồi về. Giải bài toán quy hoạch nguyên MILP, chúng em chứng minh rằng: Nếu ngân hàng chỉ dùng nhân viên toàn thời gian ca 8 tiếng, tổng chi phí sẽ bị đội lên 64 quầy-giờ (+45.5%). Nhưng nếu áp dụng mô hình ca hỗn hợp—4 nhân viên toàn thời gian có giờ nghỉ trưa so le kết hợp 3 nhân viên bán thời gian ca 4 tiếng—chi nhánh sẽ đáp ứng hoàn hảo yêu cầu từng giờ với đúng 44 quầy-giờ."*
+  > *"Thực tế nhân viên không thể đến làm việc 1 tiếng rồi về. Giải bài toán quy hoạch nguyên MILP, nhóm phân định rõ: Nếu ca 8h là khối liên tục không nghỉ (Mô hình A), không có nghiệm khả thi cho cấu hình kết hợp và thuần 8h tốn tới 64 quầy-giờ (+45.5%). Nhưng với Mô hình B chuẩn lao động có 1 giờ nghỉ trưa so le—4 nhân viên toàn thời gian kết hợp 3 nhân viên bán thời gian ca 4 tiếng—chi nhánh sẽ đáp ứng chính xác nhu cầu từng giờ với đúng 44 quầy-giờ làm việc."*
 - **Câu chuyển tiếp sang Slide 10:** *"Để kiểm chứng các tính toán lý thuyết và khảo sát toàn diện hệ thống động, Bạn C sẽ trình bày mô hình mô phỏng SimPy."*
 
 ---
@@ -167,7 +167,7 @@
 
 - **Thời lượng:** 2:00 | **Người trình bày:** Thành viên C
 - **Lời thoại:**  
-  > *"Để đảm bảo tính khoa học tuyệt đối, nhóm thực hiện kiểm chứng 3 tầng: Ở Tầng 1 và 2, mô phỏng SimPy khớp với nghiệm giải tích chính xác với sai lệch dưới 0.35%, đặc biệt hiệu suất quầy đạt đúng 0.7517 khớp định luật Little. Ở Tầng 3 với cv=1.5, mô phỏng lệch -13.8% so với Allen-Cunneen. Nhóm đã chứng minh bằng công thức Pollaczek-Khinchine chính xác (Kiểm tra A, c=1) rằng SimPy đúng 100%, và sai lệch ở c=6 là do giới hạn của công thức xấp xỉ Allen-Cunneen khi cv cao."*
+  > *"Để đảm bảo tính khoa học và độ tin cậy của mô hình, nhóm thực hiện kiểm chứng 3 tầng: Ở Tầng 1 và 2, mô phỏng SimPy khớp với nghiệm giải tích chính xác với sai lệch dưới 0.35%, đặc biệt hiệu suất quầy đạt đúng 0.7517 khớp định luật Little. Ở Tầng 3 với cv=1.5, mô phỏng lệch -13.8% so với Allen-Cunneen. Nhóm đã chứng minh bằng công thức Pollaczek-Khinchine chính xác (Kiểm tra A, c=1) rằng mô hình SimPy xử lý thời gian phục vụ phi-mũ rất chuẩn xác, và sai lệch ở c=6 là do giới hạn của công thức xấp xỉ Allen-Cunneen khi cv cao."*
 
 ---
 
@@ -177,7 +177,7 @@
 
 | Chính sách | Quầy-giờ | $SL$ Toàn ngày | $SL$ Giờ tệ nhất (Low) | Tỉ lệ bỏ về | $W_q$ (phút) | Đạt SLA? |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Hằng số (6 quầy)** | 54 | 97.70% ± 0.12% | 95.57% (H2) | 2.15% | 0.196p | **ĐẠT** |
+| **Mốc cơ sở: Hằng số 6 quầy (không phải nhân sự thực tế)** | 54 | 97.70% ± 0.12% | 95.57% (H2) | 2.15% | 0.196p | **ĐẠT** |
 | **SIPP (Erlang-A)** | 44 | 93.81% ± 0.23% | 90.78% (H8) | 5.35% | 0.491p | **ĐẠT** |
 | **Tối ưu mô phỏng** | **44** | **93.81% ± 0.23%** | **90.78% (H8)** | **5.35%** | **0.491p** | **ĐẠT** |
 | **Bền vững (+10% tải)** | 48 | 95.82% ± 0.18% | 93.64% (H6) | 3.73% | 0.342p | **ĐẠT** |
@@ -185,7 +185,7 @@
 
 - **Thời lượng:** 2:00 | **Người trình bày:** Thành viên C
 - **Lời thoại:**  
-  > *"Đây là bảng kết quả trung tâm của dự án được đánh giá qua 300 ngày mô phỏng độc lập. Thuật toán tối ưu 2 pha đã hội tụ về lịch 44 quầy-giờ `[4, 5, 6, 5, 5, 5, 5, 5, 4]`. Lịch này đạt SLA toàn ngày 93.81% và giờ thấp nhất vẫn đạt 90.78% (cận dưới CI95 > 90%). So với chính sách 6 quầy cố định, lịch tối ưu tiết kiệm đúng 10 quầy-giờ mỗi ngày mà vẫn đảm bảo 100% tiêu chuẩn chất lượng dịch vụ."*
+  > *"Đây là bảng kết quả trung tâm của dự án được đánh giá qua 300 ngày mô phỏng độc lập. Thuật toán tối ưu 2 pha đã xác nhận lịch SIPP 44 quầy-giờ `[4, 5, 6, 5, 5, 5, 5, 5, 4]` là tối thiểu cục bộ. Lịch này đạt SLA toàn ngày 93.81% và giờ thấp nhất vẫn đạt 90.78% (cận dưới CI95 > 90%). So với mốc cơ sở 6 quầy, lịch tối ưu tiết kiệm đúng 10 quầy-giờ mỗi ngày. Khi tính đến biến động quy mô khách giữa các ngày (CV=11.8%), lịch 44 đạt chuẩn SLA trên 85.0% số ngày (10/14 ngày thực tế)."*
 
 ---
 
@@ -198,15 +198,15 @@
   - Tỉ lệ bỏ về giảm mạnh từ $5.35\%$ xuống còn $3.73\%$.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên C
 - **Lời thoại:**  
-  > *"Phân tích độ nhạy T6 cho thấy lịch tối ưu 44 quầy-giờ khá 'nhạy cảm' với biến động tải. Nếu ngân hàng bước vào đợt khuyến mãi hoặc ngày trả lương khiến nhu cầu tăng 10%, SLA giờ đỉnh sẽ bị phá vỡ. Do đó, nhóm khuyến nghị Phương án Bền vững 48 quầy-giờ: Chỉ cần tăng thêm 4 quầy-giờ (+9.1%), hệ thống sẽ hấp thụ hoàn toàn đợt tăng tải 10% và giảm 30% lượng khách bỏ về."*
+  > *"Phân tích độ nhạy T6 cho thấy lịch tối ưu 44 quầy-giờ khá 'nhạy cảm' với biến động tải. Nếu chi nhánh bước vào đợt cao điểm khiến lượng khách vượt quá 687 khách/ngày (tăng 10%), SLA giờ đỉnh sẽ bị phá vỡ. Do đó, nhóm khuyến nghị Phương án Bền vững 48 quầy-giờ: Chỉ cần tăng thêm 4 quầy-giờ (+9.1%), hệ thống sẽ hấp thụ tốt đợt tăng tải 10%, nâng xác suất ngày đạt SLA lên 95.3% và giảm 30% lượng khách bỏ về."*
 
 ---
 
 ### SLIDE 14: Kết Luận, Hạn Chế và Hướng Phát Triển
 - **Thông điệp chính:** Mô hình hoàn chỉnh từ dữ liệu đến quyết định thực tiễn; Nhận diện rõ giới hạn
 - **Nội dung kết luận:**
-  1. **Khuyến nghị vận hành:** Áp dụng lịch **44 quầy-giờ** cho ngày thường và chuyển đổi linh hoạt sang lịch **48 quầy-giờ** vào ngày cao điểm (đầu/cuối tháng).
-  2. **Tổ chức ca:** Áp dụng mô hình ca hỗn hợp (4 nhân viên 8h + 3 nhân viên bán thời gian 4h) để đạt chi phí tối thiểu.
+  1. **Khuyến nghị vận hành:** Áp dụng lịch **44 quầy-giờ** cho ngày thường ($\le 687$ khách/ngày) và kích hoạt lịch **48 quầy-giờ** vào ngày cao điểm ($> 687$ khách/ngày).
+  2. **Tổ chức ca:** Áp dụng mô hình ca hỗn hợp (Mô hình B: 4 nhân viên 8h có 1h nghỉ trưa + 3 nhân viên bán thời gian 4h) để đạt đúng 44 quầy-giờ làm việc.
   3. **Hạn chế nghiên cứu:** Giả định hàng chung bốc số tự động (nếu quầy chia chuyên môn hóa sâu, hiệu quả sẽ giảm do mất tính gộp pooling); Giả định tốc độ đến Poisson từng giờ.
   4. **Hướng phát triển:** Tích hợp mô hình dự báo nhu cầu bằng Machine Learning (SARIMA/LSTM) và lập lịch thích ứng thời gian thực (*dynamic dispatching*).
 - **Thời lượng:** 1:00 | **Người trình bày:** Cả nhóm
@@ -255,14 +255,14 @@
    *Trả lời:* Erlang C giả định khách kiên nhẫn vô hạn. Khi hàng đợi dài, hàng đợi trong Erlang C phình to vô hạn, đòi hỏi phải thêm quầy để giữ hệ thống ổn định ($\rho < 1$). Erlang-A tính đến việc khách bỏ về với tốc độ $\theta$, tạo cơ chế tự giải tỏa áp lực, do đó phản ánh đúng thực tế và tiết kiệm 3 quầy-giờ so với Erlang C.
 
 6. **Vì sao Allen–Cunneen lệch nhiều khi $cv$ lớn? Mô phỏng của bạn có sai không?**  
-   *Trả lời:* Mô phỏng hoàn toàn không sai. Nhóm đã chứng minh qua Kiểm tra A: Với $c=1$, công thức Pollaczek-Khinchine cho kết quả giải tích chính xác $W_q = 14.625$ phút, và SimPy cho $13.87 \pm 1.54$ phút (khớp hoàn hảo). Sai lệch ở $c=6$ là do công thức xấp xỉ Allen-Cunneen có xu hướng đánh giá cao (*overestimate*) thời gian chờ trong hệ nhiều quầy khi $cv > 1.0$.
+   *Trả lời:* Mô hình mô phỏng SimPy đã được kiểm chứng chuẩn xác qua Kiểm tra A: Với $c=1$, công thức Pollaczek-Khinchine cho kết quả giải tích chính xác $W_q = 14.625$ phút, và SimPy cho $13.87 \pm 1.54$ phút (giá trị lý thuyết nằm trong CI95). Sai lệch ở $c=6$ là do công thức xấp xỉ Allen-Cunneen có xu hướng đánh giá cao (*overestimate*) thời gian chờ trong hệ nhiều quầy khi $cv > 1.0$.
 
 7. **Vì sao 1 hàng chung tốt hơn nhiều hàng riêng?**  
    *Trả lời:* Đây là hiệu ứng gộp hàng (*queue pooling*). Trong mô hình nhiều hàng riêng, thường xuyên xảy ra tình trạng quầy này rảnh nhưng khách ở quầy khác vẫn phải chờ. Một hàng chung bốc số tự động triệt tiêu hoàn toàn sự mất cân bằng này, nâng tỉ lệ đạt SLA từ $50.6\%$ lên $96.5\%$ với cùng số quầy.
 
 ### Về Mô phỏng (Thành viên C trả lời)
 8. **Làm sao bạn biết mô phỏng đúng?**  
-   *Trả lời:* Mô hình SimPy đã vượt qua kiểm chứng 3 tầng: Tầng 1 khớp M/M/c chính xác (sai lệch $0.35\%$, hiệu suất $\rho = 0.7517$ khớp chuẩn Little); Tầng 2 khớp nghiệm Erlang-A (sai lệch $0.07\%$); Tầng 3 được xác nhận qua công thức Pollaczek-Khinchine chính xác (Kiểm tra A). Toàn bộ 12 unit test tự động trong `pytest` đều vượt qua 100%.
+   *Trả lời:* Mô hình SimPy đã vượt qua kiểm chứng 3 tầng: Tầng 1 khớp M/M/c chính xác (sai lệch $0.35\%$, hiệu suất $\rho = 0.7517$ khớp chuẩn Little); Tầng 2 khớp nghiệm Erlang-A (sai lệch $0.07\%$); Tầng 3 được xác nhận qua công thức Pollaczek-Khinchine chính xác (Kiểm tra A). Toàn bộ 18 unit test tự động trong `pytest` đều vượt qua 100%.
 
 9. **Vì sao cần nhiều lần lặp và kỹ thuật CRN?**  
    *Trả lời:* Một lần chạy mô phỏng chỉ là một biến cố ngẫu nhiên. Nhóm dùng 300 lần lặp với hạt giống mới để xây dựng khoảng tin cậy 95% có độ nửa rộng dưới $0.25\%$. Kỹ thuật Số ngẫu nhiên chung CRN giúp các chính sách nhìn thấy cùng một chuỗi khách hàng, loại bỏ phương sai ngoại lai khi so sánh.

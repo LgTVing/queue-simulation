@@ -1,0 +1,10 @@
+﻿thanh_phan,bo_tham_so,nguon
+Excel: Erlang_C_table,14 ngày (toàn bộ),bang_tham_so.xlsx sheet chung
+Excel: Allen_Cunneen,14 ngày (toàn bộ),bang_tham_so.xlsx sheet chung
+Excel: Tra_c (lookup),14 ngày (toàn bộ),bang_tham_so.xlsx sheet chung
+Excel: Quyet_dinh (SIPP),10 ngày train (params.json v2.0),Cần đồng bộ với mô phỏng
+b_theory.py: sipp_schedule,10 ngày train (params.json v2.0),params.json
+c_sim.py: simulate,10 ngày train (params.json v2.0),params.json
+d_experiments.py: so sánh chính sách,10 ngày train (params.json v2.0),params.json
+d_experiments.py: bootstrap,10 ngày train (params.json v2.0) + resampling,Bootstrap từ svc train
+d_experiments.py: ngoài mẫu,10 ngày train + 4 ngày test,Fit riêng trên test

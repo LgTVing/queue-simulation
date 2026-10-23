@@ -1,0 +1,31 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.1.1, pluggy-1.7.0 -- C:\Users\Admin\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: D:\KHDV
+plugins: anyio-4.13.0, langsmith-0.8.1
+collecting ... collected 22 items
+
+tests/test_sim.py::test_utilization_matches_little PASSED                [  4%]
+tests/test_sim.py::test_same_seed_same_result PASSED                     [  9%]
+tests/test_sim.py::test_more_servers_not_worse PASSED                    [ 13%]
+tests/test_sim.py::test_mg1_pollaczek_khinchine PASSED                   [ 18%]
+tests/test_sim.py::test_erlang_a_utilization PASSED                      [ 22%]
+tests/test_theory.py::test_mmc_reference PASSED                          [ 27%]
+tests/test_theory.py::test_mmc_unstable PASSED                           [ 31%]
+tests/test_theory.py::test_monotone_in_c PASSED                          [ 36%]
+tests/test_theory.py::test_erlang_a_reference PASSED                     [ 40%]
+tests/test_theory.py::test_allen_cunneen_reference PASSED                [ 45%]
+tests/test_theory.py::test_split_queues_worse PASSED                     [ 50%]
+tests/test_theory.py::test_sipp_schedule_monotone PASSED                 [ 54%]
+tests/test_v2_features.py::test_poisson_labels_strict PASSED             [ 59%]
+tests/test_v2_features.py::test_day_multiplier_distribution PASSED       [ 63%]
+tests/test_v2_features.py::test_shift_model_a_no_solution_for_4_and_3 PASSED [ 68%]
+tests/test_v2_features.py::test_shift_model_b_unique_solution_for_4_and_3 PASSED [ 72%]
+tests/test_v2_features.py::test_shift_pure_4h_and_pure_8h PASSED         [ 77%]
+tests/test_v2_features.py::test_c6_coverage_cannot_be_done_by_6_staff PASSED [ 81%]
+tests/test_v2_features.py::test_wilson_ci_properties PASSED              [ 86%]
+tests/test_v2_features.py::test_student_t_ci_degrees_of_freedom PASSED   [ 90%]
+tests/test_v2_features.py::test_holm_bonferroni_adjustment PASSED        [ 95%]
+tests/test_v2_features.py::test_early_hour_predictor_correlation PASSED  [100%]
+
+============================= 22 passed in 9.82s ==============================

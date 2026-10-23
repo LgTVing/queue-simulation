@@ -122,14 +122,28 @@ def simulate(
     schedule: List[int],
     run_time: Optional[float] = None,
     warm_up: float = 0.0,
-    seed: int = 42
+    seed: int = 42,
+    day_cv: float = 0.0,
+    day_multiplier: Optional[float] = None
 ) -> pd.DataFrame:
     """
     Chay 1 dot mo phong don le.
     Tra ve DataFrame ghi nhan chi tiet lich su moi khach hang.
+    day_cv > 0: ap dung he so nhan ngay m_d ~ Gamma(1/day_cv^2, day_cv^2).
+    day_multiplier: truyen truc tiep gia tri he so nhan ngay (neu co).
     """
     rng = np.random.default_rng(seed)
     env = simpy.Environment()
+    
+    # Xac dinh he so nhan ngay m_d (neu co)
+    if day_multiplier is not None:
+        m_d = float(day_multiplier)
+    elif day_cv > 0.0:
+        shape_m = 1.0 / (day_cv ** 2)
+        scale_m = day_cv ** 2
+        m_d = float(rng.gamma(shape_m, scale_m))
+    else:
+        m_d = 1.0
     
     c_max = max(schedule) if len(schedule) > 0 else 1
     resource = simpy.PriorityResource(env, capacity=c_max)
@@ -147,7 +161,7 @@ def simulate(
         while env.now < total_time:
             # Xac dinh khung gio hien tai
             h = min(int(env.now // hour_len), len(model.rates) - 1)
-            lam = model.rates[h]
+            lam = model.rates[h] * m_d
             if lam <= 0:
                 yield env.timeout(1.0)
                 continue
@@ -160,7 +174,11 @@ def simulate(
                 
             # Sinh thuoc tinh khach hang
             h_arrival = min(int(env.now // hour_len), len(model.rates) - 1)
-            is_vip = 1 if rng.random() < model.p_vip else 0
+            if isinstance(model.p_vip, (list, tuple, np.ndarray)):
+                pv = model.p_vip[h_arrival] if h_arrival < len(model.p_vip) else model.p_vip[-1]
+            else:
+                pv = model.p_vip
+            is_vip = 1 if rng.random() < pv else 0
             svc_time, _ = model.service(rng)
             
             patience = rng.exponential(1.0 / model.theta) if model.theta > 0 else float("inf")
@@ -259,11 +277,13 @@ def run_reps(
     n_reps: int = 30,
     run_time: Optional[float] = None,
     warm_up: float = 0.0,
-    seed_base: int = 42
+    seed_base: int = 42,
+    day_cv: float = 0.0
 ) -> Dict:
     """
     Chay n_reps lan lap doc lap su dung ky thuat so ngau nhien chung (CRN).
     Tinh trung binh, sai so chuan va khoang tin cay 95% cho moi chi so.
+    day_cv > 0: ap dung bien dong he so nhan ngay.
     """
     reps_data = []
     hourly_reps = [[] for _ in range(len(schedule))]
@@ -277,7 +297,7 @@ def run_reps(
     
     for i in range(n_reps):
         seed = seed_base + i * 1000
-        df_rep = simulate(model, schedule, run_time, warm_up, seed)
+        df_rep = simulate(model, schedule, run_time, warm_up, seed, day_cv=day_cv)
         st = rep_stats(df_rep, schedule, eff_hour_len)
         reps_data.append(st)
         for h, h_st in enumerate(st["hourly"]):
@@ -294,6 +314,25 @@ def run_reps(
     m_wq, ci_wq, (low_wq, high_wq) = mean_ci(wq_vals)
     m_ab, ci_ab, (low_ab, high_ab) = mean_ci(p_ab_vals)
     m_ut, ci_ut, (low_ut, high_ut) = mean_ci(util_vals)
+
+    # Chi so xac suat dat SLA theo ngay
+    sl_day_ge90 = float(sum(1 for s in sl_vals if s >= 0.90) / n_reps) if n_reps > 0 else 0.0
+    all_hours_ge90_cnt = 0
+    cnt_below_list = []
+    for rep_i in range(n_reps):
+        all_ok = True
+        cnt_below = 0
+        for h in range(len(schedule)):
+            if hourly_reps[h][rep_i]["sl"] < 0.90:
+                all_ok = False
+                cnt_below += 1
+        if all_ok:
+            all_hours_ge90_cnt += 1
+        cnt_below_list.append(cnt_below)
+    sl_allhours_ge90 = float(all_hours_ge90_cnt / n_reps) if n_reps > 0 else 0.0
+    avg_hours_below = float(np.mean(cnt_below_list)) if n_reps > 0 else 0.0
+    sl_p5 = float(np.percentile(sl_vals, 5)) if n_reps > 0 else 0.0
+    sl_p95 = float(np.percentile(sl_vals, 95)) if n_reps > 0 else 0.0
     
     if len(vip_vals) > 0:
         m_vip, ci_vip, (low_vip, high_vip) = mean_ci(vip_vals)
@@ -350,6 +389,11 @@ def run_reps(
         "p_ab_ci_half": round(ci_ab, 4),
         "util_mean": round(m_ut, 4),
         "util_ci_half": round(ci_ut, 4),
+        "sl_day_ge90_prob": round(sl_day_ge90, 4),
+        "sl_allhours_ge90_prob": round(sl_allhours_ge90, 4),
+        "avg_hours_below_90": round(avg_hours_below, 2),
+        "sl_p5": round(sl_p5, 4),
+        "sl_p95": round(sl_p95, 4),
         "hourly": hourly_summary
     }
 

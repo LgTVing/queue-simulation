@@ -1,0 +1,11 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\KHDV
+plugins: anyio-4.13.0, langsmith-0.8.1
+collected 18 items
+
+tests\test_sim.py .....                                                  [ 27%]
+tests\test_theory.py .......                                             [ 66%]
+tests\test_v2_features.py ......                                         [100%]
+
+============================= 18 passed in 14.39s =============================

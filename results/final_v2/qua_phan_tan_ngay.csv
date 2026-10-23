@@ -1,0 +1,2 @@
+﻿n_days,daily_totals,mean_day,std_day,var_day,poisson_std,var_mean_ratio,cv_day,cv2_day_corrected,cv_day_corrected,D_day,p_day,p_day_label
+14,"[690, 776, 826, 634, 580, 600, 539, 820, 715, 687, 740, 748, 753, 728]",702.6,87.1,7586.7,26.5,10.8,12.4,0.0139,11.8,140.4,1.7657198314181505e-23,Bác bỏ (mạnh)
