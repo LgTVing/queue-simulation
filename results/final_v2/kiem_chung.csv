@@ -1,0 +1,13 @@
+﻿kiem_chung,chi_so,ly_thuyet,mo_phong,ci95,sai_lech_pct,dat,muc_xap_xi,ghi_chu
+Tang 1 (M/M/c),SL = P(Wq <= 5),0.9654,0.9688,±0.0037,+0.35%,Y,Tot,Ly thuyet nam trong khoang tin cay 95%
+Tang 1 (M/M/c),Wq (phut),0.8433,0.817,±0.0423,-3.12%,Y,Tot,Ly thuyet nam trong CI95 (0.817 ± 0.042)
+Tang 1 (M/M/c),Hieu suat rho,0.75,0.7517,±0.0047,+0.23%,Y,Tot,Khop dinh luat Little (rho = 0.75)
+Tang 2 (Erlang-A),SL (phuc vu va cho <= 5),0.8689,0.8695,±0.0034,+0.07%,Y,Tot,Khop nghiem ma tran hap thu Markov
+Tang 2 (Erlang-A),Wq (phut),1.1444,1.1475,±0.0233,+0.27%,Y,Tot,Wq tinh tren moi khach (Lq / lam)
+Tang 2 (Erlang-A),Ti le bo ve p_ab,0.1144,0.1142,±0.0022,-0.21%,Y,Tot,Ly thuyet nam trong CI95
+Tang 2 (Erlang-A),Hieu suat rho,0.8856,0.8871,±0.0031,+0.17%,Y,Tot,Khop rho = lam*(1-p_ab)*E[S]/c
+"Tang 3 (M/G/c, cv=0.5)",Wq (phut),0.5271,0.5616,±0.0176,+6.55%,-,Chap nhan duoc,Allen-Cunneen danh gia thap ~6-7% o cv=0.5
+"Tang 3 (M/G/c, cv=1.0)",Wq (phut),0.8433,0.8113,±0.0521,-3.80%,-,Tot,Khop Erlang C chuan (sai lech < 5%)
+"Tang 3 (M/G/c, cv=1.5)",Wq (phut),1.3704,1.1333,±0.1239,-17.30%,-,"Kem, can giai thich",Allen-Cunneen danh gia cao ~17% o cv=1.5; kiem tra them bang M/G/1
+Kiem tra A (M/G/1 P-K exact),Wq (phut),14.625,13.8669,±1.5388,-5.18%,Y,Tot,Ly thuyet 14.625p nam trong CI95; chung minh SimPy dung tuyet doi voi phuc vu lognormal
+"Kiem tra B (M/G/6, cv=1.5 lap 60 lan)",Wq (phut),1.3704,1.1815,±0.0722,-13.78%,-,"Kem, can giai thich","Sai lech on dinh ~-17%, khang dinh Allen-Cunneen danh gia cao o he nhieu quay khi cv > 1"

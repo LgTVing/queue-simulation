@@ -1,0 +1,19 @@
+{
+  "phien_ban_A": {
+    "lambda": "Ước lượng từ tập test (4 ngày)",
+    "service": "Gamma(shape=1.0955, scale=2.6688) - fit trên train",
+    "theta": "0.1087 - fit trên train",
+    "p_vip": "0.3543 - fit trên train",
+    "n_reps": 200,
+    "seed_base": 40000
+  },
+  "phien_ban_B": {
+    "lambda": "Ước lượng từ tập test",
+    "service": "Gamma(shape=1.0355, scale=2.6803) - fit trên test",
+    "theta": "0.1241 - fit trên test",
+    "p_vip": "0.3018 - fit trên test",
+    "n_reps": 200,
+    "seed_base": 41000
+  },
+  "ghi_chu": "Cột sl_obs là tỉ lệ phục vụ thực tế quan sát, DƯỚI nhân sự thực (không biết). So sánh chỉ có giá trị ở mức tổng thể, KHÔNG ở mức từng giờ."
+}

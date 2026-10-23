@@ -447,21 +447,28 @@ Báo cáo: tổng quầy-giờ, `SL` toàn ngày, `SL` giờ tệ nhất (cận 
 
 ```
 queue_project/
-├── README.md        # tài liệu này
+├── README.md        # tài liệu tổng quan và hướng dẫn
 ├── common.py        # tham số chung, cấu trúc Model, bộ sinh thời gian phục vụ, hàm CI
-├── a_data.py        # [Thành viên A] sinh/đọc log, ước lượng, kiểm định, vẽ hình
-├── b_theory.py      # [Thành viên B] M/M/c, Allen-Cunneen, Erlang-A, SIPP
-├── c_sim.py         # [Thành viên C] SimPy, thống kê, tối ưu lịch, thí nghiệm
-├── main.py          # ghép toàn bộ pipeline, xuất bảng và hình
-└── (kết quả sinh ra) log_giao_dich.csv, ket_qua_*.csv, ket_qua.json, fig_*.png
+├── a_data.py        # [Thành viên A] đọc log, ước lượng, kiểm định, chia tập train/test
+├── b_theory.py      # [Thành viên B] M/M/c, Allen-Cunneen, Erlang-A ma trận hấp thụ, SIPP
+├── b_shifts.py      # [Thành viên B] Lập lịch theo ca MILP (Mô hình A & Mô hình B, HiGHS solver)
+├── c_sim.py         # [Thành viên C] Động cơ mô phỏng SimPy, blocker quầy động, CRN, tối ưu lịch
+├── d_experiments.py # [Cả nhóm] Kịch bản thực thi các thí nghiệm mở rộng và xuất dữ liệu
+├── main.py          # Ghép nối quy trình chuẩn
+├── tests/           # 18 ca kiểm thử đơn vị tự động (pytest)
+├── tools/           # Công cụ kiểm tra nhất quán (check_consistency.py) và tạo bảng (build_tables.py)
+├── results/final_v1/# Kết quả đóng băng đợt 1
+└── results/final_v2/# Kết quả đóng băng đợt 2 (hiệu chỉnh theo yêu cầu)
 ```
 
 ### 13.1 Cài đặt và chạy
 
 ```bash
-pip install simpy numpy scipy pandas matplotlib
-cd queue_project
+pip install -r requirements.txt
+pytest
 python main.py
+python tools/build_tables.py
+python tools/check_consistency.py
 ```
 
 Thời gian chạy khoảng 2 phút.

@@ -1,7 +1,7 @@
-# Báo cáo Ước lượng và Kiểm định Phân phối Thống kê (Tuần 2)
+# Báo cáo Ước lượng và Kiểm định Phân phối Thống kê (Phiên bản Hiệu chỉnh v2.0)
 
 **Người phụ trách:** Thành viên A  
-**Ngày cập nhật:** 21/10/2026  
+**Ngày cập nhật:** 23/10/2026  
 **Dự án:** Mô phỏng hàng đợi và xác định số quầy phục vụ tối ưu  
 
 ---
@@ -11,87 +11,82 @@
 - **Nguồn dữ liệu:** Bộ dữ liệu chuẩn *Anonymous Bank* (Technion SEE Center), gồm các cuộc gọi giao dịch thường nhật tại quầy ngân hàng (`PS`), khung giờ 8:00 – 17:00 trên 14 ngày làm việc tiêu chuẩn tháng 9/1999.
 - **Tổng số quan sát:** 9.836 khách hàng.
 - **Phương pháp phân chia:** Phân chia theo **đơn vị ngày** (không chia ngẫu nhiên từng khách để bảo toàn trọn vẹn đặc tính tương quan chuỗi thời gian trong ngày):
-  - **Tập ước lượng (Train - 70%):** 10 ngày làm việc đầu tiên (`990901` đến `990915`), gồm **6.867 bản ghi**. Dùng để ước lượng mọi tham số hệ thống.
+  - **Tập ước lượng (Train - 70%):** 10 ngày làm việc đầu tiên (`990901` đến `990915`), gồm **6.867 bản ghi**. Dùng để ước lượng mọi tham số hệ thống cho mô hình mô phỏng.
   - **Tập kiểm tra (Test - 30%):** 4 ngày làm việc độc lập còn lại (`990916` đến `990923`), gồm **2.969 bản ghi**. Dùng để đánh giá ngoài mẫu (*out-of-sample validation*).
 
 ---
 
 ## 2. Quá trình khách đến và Kiểm định Poisson theo giờ
 
-### 2.1 Tốc độ đến theo từng khung giờ ($\lambda_h$)
-Ước lượng $\lambda_h = \frac{\bar{N}_h}{60}$ (khách/phút) kèm khoảng tin cậy 95% ($CI_{95} = \lambda_h \pm 1.96 \cdot \frac{\sqrt{\bar{N}_h / n_{\text{ngày}}}}{60}$):
+### 2.1 Tốc độ đến theo từng khung giờ và Kiểm định Poisson (Toàn bộ 14 ngày)
 
-| Khung giờ ($h$) | Số khách TB/ngày ($\bar{N}_h$) | Tốc độ đến $\lambda_h$ (khách/phút) | Khoảng tin cậy 95% | Chỉ số phân tán $D_h$ | $p$-value Poisson | Kết luận |
+Quy tắc gắn nhãn kiểm định Poisson với độ tự do $df = 13$ ($n_{\text{ngày}} = 14$):
+- $p < 0.01$: **Bác bỏ (mạnh)**
+- $0.01 \le p < 0.05$: **Bác bỏ (nhẹ)**
+- $p \ge 0.05$: **Chưa bác bỏ** (chấp nhận $H_0$ ở mức ý nghĩa 5%)
+
+| Khung giờ ($h$) | Số khách TB/ngày ($\bar{N}_h$) | Tốc độ đến $\lambda_h$ (khách/phút) | Khoảng tin cậy 95% | Chỉ số phân tán $D_h$ | $p$-value Poisson | Kết luận Poisson ($\alpha=0.05$) |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 8h - 9h ($h=0$) | 59.40 | **0.9900** | [0.9104, 1.0696] | 18.25 | 0.0323 | Chưa bác bỏ |
-| 9h - 10h ($h=1$) | 82.60 | **1.3767** | [1.2828, 1.4706] | 18.42 | 0.0305 | Chưa bác bỏ |
-| 10h - 11h ($h=2$) | 92.10 | **1.5350** | [1.4359, 1.6341] | 32.14 | 0.0002 | Lệch nhẹ cao điểm |
-| 11h - 12h ($h=3$) | 83.40 | **1.3900** | [1.2957, 1.4843] | 28.51 | 0.0008 | Lệch nhẹ cao điểm |
-| 12h - 13h ($h=4$) | 74.40 | **1.2400** | [1.1509, 1.3291] | 14.88 | 0.0943 | Khớp tốt Poisson |
-| 13h - 14h ($h=5$) | 72.10 | **1.2017** | [1.1140, 1.2894] | 22.15 | 0.0084 | Lệch nhẹ |
-| 14h - 15h ($h=6$) | 80.30 | **1.3383** | [1.2457, 1.4309] | 26.40 | 0.0018 | Lệch nhẹ |
-| 15h - 16h ($h=7$) | 79.00 | **1.3167** | [1.2249, 1.4085] | 23.50 | 0.0052 | Lệch nhẹ |
-| 16h - 17h ($h=8$) | 63.40 | **1.0567** | [0.9744, 1.1390] | 20.12 | 0.0172 | Chưa bác bỏ |
+| 8h - 9h ($h=0$) | 61.14 | **1.0190** | [0.9508, 1.0873] | 23.55 | 0.0356 | **Bác bỏ (nhẹ)** |
+| 9h - 10h ($h=1$) | 86.00 | **1.4333** | [1.3524, 1.5143] | 23.58 | 0.0352 | **Bác bỏ (nhẹ)** |
+| 10h - 11h ($h=2$) | 98.64 | **1.6440** | [1.5573, 1.7308] | 48.77 | 0.0000 | **Bác bỏ (mạnh)** |
+| 11h - 12h ($h=3$) | 86.36 | **1.4393** | [1.3582, 1.5204] | 39.15 | 0.0002 | **Bác bỏ (mạnh)** |
+| 12h - 13h ($h=4$) | 74.36 | **1.2393** | [1.1640, 1.3146] | 20.83 | 0.0763 | **Chưa bác bỏ** |
+| 13h - 14h ($h=5$) | 74.57 | **1.2429** | [1.1675, 1.3182] | 30.73 | 0.0037 | **Bác bỏ (mạnh)** |
+| 14h - 15h ($h=6$) | 79.29 | **1.3214** | [1.2437, 1.3992] | 38.08 | 0.0003 | **Bác bỏ (mạnh)** |
+| 15h - 16h ($h=7$) | 78.29 | **1.3048** | [1.2275, 1.3820] | 33.61 | 0.0014 | **Bác bỏ (mạnh)** |
+| 16h - 17h ($h=8$) | 63.93 | **1.0655** | [0.9957, 1.1353] | 26.61 | 0.0141 | **Bác bỏ (nhẹ)** |
 
-### 2.2 Kiểm định giả thuyết tốc độ đến không đổi (Homogeneous Poisson Test)
-- Giả thuyết $H_0$: Tốc độ khách đến là như nhau giữa tất cả các khung giờ trong ngày ($\lambda_0 = \lambda_1 = \dots = \lambda_8$).
-- Tiêu chuẩn kiểm định: $\chi^2 = \sum_{h=0}^8 \frac{(T_h - \bar{T})^2}{\bar{T}} = 127.84$ với bậc tự do $df = 8$.
-- Giá trị $p$-value: $p = 7.42 \times 10^{-24} < 10^{-5} \implies$ **Bác bỏ triệt để giả thuyết $H_0$**.
-- **Ý nghĩa thực tiễn:** Tốc độ khách đến dao động rất mạnh trong ngày (đạt đỉnh vào 10h–11h sáng và giảm mạnh sau 16h). Mô hình quản lý hàng đợi bắt buộc phải điều chỉnh số quầy theo từng khung giờ (SIPP/Dynamic staffing), không thể dùng một số quầy cố định.
+> [!IMPORTANT]
+> **Nhận xét quan trọng về kiểm định Poisson:**
+> - Ở mức ý nghĩa $\alpha = 0.05$, có tới **8/9 khung giờ bị bác bỏ giả thuyết Poisson** (trong đó 5/9 giờ bị bác bỏ mạnh ở mức 1%). Chỉ duy nhất khung giờ 12h–13h ($p = 0.0763$) là chưa bác bỏ.
+> - Do đó, giả định *"Dòng khách đến tuân theo tiến trình Poisson thuần túy với $\lambda_h$ cố định"* **không hoàn toàn chính xác trong thực tế**.
+> - Hệ quả: Mô phỏng chỉ dùng Poisson thuần túy có thể **đánh giá cao mức độ dịch vụ (SLA)** do chưa tính đến hiện tượng gom cụm (*burstiness*) và biến động lưu lượng giữa các ngày.
+
+---
+
+### 2.2 Thống kê Quá Phân Tán theo Ngày (Overdispersion Analysis)
+
+Tổng số khách mỗi ngày trong 14 ngày làm việc chuẩn:
+$$[690, 776, 826, 634, 580, 600, 539, 820, 715, 687, 740, 748, 753, 728]$$
+
+Các chỉ số thống kê quá phân tán:
+- **Số ngày quan sát:** $n = 14$ ngày.
+- **Số khách trung bình mỗi ngày ($\mu$):** $702.6$ khách/ngày.
+- **Phương sai thực tế ($\sigma^2$):** $7.591,8$.
+- **Độ lệch chuẩn thực tế ($\sigma$):** $87.1$ khách.
+- **Độ lệch chuẩn theo phân phối Poisson thuần ($\sqrt{\mu}$):** $26.5$ khách.
+- **Tỉ số Phương sai / Trung bình ($\text{Var}/\text{Mean}$):** $10.8 \gg 1$.
+- **Hệ số biến thiên thực tế ($CV_{\text{ngày}}$):** $12.4\%$.
+- **Kiểm định quá phân tán cho tổng ngày:**
+  $$D = \sum_{d=1}^{14} \frac{(N_d - \mu)^2}{\mu} = 140.4 \implies p\text{-value} = 3.65 \times 10^{-23} \ll 0.01 \implies \text{\textbf{Bác bỏ triệt để Poisson}}.$$
+- **Ước lượng $CV_{\text{ngày}}$ sau khi trừ nhiễu Poisson:**
+  $$CV_{\text{ngày}}^2 = \frac{\text{Var}(N_d) - \mu}{\mu^2} = \frac{7591.8 - 702.6}{702.6^2} = 0.0139 \implies CV_{\text{ngày}} \approx 11.8\%.$$
+
+**Hệ quả mô hình hóa:**  
+Trong phiên bản hiệu chỉnh v2.0, mô hình bổ sung hệ số nhân ngày $m_d \sim \text{Gamma}(\text{shape}=1/CV^2, \text{scale}=CV^2)$ với $CV = 11.8\%$ vào động cơ SimPy để đánh giá độ bền vững thực tế của các chính sách định biên.
 
 ---
 
 ## 3. Phân phối Thời gian Phục vụ (Service Time)
 
-### 3.1 Thống kê mô tả
+### 3.1 Thống kê mô tả (Tập Train 10 ngày)
 - Số lượng khách phục vụ thành công: 6.388 lượt.
-- Thời gian phục vụ trung bình: $E[S] = 2.92$ phút ($\approx 175.4$ giây).
-- Độ lệch chuẩn: $\sigma_S = 3.21$ phút.
+- Thời gian phục vụ trung bình: $E[S] = 2.9236$ phút ($\approx 175.4$ giây).
+- Độ lệch chuẩn: $\sigma_S = 3.2051$ phút.
 - Hệ số biến thiên: $cv = \frac{\sigma}{E[S]} = 1.0963 \implies cs^2 = 1.2018$.
-- Do $cv > 1.0$, phân phối thời gian phục vụ thực tế có độ biến thiên cao hơn và đuôi dài hơn so với phân phối mũ thuần túy ($cv = 1.0$).
-
-### 3.2 So sánh các mô hình phân phối liên tục (cố định $loc = 0$)
-
-| Phân phối | Số tham số | Giá trị AIC | Thống kê KS | $p$-value KS | Đánh giá & Xếp hạng |
-|---|:---:|:---:|:---:|:---:|:---|
-| **Gamma** | 2 | **26.314,2** | **0.0762** | $< 10^{-6}$ | **Khớp tốt nhất (Hạng 1)** |
-| **Weibull** | 2 | 26.335,8 | 0.0828 | $< 10^{-6}$ | Khớp khá tốt (Hạng 2) |
-| **Exponential** | 1 | 26.340,1 | 0.0915 | $< 10^{-6}$ | Đuôi ngắn, đánh giá thấp rủi ro |
-| **Lognormal** | 2 | 27.580,4 | 0.1241 | $< 10^{-6}$ | Sai lệch ở vùng thời gian ngắn |
-
-> **Lưu ý phương pháp luận về kiểm định KS:**  
-> Do các tham số được ước lượng trực tiếp từ chính mẫu dữ liệu (*estimated parameters*), $p$-value của kiểm định Kolmogorov-Smirnov có xu hướng khắt khe với cỡ mẫu lớn ($N > 6.000$). Tiêu chuẩn lựa chọn mô hình dựa trên sự kết hợp giữa **chỉ số AIC nhỏ nhất** và kiểm tra trực quan trên **Q-Q plot** (Xem hình [`fig_a_fit.png`](file:///d:/KHDV/fig_a_fit.png)).
-
-**Quyết định lựa chọn mô hình phục vụ:**
-Nhóm lựa chọn phân phối **Gamma** với tham số $\text{shape} (k) = 1.0955$, $\text{scale} (\theta) = 2.6688$ làm mô hình phục vụ chính trong mô phỏng SimPy.
+- Phân phối Gamma khớp tốt nhất theo chỉ số AIC ($26.314,2$), với tham số $\text{shape} = 1.0955$, $\text{scale} = 2.6688$.
 
 ---
 
 ## 4. Hành vi Khách hàng Bỏ về (Abandonment Behavior)
 
-Dữ liệu thời gian chờ của khách hàng là dữ liệu bị kiểm duyệt (*censored data*):
-- Khách được phục vụ cho biết: $\text{Kiên nhẫn} \ge \text{Thời gian chờ thực tế}$.
-- Khách bỏ về cho biết: $\text{Kiên nhẫn} = \text{Thời gian chờ thực tế}$.
-
-Áp dụng phương pháp ước lượng hợp lý cực đại (MLE) cho phân phối mũ:
-$$\hat{\theta} = \frac{\text{Số khách bỏ về}}{\text{Tổng thời gian chờ của TẤT CẢ khách đến}} = \frac{479}{4.406,6 \text{ phút}} = \mathbf{0.1087\ \text{khách/phút}}$$
-- Khoảng tin cậy 95%: $\hat{\theta} \pm 1.96 \cdot \frac{\hat{\theta}}{\sqrt{479}} = [0.0994,\ 0.1180]$.
-- **Thời gian kiên nhẫn trung bình:** $\frac{1}{\hat{\theta}} = \mathbf{9.20\ \text{phút}}$ (Khách hàng sẵn sàng chờ trung bình khoảng 9 phút 12 giây trước khi bỏ cuộc).
-- Tỉ lệ bỏ về trên tập ước lượng: $479 / 6.867 = \mathbf{6.98\%}$.
+Ước lượng hợp lý cực đại (MLE) trên tập Train 10 ngày:
+$$\hat{\theta} = \frac{479}{4.406,6 \text{ phút}} = \mathbf{0.1087\ \text{khách/phút}} \implies \text{Thời gian kiên nhẫn TB } \frac{1}{\hat{\theta}} = \mathbf{9.20\ \text{phút}}.$$
 
 ---
 
 ## 5. Khách hàng Ưu tiên (VIP)
 
-- Tỉ lệ khách VIP trung bình: $p_{\text{vip}} = \mathbf{35.43\%}$ ($CI_{95}: [34.30\%,\ 36.56\%]$).
-- Tỉ lệ khách VIP tăng cao vào giờ cao điểm buổi sáng (hơn 40% lúc 10h–11h).
-
----
-
-## 6. Bàn giao Tập số liệu Quan sát trên Tập Kiểm tra (Test Set)
-
-Để phục vụ kiểm chứng ngoài mẫu (*out-of-sample*) của Thành viên C ở Tuần 2:
-- Tổng số khách trong 4 ngày kiểm tra: 2.969 khách (trung bình 742 khách/ngày).
-- Tỉ lệ bỏ về thực tế quan sát được: $7.54\%$.
-- Thời gian chờ trung bình thực tế: $W_q = 0.95$ phút.
-- Tỉ lệ khách chờ $\le 5$ phút thực tế: $93.1\%$.
+- Tỉ lệ khách VIP trung bình: $p_{\text{vip}} = 35.43\%$ trên tập Train (33.85% trên toàn bộ 14 ngày).
+- Tỉ lệ VIP biến thiên mạnh theo giờ: từ 18.35% (8h–9h) lên đến 52.15% (15h–16h).

@@ -97,7 +97,7 @@ Bộ dữ liệu gốc ghi nhận toàn bộ chuỗi sự kiện chi tiết củ
 Quy trình tiền xử lý và chuẩn hóa dữ liệu được tự động hóa qua tập lệnh `data/lam_sach.py`:
 1. **Lọc nghiệp vụ chuẩn:** Chỉ giữ các bản ghi thuộc mã nghiệp vụ `PS` (Peilut Shotefet - Nghiệp vụ ngân hàng cá nhân thông thường).
 2. **Lọc khung thời gian hoạt động:** Chỉ giữ các giao dịch phát sinh trong khung giờ ban ngày tiêu chuẩn từ **8:00:00 đến 17:00:00** (từ giây thứ $28.800$ đến giây thứ $61.200$ trong ngày).
-3. **Lọc ngày làm việc tiêu chuẩn:** Lọc 14 ngày làm việc hành chính chuẩn (Chủ nhật đến Thứ năm theo lịch ngân hàng sở tại), loại bỏ các ngày lễ tôn giáo và ngày làm việc nửa buổi.
+3. **Lọc ngày làm việc tiêu chuẩn:** Lọc 14 ngày làm việc hành chính chuẩn, loại bỏ các ngày làm việc nửa buổi hoặc dữ liệu bất thường.
 4. **Xử lý giá trị ngoại lai:** Khách hàng được phục vụ phải có thời gian phục vụ dương và không vượt quá $60.0$ phút; thời gian chờ phải không âm.
 5. **Chia tách Tập ước lượng (Train) và Tập kiểm tra (Test):**
    - **Tập ước lượng (Train):** Gồm 10 ngày làm việc đầu tiên (tổng cộng **$6.867$ giao dịch**), chiếm $\approx 70\%$ dữ liệu, dùng để ước lượng các tham số $\lambda_h$, $E[S]$, $\theta$, $p_{vip}$ và tìm lịch quầy tối ưu.
@@ -263,19 +263,18 @@ Trong thực tế quản lý nhân sự ngân hàng, nhân viên không thể đ
 $$\min \sum_{s \in \mathcal{S}} \text{Cost}_s \cdot x_s \quad \text{thỏa mãn} \quad \sum_{s \in \mathcal{S}} A_{h,s} x_s \ge c_h, \quad \forall h \in \{0, \dots, 8\}, \quad x_s \in \mathbb{Z}_{\ge 0}$$
 Trong đó $x_s$ là số nhân viên phân công cho loại ca $s$, và ma trận $A_{h,s} = 1$ nếu ca $s$ bao phủ khung giờ $h$.
 
-Giải bài toán bằng solver HiGHS qua `scipy.optimize.milp` cho 3 phương án tổ chức ca (trích từ [`lich_theo_ca.csv`](file:///d:/KHDV/results/final_v1/lich_theo_ca.csv) và biểu đồ [`fig_b_ca_lam.png`](file:///d:/KHDV/results/final_v1/hinh/fig_b_ca_lam.png)):
-1. **Phương án A: Hỗn hợp Linh hoạt (4 NV Toàn thời gian 8h + 3 NV Bán thời gian 4h):**
-   - 4 nhân viên làm ca 8h có giờ ăn trưa so le (1 người nghỉ 11h-12h, 2 người nghỉ 12h-13h, 1 người nghỉ 13h-14h).
-   - 3 nhân viên bán thời gian ca 4h bổ sung vào các khung giờ cao điểm (1 người 9h-13h, 1 người 10h-14h, 1 người 12h-16h).
-   - **Kết quả:** Phủ chính xác tuyệt đối từng giờ $[4, 5, 6, 5, 5, 5, 5, 5, 4]$ với đúng **44 quầy-giờ** ($+0.0\%$ lãng phí).
-2. **Phương án B: Thuần Bán thời gian ca 4h (Part-time only):**
-   - Đòi hỏi 13 lượt ca 4h $\implies$ Tổng cộng **52 quầy-giờ** (tốn thêm $+18.2\%$ do hiện tượng dư thừa cục bộ ở các khung giờ chuyển tiếp).
-3. **Phương án C: Thuần Toàn thời gian ca 8h (Full-time only):**
-   - Đòi hỏi 8 nhân viên làm ca 8 tiếng $\implies$ Tổng cộng **64 quầy-giờ** (tốn thêm $+45.5\%$ do bắt buộc phải duy trì 8 quầy vào đầu giờ sáng và cuối giờ chiều khi nhu cầu khách đến thấp).
-   - *Nếu tổ chức ca 8h cố định 6 người có nghỉ trưa:* Tổng quầy-giờ là **52 quầy-giờ** (lịch quầy thực tế $[6, 6, 6, 6, 5, 5, 6, 6, 6]$).
+Để phản ánh chính xác các quy định lao động và cấu trúc ca thực tế, nhóm xây dựng và phân định rõ 2 mô hình toán học (kết quả tại `results/final_v2/lich_theo_ca_v2.csv`):
+1. **Mô hình A (Ca 8h liên tục không nghỉ):** Ca 8h kéo dài liên tục 8 tiếng (8h-16h hoặc 9h-17h). Nếu chỉ dùng ca thuần 8h liên tục, bài toán đòi hỏi 8 nhân viên $\implies$ **64 quầy-giờ** làm việc (lịch phủ `[4, 8, 8, 8, 8, 8, 8, 8, 4]`). Đặc biệt, với cấu hình hỗn hợp 4 NV 8h + 3 NV 4h, **Mô hình A hoàn toàn không có nghiệm khả thi** do không thể hạ số quầy xuống mức 5 ở giữa ngày.
+2. **Mô hình B (Ca 8h có nghỉ trưa: 9h tại chi nhánh, 8h làm việc, 1h nghỉ):** Nhân viên có mặt từ 8h-17h, được bố trí 1 giờ nghỉ trưa so le trong khung giờ quy định:
+   - *Thuần ca 8h Mô hình B (nghỉ trưa giờ 1-7):* Đòi hỏi đúng 6 nhân viên $\implies$ **48 quầy-giờ làm việc** (54 quầy-giờ có mặt tại chỗ). Lịch quầy tạo ra là `[6, 5, 6, 5, 5, 5, 5, 5, 6]`.
+   - *Thuần ca 4h:* Đòi hỏi 13 lượt ca 4h $\implies$ **52 quầy-giờ** (lịch quầy `[4, 5, 6, 6, 5, 8, 7, 7, 4]`, dư thừa tại các khung giờ chiều).
+   - *Phương án Hỗn hợp Linh hoạt (4 NV 8h + 3 NV 4h, cửa sổ nghỉ trưa 11h-14h):* Solver HiGHS xác nhận **duy nhất 1 nghiệm tối ưu khả thi** với đúng **44 quầy-giờ làm việc** (48 quầy-giờ tại chỗ):
+     - 4 nhân viên làm ca 8h có giờ ăn trưa so le: 1 người nghỉ 11h-12h, 2 người nghỉ 12h-13h, 1 người nghỉ 13h-14h.
+     - 3 nhân viên bán thời gian ca 4h: 1 người 9h-13h, 1 người 10h-14h, 1 người 12h-16h.
+     - **Kết quả:** Phủ chính xác từng giờ $[4, 5, 6, 5, 5, 5, 5, 5, 4]$ với đúng **44 quầy-giờ làm việc** ($+0.0\%$ lãng phí quầy-giờ làm việc).
 
 ### 6.4 Lịch Bền Vững và Quy Tắc Căn Bậc Hai (Thí nghiệm E3)
-Để chuẩn bị phương án dự phòng cho các ngày cao điểm (ngày trả lương, đầu/cuối tháng), nhóm khảo sát số quầy cần thiết khi nhu cầu khách tăng thêm $\delta \in \{0\%, 5\%, 10\%, 20\%\}$:
+Để chuẩn bị phương án dự phòng cho các ngày cao điểm (khi lưu lượng dự báo vượt ngưỡng 687 khách/ngày), nhóm khảo sát số quầy cần thiết khi nhu cầu khách tăng thêm $\delta \in \{0\%, 5\%, 10\%, 20\%\}$:
 
 | Hệ số tăng nhu cầu ($\delta$) | Tốc độ đến TB $\bar{\lambda}$ | Nhu cầu tải $\bar{a}$ | Lịch quầy tối ưu tương ứng | Tổng quầy-giờ | Chi phí tăng thêm | Hệ số dự phòng $\beta$ |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -368,22 +367,26 @@ Mô hình mô phỏng sự kiện rời rạc (*Discrete-Event Simulation - DES*
   - Thử bớt 1 quầy ở Giờ 2 (từ 6 xuống 5): Giờ 2 tụt xuống $SL_{\text{low}} = 87.88\%$ (< 90%). Vi phạm!
   - Thử bớt 1 quầy ở Giờ 1, 3, 4, 5, 6, 7 (từ 5 xuống 4): Mức phục vụ giờ đó rơi xuống $79.1\% - 85.1\%$. Vi phạm!
   - Thử bớt 1 quầy ở Giờ 0, 8 (từ 4 xuống 3): Mức phục vụ rơi xuống $76.2\% - 78.7\%$. Vi phạm!
-- **Kết luận:** Lịch **`[4, 5, 6, 5, 5, 5, 5, 5, 4]` (44 quầy-giờ)** là nghiệm **tối thiểu chặt chẽ**, không thể cắt bớt bất kỳ quầy nào ở bất kỳ giờ nào mà vẫn thỏa mãn SLA.
+- **Kết luận:** Lịch **`[4, 5, 6, 5, 5, 5, 5, 5, 4]` (44 quầy-giờ)** là nghiệm **tối thiểu cục bộ (thuật toán 2 pha xác nhận SIPP)**, không thể cắt bớt hay hoán đổi quầy nào ở bất kỳ giờ nào mà vẫn thỏa mãn điều kiện $SL_{\text{low 95\%}} \ge 0.90$ trên cả 9 giờ.
 
 ### 9.2 Bảng So sánh 5 Chính sách Phục vụ (300 Lần Lặp Độc Lập)
-Đánh giá 5 chính sách trên cùng một bộ dữ liệu mô phỏng với **300 lần lặp độc lập** và hạt giống mới (`seed_base=50000`). Toàn bộ số liệu dưới đây được trích xuất trực tiếp từ tệp đóng băng [`so_sanh_chinh_sach.csv`](file:///d:/KHDV/results/final_v1/so_sanh_chinh_sach.csv):
+Đánh giá 5 chính sách trên cùng một bộ dữ liệu mô phỏng với **300 lần lặp độc lập** và hạt giống mới (`seed_base=50000`). Toàn bộ số liệu dưới đây được trích xuất trực tiếp từ tệp đóng băng [`so_sanh_chinh_sach.csv`](file:///d:/KHDV/results/final_v1/so_sanh_chinh_sach.csv) và cập nhật bổ sung tại [`results/final_v2/so_sanh_chinh_sach_v2.csv`](file:///d:/KHDV/results/final_v2/so_sanh_chinh_sach_v2.csv):
 
 | Chính sách phục vụ | Lịch quầy theo giờ (8h - 17h) | Quầy-giờ | $SL$ Toàn ngày (CI95) | $SL$ Giờ tệ nhất (Cận dưới CI95) | Tỉ lệ khách VIP $SL_{vip}$ (CI95) | Tỉ lệ khách bỏ về $p_{ab}$ (CI95) | Thời gian chờ $W_q$ (phút) | Hiệu suất quầy $\rho$ (CI95) | Đạt SLA? |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **1. Hằng số (Constant 6 quầy)** | `[6, 6, 6, 6, 6, 6, 6, 6, 6]` | 54 | **0.9770 ± 0.0012** | 0.9557 (H2) | 0.9815 ± 0.0014 | **2.15% ± 0.10%** | 0.1958 ± 0.0089 | 60.75% ± 0.36% | **ĐẠT** |
+| **1. Mốc cơ sở: Hằng số 6 quầy (không phải nhân sự thực tế)** | `[6, 6, 6, 6, 6, 6, 6, 6, 6]` | 54 | **0.9770 ± 0.0012** | 0.9557 (H2) | 0.9815 ± 0.0014 | **2.15% ± 0.10%** | 0.1958 ± 0.0089 | 60.75% ± 0.36% | **ĐẠT** |
 | **2. SIPP (Erlang-A)** | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` | 44 | **0.9381 ± 0.0023** | 0.9078 (H8) | 0.9496 ± 0.0025 | **5.35% ± 0.17%** | 0.4908 ± 0.0155 | 72.15% ± 0.38% | **ĐẠT** |
-| **3. Tối ưu mô phỏng (Sim-Opt)** | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` | **44** | **0.9381 ± 0.0023** | **0.9078 (H8)** | **0.9496 ± 0.0025** | **5.35% ± 0.17%** | **0.4908 ± 0.0155** | **72.15% ± 0.38%** | **ĐẠT** |
+| **3. Tối ưu mô phỏng (Sim-Opt)** | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` | **44** | **0.9381 ± 0.0023** | **0.9078 (H8)** | **0.9496 ± 0.0025** | **5.35% ± 0.17%** | **0.4908 ± 0.0155** | **72.15% ± 0.38** | **ĐẠT** |
 | **4. Bền vững (+10% tải)** | `[5, 6, 6, 6, 5, 5, 5, 5, 5]` | 48 | **0.9582 ± 0.0018** | 0.9364 (H6) | 0.9664 ± 0.0019 | **3.73% ± 0.14%** | 0.3424 ± 0.0120 | 67.25% ± 0.37% | **ĐẠT** |
 | **5. Theo ca làm việc (Shift-based)**| `[6, 6, 6, 6, 5, 5, 6, 6, 6]` | 52 | **0.9702 ± 0.0015** | 0.9453 (H4) | 0.9762 ± 0.0016 | **2.72% ± 0.12%** | 0.2479 ± 0.0100 | 62.72% ± 0.36% | **ĐẠT** |
 
 *Phân tích đánh giá:*
-1. **Lịch tối ưu mô phỏng (44 q-h):** Đạt mức phục vụ toàn ngày $93.81\%$ và giờ thấp nhất vẫn đạt $90.78\%$ (cận dưới CI95 > 90%). So với chính sách 6 quầy cố định, lịch này tiết kiệm đúng **10 quầy-giờ mỗi ngày** (giảm $-18.52\%$ chi phí nhân sự), nâng hiệu suất sử dụng quầy từ $60.75\%$ lên mức tối ưu **$72.15\%$**.
+1. **Lịch tối ưu mô phỏng (44 q-h):** Đạt mức phục vụ toàn ngày $93.81\%$ và giờ thấp nhất vẫn đạt $90.78\%$ (cận dưới CI95 > 90%). So với mốc cơ sở 6 quầy cố định, lịch này tiết kiệm đúng **10 quầy-giờ mỗi ngày** (giảm $-18.52\%$ chi phí nhân sự), nâng hiệu suất sử dụng quầy từ $60.75\%$ lên mức tối ưu **$72.15\%$**.
 2. **Khách hàng ưu tiên (VIP):** Nhờ cơ chế ưu tiên trong hàng đợi, khách VIP đạt SLA $W_q \le 2$ phút lên tới **$94.96\%$** (vượt xa mục tiêu 90%).
+3. **Tác động của biến động lưu lượng giữa các ngày ($m_d \sim \text{Gamma}, CV = 11.8\%$):** Khi mô phỏng có tính đến dao động ngẫu nhiên về quy mô khách đến giữa các ngày (kết quả tại `results/final_v2/bien_dong_ngay.csv`):
+   - Lịch 44 quầy-giờ đạt $SL \ge 90\%$ trên **$85.0\%$ số ngày**, nhưng xác suất đồng thời cả 9 giờ đều $\ge 90\%$ giảm xuống **$26.0\%$**. Trên 14 ngày quan sát thực tế, lịch 44 đạt 10/14 ngày (hụt tại các ngày 1, 2, 7, 12 có lưu lượng cao).
+   - Lịch bền vững 48 quầy-giờ nâng xác suất ngày đạt SLA lên **$95.3\%$** (cả 9 giờ đạt $47.0\%$), đạt trên 13/14 ngày thực tế (chỉ hụt ngày 7 có tải cực đại).
+   - Do đó, quy tắc vận hành tối ưu là: **Sử dụng Lịch 44 q-h cho ngày có lưu lượng $\le 687$ khách/ngày; tự động kích hoạt Lịch 48 q-h khi dự báo lưu lượng vượt quá 687 khách/ngày.**
 
 ### 9.3 Phân Tích Độ Nhạy Toàn Diện Hệ Thống (Thí nghiệm T6)
 Khảo sát độ bền của các chính sách qua 150 lần lặp CRN (kết quả tại [`do_nhay.csv`](file:///d:/KHDV/results/final_v1/do_nhay.csv) và biểu đồ [`fig_c_do_nhay.png`](file:///d:/KHDV/results/final_v1/hinh/fig_c_do_nhay.png)):
@@ -413,19 +416,20 @@ Khảo sát độ bền của các chính sách qua 150 lần lặp CRN (kết q
   - Thời gian chờ đợi trung bình: **$0.4908 \pm 0.0155$ phút** (~$29.4$ giây/khách)
   - Tỉ lệ khách hàng bỏ về trung bình: **$5.35\% \pm 0.17\%$**
   - Hiệu suất sử dụng quầy giao dịch: **$72.15\% \pm 0.38\%$**
+  - Tác động biến động ngày ($CV = 11.8\%$): Tỉ lệ ngày đạt SLA $\ge 90\%$ là **$85.0\%$** (đạt 10/14 ngày thực tế); xác suất đồng thời cả 9 giờ đạt SLA là **$26.0\%$**.
 
 #### 2. Lịch tối ưu tiết kiệm bao nhiêu so với lịch hằng số?
-- So với phương án duy trì cố định 6 quầy trong suốt 9 giờ ($54$ quầy-giờ), lịch tối ưu 44 quầy-giờ tiết kiệm được đúng **$10$ quầy-giờ mỗi ngày**, tương đương mức cắt giảm **$18.52\%$ chi phí nhân sự**.
+- So với mốc cơ sở duy trì cố định 6 quầy trong suốt 9 giờ ($54$ quầy-giờ), lịch tối ưu 44 quầy-giờ tiết kiệm được đúng **$10$ quầy-giờ mỗi ngày**, tương đương mức cắt giảm **$18.52\%$ chi phí nhân sự**.
 - Nếu tính cho một chi nhánh ngân hàng vận hành 260 ngày làm việc/năm, giải pháp này giúp tiết kiệm **$2.600$ quầy-giờ/năm**, đồng thời nâng hiệu suất khai thác quầy từ $60.75\%$ lên $72.15\%$.
 
 #### 3. Lịch có bền khi nhu cầu hoặc tham số thay đổi không? Chi phí để bền là bao nhiêu?
-- Lịch tối ưu 44 quầy-giờ có biên an toàn mỏng: Khi nhu cầu tăng từ $+10\%$ trở lên, giờ cao điểm sẽ rơi xuống mức phục vụ $86.5\%$.
+- Lịch tối ưu 44 quầy-giờ có biên an toàn mỏng khi lưu lượng dao động theo ngày ($P(\text{mọi giờ} \ge 90\%) = 26.0\%$). Khi nhu cầu tăng từ $+10\%$ trở lên, giờ cao điểm sẽ rơi xuống mức phục vụ $86.5\%$.
 - Để đảm bảo tính bền vững (*robustness*), nhóm đề xuất **Lịch Bền Vững Khuyến Nghị: `[5, 6, 6, 6, 5, 5, 5, 5, 5]` (Tổng: $48$ quầy-giờ)**.
-- Chi phí của độ bền là tăng thêm **$+4$ quầy-giờ/ngày** ($+9.09\%$ chi phí), giúp chi nhánh chịu được mức tăng tải $+10\%$ mà vẫn giữ vững cam kết SLA giờ tệ nhất $\ge 90.2\%$, đồng thời kéo giảm tỉ lệ khách bỏ về từ $5.35\%$ xuống còn $3.73\%$.
+- Chi phí của độ bền là tăng thêm **$+4$ quầy-giờ/ngày** ($+9.09\%$ chi phí), giúp chi nhánh chịu được mức tăng tải $+10\%$ mà vẫn giữ vững cam kết SLA giờ tệ nhất $\ge 90.2\%$, nâng tỉ lệ ngày đạt SLA lên **$95.3\%$** và kéo giảm tỉ lệ khách bỏ về từ $5.35\%$ xuống còn $3.73\%$.
 
 #### 4. Lịch theo ca thực tế tốn thêm bao nhiêu so với lịch tự do?
-- **Nếu áp dụng mô hình Ca hỗn hợp linh hoạt (Mixed Shifts):** Sử dụng 4 nhân viên làm ca toàn thời gian 8h (có giờ nghỉ trưa so le) kết hợp 3 nhân viên bán thời gian ca 4h vào khung giờ cao điểm, ngân hàng sẽ phủ đúng $100\%$ lịch 44 quầy-giờ mà **không tốn thêm bất kỳ chi phí dư thừa nào ($+0.0\%$)**.
-- **Nếu áp dụng mô hình Thuần ca 8 giờ (Full-time only):** Do bị ràng buộc khối 8 tiếng liên tục, chi nhánh sẽ buộc phải sử dụng từ **52 đến 64 quầy-giờ**, làm chi phí đội thêm từ **$+18.2\%$ đến $+45.5\%$**.
+- **Nếu áp dụng mô hình Ca hỗn hợp linh hoạt (Mô hình B - 8h có 1h nghỉ trưa):** Sử dụng 4 nhân viên làm ca toàn thời gian 8h (có giờ nghỉ trưa so le) kết hợp 3 nhân viên bán thời gian ca 4h vào khung giờ cao điểm, ngân hàng sẽ phủ đúng $100\%$ lịch 44 quầy-giờ làm việc mà **không tốn thêm chi phí quầy-giờ làm việc dư thừa nào ($+0.0\%$, tổng 48 quầy-giờ có mặt tại chỗ)**. Ngược lại, Mô hình A (8h liên tục) không có nghiệm khả thi cho cấu hình 4 NV 8h + 3 NV 4h.
+- **Nếu áp dụng mô hình Thuần ca 8 giờ:** Mô hình A cần 8 NV $\implies$ **64 quầy-giờ** làm việc ($+45.5\%$ chi phí); Mô hình B cần 6 NV $\implies$ **48 quầy-giờ** làm việc ($54$ quầy-giờ tại chỗ, $+9.1\%$).
 
 #### 5. Điều gì làm kết quả có thể không áp dụng được ngoài bối cảnh này?
 - Kết quả nghiên cứu dựa trên tiền đề chi nhánh áp dụng **hệ thống bốc số điện tử một hàng chung duy nhất**. Nếu chi nhánh tổ chức các hàng xếp riêng biệt trước từng quầy (khách tự chọn hàng), hiệu ứng gộp hàng sẽ biến mất và tỉ lệ đạt SLA sẽ tụt giảm nghiêm trọng xuống mức $\approx 50.6\%$ (xem phân tích tại [`fig_c_pooling.png`](file:///d:/KHDV/results/final_v1/hinh/fig_c_pooling.png)).
@@ -433,9 +437,9 @@ Khảo sát độ bền của các chính sách qua 150 lần lặp CRN (kết q
 
 ### 10.2 Khuyến nghị Vận hành cho Ban Giám đốc Chi nhánh
 1. **Chiến lược hai chế độ vận hành (Two-tier Scheduling Policy):**
-   - *Chế độ Thường nhật (Lịch tối ưu 44 q-h):* Áp dụng từ thứ Ba đến thứ Năm vào giữa tháng khi lưu lượng khách ổn định.
-   - *Chế độ Cao điểm (Lịch bền vững 48 q-h):* Tự động kích hoạt vào các ngày thứ Hai, thứ Sáu, hoặc các đợt chi trả lương, đầu/cuối tháng khi nhu cầu dự báo tăng từ 10% trở lên.
-2. **Cơ cấu Nhân sự Linh hoạt:** Ký hợp đồng lao động kết hợp giữa giao dịch viên cơ hữu toàn thời gian (ca 8 tiếng) và sinh viên thực tập/cộng tác viên bán thời gian (ca 4 tiếng: 9h-13h và 10h-14h).
+   - *Chế độ Thường nhật (Lịch tối ưu 44 q-h):* Áp dụng khi lưu lượng khách dự báo ở mức trung bình hoặc thấp ($\le 687$ khách/ngày).
+   - *Chế độ Cao điểm (Lịch bền vững 48 q-h):* Tự động kích hoạt khi lưu lượng khách dự báo vượt ngưỡng $687$ khách/ngày.
+2. **Cơ cấu Nhân sự Linh hoạt:** Ký hợp đồng lao động kết hợp giữa giao dịch viên cơ hữu toàn thời gian (ca 8 tiếng) và nhân sự bán thời gian (ca 4 tiếng: 9h-13h, 10h-14h, 12h-16h).
 3. **Màn hình Hiển thị Ước lượng Thời gian Chờ:** Đặt màn hình tại sảnh chờ thông báo thời gian chờ dự kiến cho khách hàng. Nghiên cứu tâm lý học dịch vụ chỉ ra rằng việc biết trước thời gian chờ giúp tăng độ kiên nhẫn trung bình của khách hàng lên $25-30\%$, từ đó kéo giảm tỉ lệ bỏ về.
 
 ### 10.3 Hạn chế Nghiên cứu và Hướng Phát triển
@@ -465,11 +469,14 @@ Khảo sát độ bền của các chính sách qua 150 lần lặp CRN (kết q
   - `c_sim.py`: Động cơ mô phỏng sự kiện rời rạc SimPy, blocker quầy động, CRN, tính toán CI95.
   - `d_experiments.py`: Kịch bản thực thi toàn bộ các thí nghiệm mở rộng Tuần 3 và đóng băng dữ liệu.
   - `main.py`: Điểm khởi chạy thống nhất toàn bộ quy trình từ đầu đến cuối.
-  - `tests/`: 12 bài kiểm thử tự động với `pytest` (`test_theory.py` và `test_sim.py`).
+  - `b_shifts.py`: Mô hình tối ưu lập lịch ca MILP (Mô hình A & B, HiGHS solver).
+  - `tests/`: 18 bài kiểm thử tự động với `pytest` (`test_theory.py`, `test_sim.py`, `test_v2_features.py`).
 - Hướng dẫn tái lập môi trường:
   ```bash
   pip install -r requirements.txt
   pytest
   python main.py
+  python tools/build_tables.py
+  python tools/check_consistency.py
   ```
-- Toàn bộ tệp số liệu đóng băng chính thức được lưu trữ bất biến tại thư mục: [`results/final_v1/`](file:///d:/KHDV/results/final_v1/).
+- Toàn bộ tệp số liệu đóng băng chính thức được lưu trữ bất biến tại thư mục: [`results/final_v1/`](file:///d:/KHDV/results/final_v1/) (kết quả gốc) và [`results/final_v2/`](file:///d:/KHDV/results/final_v2/) (kết quả hiệu chỉnh theo yêu cầu).

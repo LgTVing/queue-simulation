@@ -4,7 +4,7 @@ va cac ham tien ich thong ke cho du an mo phong hang doi.
 """
 
 from dataclasses import dataclass
-from typing import Callable, Tuple, List, Optional
+from typing import Callable, Tuple, List, Optional, Union
 import numpy as np
 import scipy.stats as stats
 
@@ -27,7 +27,7 @@ class Model:
     rates: List[float]                       # lambda_h (khach/phut) theo tung khung gio
     service: Callable[[np.random.Generator], Tuple[float, int]] # Sampler: rng -> (svc_time, cls)
     theta: float                             # Toc do bo ve (1/phut)
-    p_vip: float = 0.0                       # Ti le khach VIP
+    p_vip: Union[float, List[float]] = 0.0   # Ti le khach VIP (co dinh hoac theo gio)
     hour_len: float = DEFAULT_HOUR_LEN       # Do dai moi khung gio (phut)
     mean_svc: float = 2.88                   # E[S] tham chieu (phut)
     cs2_svc: float = 1.20                    # cs^2 tham chieu
