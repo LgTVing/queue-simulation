@@ -1,0 +1,36 @@
+{
+  "stages": {
+    "data": {
+      "phut": 0.04,
+      "reps_scale": 1.0,
+      "luc": "2026-10-29T17:30:22"
+    },
+    "theory": {
+      "phut": 0.0,
+      "reps_scale": 1.0,
+      "luc": "2026-10-29T17:30:22"
+    },
+    "verify": {
+      "phut": 0.43,
+      "reps_scale": 1.0,
+      "luc": "2026-10-29T17:30:48"
+    },
+    "optimize": {
+      "phut": 7.95,
+      "reps_scale": 1.0,
+      "luc": "2026-10-29T17:38:45"
+    },
+    "robust": {
+      "phut": 24.86,
+      "reps_scale": 1.0,
+      "luc": "2026-10-29T18:03:37"
+    },
+    "report": {
+      "phut": 0.0,
+      "reps_scale": 1.0,
+      "luc": "2026-10-29T18:03:37"
+    }
+  },
+  "reps_scale": 1.0,
+  "tong_phut": 33.28
+}

@@ -10,5 +10,6 @@ Script V2/V3 đã được hợp nhất vào pipeline chính (`python main.py --
 | `run_s5_s6_s7_s8_s9_s11.py` | `e_robustness.nested_bootstrap()`, `out_of_sample()`, `fourteen_days()`, `service_dist_sensitivity()`, `cost_analysis()`; S8 vào `chay_kiem_chung.py`; C6 vào `c_sim.local_search_phase3()` |
 | `run_fixes.py` | `d_experiments.run_optimize()` (so sánh chính sách, biến động ngày, xếp ca), `e_robustness` (độ nhạy phân phối, ngoài mẫu) |
 | `gen_theo_ngay.py` | `e_robustness.fourteen_days()` |
+| `update_tong_hop_chi_tiet.py` | Không thay thế: chép đè văn bản V3 cố định vào `docs/TONG_HOP_SO_LIEU_CHI_TIET.md`. Từ V4 bảng số chỉ nằm trong `tong_hop.md` và được `tools/check_consistency.py` đối chiếu với CSV |
 
 Các script này đọc/ghi `results/final_v2`, `final_v3` với lịch hard-code và **không** còn chạy được với code V4.

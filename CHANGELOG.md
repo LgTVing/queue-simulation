@@ -2,7 +2,24 @@
 
 ## v4.0 (code) — Sửa lỗi động cơ mô phỏng và hợp nhất pipeline (2026-10-29)
 
-Theo `docs/KE_HOACH_CAI_TIEN.md`, giai đoạn 1–4. **Chưa có số liệu V4 đóng băng**: `results/final_v4/` sẽ được sinh bằng `python main.py --stage all` ở giai đoạn 5; mục này sẽ bổ sung bảng đối chiếu `doi_chieu_v3_v4.csv` khi chạy xong.
+Theo `docs/KE_HOACH_CAI_TIEN.md`, giai đoạn 1–5. Số liệu đóng băng tại `results/final_v4/` (`python main.py --stage all --reps-scale 1.0`, 33,3 phút, 2026-10-29).
+
+**Kết quả V4 so với V3** (`results/final_v4/doi_chieu_v3_v4.csv`):
+
+| Chỉ số | V3 | V4 | Nguyên nhân |
+|---|:---:|:---:|---|
+| Lịch tối ưu | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` (44 q-h) | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` (45 q-h) | M3: phục vụ thực nghiệm cs² = 1,20; tối ưu với Gamma vẫn ra 44 |
+| SL toàn ngày / giờ tệ nhất (cận dưới CI95) | 0,9381 / 0,9078 | 0,9423 / 0,9236 | Lịch thêm 1 quầy ở 16h–17h |
+| Giờ tệ nhất | đổi giữa 11h–12h và 16h–17h | 11h–12h (xác suất 99,7%, R = 1.646) | M5 |
+| Tỉ lệ bỏ về / W_q | 5,35% / 0,4908 phút | 4,99% / 0,4628 phút | Lịch thêm quầy |
+| Lịch bền vững | `[5, 6, 6, 6, 5, 5, 5, 5, 5]` | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | Cùng 48 q-h, phân bổ lại |
+| Ngưỡng lưu lượng V* | 700 | 803 khách/ngày | Nội suy theo SL ≥ 90% thay cho trung bình train |
+| Ca làm việc lịch tối ưu (nghỉ 11h–14h) | phủ đúng 44 q-h (4 ca 8h + 3 ca 4h) | 48 q-h công (5 ca 8h + 2 ca 4h), không phủ đúng được 45 | Lịch 45 và Lịch 48 cùng 48 q-h công |
+| Số ngày quan sát đạt SLA | 12/14 | 12/14 | — |
+
+Kết quả mới: kiên nhẫn 15–60 phút cần 46 q-h, không bỏ về cần 48 q-h (M1); ràng buộc bỏ về ≤ 3% cần 51 q-h (M2); bất thường 15h–16h ngoài mẫu do riêng ngày 10 (M4). F1 riêng lẻ chỉ đổi SL giờ cuối 0,9706 → 0,9704.
+
+**Tài liệu và công cụ:** `tong_hop.md` viết lại theo V4; `docs/TONG_HOP_SO_LIEU_CHI_TIET.md` Phần 3–5 thay bằng tóm tắt V4 trỏ về `tong_hop.md` (bảng số chỉ còn một nơi). `tools/check_consistency.py` và `tools/build_tables.py` đọc `common.RESULTS_DIR`; checker mở rộng từ 8 lên 16 nhóm bảng (1.052 giá trị, 0 lệch). `tools/update_tong_hop_chi_tiet.py` (chép đè văn bản V3 cố định) chuyển vào `tools/archive/`. `pytest -q`: 35/35 pass, log tại `results/final_v4/pytest_log.txt`.
 
 **Lỗi động cơ mô phỏng đã sửa (`c_sim.py`):**
 - F1: sau 17h mô phỏng nhả mọi blocker nên toàn bộ `c_max` quầy xả hàng → SL giờ 16h–17h bị lạc quan. Giờ giữ số quầy của giờ cuối (`drain_policy="keep_last"`); hành vi cũ chạy lại được bằng `"all_open"` (kết quả so sánh: `doi_chieu_xa_hang.csv`).
