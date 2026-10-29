@@ -9,6 +9,20 @@
 - Kiểm chứng: toàn bộ CSV và hình của `python main.py --stage all --reps-scale 1.0` giống từng byte với `results/final_v4/`. Thời gian chạy 33.28 → 5.49 phút (`optimize` 8.0 → 1.6, `robust` 24.9 → 3.7).
 - `tests/test_p1_parallel.py`: 9 test (pickle, khớp bản lambda cũ, song song = tuần tự). `pytest -q`: 44/44 pass.
 
+### P2 — Giảm chi phí mỗi lần lặp (2026-10-29)
+- Đo profile 60 lần lặp tuần tự: `rep_stats` chiếm 0.82/2.94 s (28%, vượt ngưỡng 25% của kế hoạch); tạo `DataFrame` chỉ 0.07 s nên giữ nguyên.
+- `c_sim.rep_stats`: trích mảng NumPy một lần, dùng mặt nạ theo giờ thay cho lọc DataFrame lặp lại. Thời gian `rep_stats` 0.82 → 0.06 s.
+- Kiểm chứng: khớp từng bit với bản pandas trên 110 lần chạy (kể cả lịch có giờ 0 quầy, hệ dừng có `t_start`); toàn bộ CSV và hình `--reps-scale 1.0` vẫn giống từng byte với `results/final_v4/`.
+- Thời gian pipeline đo A/B cùng điều kiện máy: P1 9.0 phút → P2 6.55 phút. (Số tuyệt đối dao động theo tải máy; lần đo P1 lúc máy rảnh là 5.49 phút.)
+- Test `test_rep_stats_matches_pandas` giữ bản pandas làm tham chiếu.
+
+### T2 — Checker đối chiếu số trong báo cáo, slide, README (2026-10-29)
+- `tools/check_consistency.py`: thêm `check_report_numbers()` đối chiếu 132 giá trị trong `docs/bao_cao_tong_ket.md`, `docs/slide_thuyet_trinh.md`, `README.md` với 7 CSV nguồn; chuẩn hóa dấu trừ Unicode.
+- `tests/test_t2_checker.py`: tài liệu hiện tại khớp; cố ý sửa sai một số trong mỗi tài liệu thì checker báo lỗi đúng tệp.
+
+### T3 — CI (2026-10-29)
+- `.github/workflows/ci.yml`: Python 3.12, `pytest -q -m "not slow"` và checker trên mỗi push / pull request (`QS_WORKERS=2`). Chưa kiểm chứng trên GitHub (cần push).
+
 ## v4.0 (tài liệu) — Đồng bộ toàn bộ tài liệu với `results/final_v4/` (2026-10-29)
 
 - `docs/bao_cao_tong_ket.md`, `docs/slide_thuyet_trinh.md`: viết lại theo V4 (Lịch 45, Lịch 48 bền vững, M1–M5, ca làm việc 48 q-h công). Bản cũ mang số V1–V3 (Lịch 44).

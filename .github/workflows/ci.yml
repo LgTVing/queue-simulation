@@ -1,0 +1,23 @@
+# T3: chay kiem thu nhanh va doi chieu so lieu tai lieu moi lan push / pull request
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      QS_WORKERS: "2"
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q -m "not slow"
+      - run: python tools/check_consistency.py
