@@ -70,6 +70,34 @@ def test_run_reps_parallel_identical(monkeypatch):
             assert a == b, k
 
 
+def _rep_stats_pandas(df, schedule, hour_len=60.0, t_start=0.0, wt=5.0, wtv=2.0):
+    """Ban pandas cua rep_stats truoc P2 (tham chieu, chi cac chi so chinh)."""
+    served = df["served"] == 1
+    out = {"sl_all": float((served & (df["wait"] <= wt)).sum() / len(df)),
+           "wq_all": float(df["wait"].mean()), "p_ab_all": float((df["served"] == 0).mean()),
+           "util_all": float(df[served]["svc"].sum() / (sum(schedule) * hour_len))}
+    dv = df[df["vip"] == 1]
+    out["sl_vip"] = float(((dv["served"] == 1) & (dv["wait"] <= wtv)).sum() / len(dv))
+    hourly = []
+    for h in range(len(schedule)):
+        dh = df[df["hour"] == h]
+        hourly.append((float(((dh["served"] == 1) & (dh["wait"] <= wt)).sum() / len(dh)),
+                       float(dh["wait"].mean()), float((dh["served"] == 0).mean())))
+    return out, hourly
+
+
+@pytest.mark.parametrize("seed", range(5))
+def test_rep_stats_matches_pandas(seed):
+    """P2: rep_stats ban NumPy cho ket qua trung tung bit voi ban pandas."""
+    sched = [4, 5, 4]
+    df = cs.simulate(_model(), sched, seed=seed, day_cv=0.14)
+    ref, ref_h = _rep_stats_pandas(df, sched)
+    st = cs.rep_stats(df, sched)
+    for k, v in ref.items():
+        assert st[k] == v, k
+    assert [(x["sl"], x["wq"], x["p_ab"]) for x in st["hourly"]] == ref_h
+
+
 def test_map_sim_order_and_post(monkeypatch):
     sched = [4, 5, 4]
     jobs = [dict(model=_model(), schedule=sched, seed=900 + i, day_multiplier=1.0 + 0.05 * i) for i in range(8)]

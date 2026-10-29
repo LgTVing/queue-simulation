@@ -261,33 +261,38 @@ def rep_stats(
     if len(df) == 0:
         return {"sl_all": 0.0, "sl_vip": 0.0, "wq_all": 0.0, "p_ab_all": 0.0, "hourly": []}
 
+    # Trich mang NumPy mot lan (P2); wait khong bao gio NaN, svc chi NaN o khach bo ve
+    # (bi loai boi served_mask) nen ket qua trung voi ban pandas.
+    served_mask = df["served"].to_numpy() == 1
+    wait = df["wait"].to_numpy(dtype=float)
+    vip_mask = df["vip"].to_numpy() == 1
+    hour_arr = df["hour"].to_numpy()
+
     # Toan ngay
     n_tot = len(df)
-    served_mask = df["served"] == 1
-    n_served_sla = (served_mask & (df["wait"] <= wait_thresh)).sum()
+    n_served_sla = np.count_nonzero(served_mask & (wait <= wait_thresh))
     sl_all = n_served_sla / n_tot if n_tot > 0 else 0.0
     sl_extra = {
-        f"sl_all_t{t:g}": float((served_mask & (df["wait"] <= t)).sum() / n_tot)
+        f"sl_all_t{t:g}": float(np.count_nonzero(served_mask & (wait <= t)) / n_tot)
         for t in extra_thresh
     }
 
-    df_vip = df[df["vip"] == 1]
-    n_vip = len(df_vip)
-    n_vip_sla = ((df_vip["served"] == 1) & (df_vip["wait"] <= wait_thresh_vip)).sum()
+    n_vip = np.count_nonzero(vip_mask)
+    n_vip_sla = np.count_nonzero(vip_mask & served_mask & (wait <= wait_thresh_vip))
     sl_vip = n_vip_sla / n_vip if n_vip > 0 else np.nan
 
-    wq_all = df["wait"].mean()
-    p_ab_all = (df["served"] == 0).mean()
+    wq_all = wait.mean()
+    p_ab_all = np.count_nonzero(~served_mask) / n_tot
 
     # Hieu suat su dung toan bo quay
-    tot_svc_all = df[served_mask]["svc"].sum() if "svc" in df.columns else 0.0
+    tot_svc_all = df["svc"].to_numpy(dtype=float)[served_mask].sum() if "svc" in df.columns else 0.0
     tot_c_time = sum(schedule) * hour_len
     util_all = tot_svc_all / tot_c_time if tot_c_time > 0 else 0.0
 
     # Khoang phuc vu thuc te (F3)
     if "start_svc" in df.columns:
-        s_start = df.loc[served_mask, "start_svc"].to_numpy(dtype=float)
-        s_end = df.loc[served_mask, "end_svc"].to_numpy(dtype=float)
+        s_start = df["start_svc"].to_numpy(dtype=float)[served_mask]
+        s_end = df["end_svc"].to_numpy(dtype=float)[served_mask]
     else:
         s_start = s_end = np.zeros(0)
     t_close = t_start + len(schedule) * hour_len
@@ -300,17 +305,20 @@ def rep_stats(
         hi = lo + hour_len
         busy_h = float(np.clip(np.minimum(s_end, hi) - np.maximum(s_start, lo), 0.0, None).sum())
         util_h = busy_h / (c * hour_len) if c > 0 and hour_len > 0 else 0.0
-        df_h = df[df["hour"] == h]
-        n_h = len(df_h)
+        in_h = hour_arr == h
+        n_h = np.count_nonzero(in_h)
         if n_h == 0:
             hourly.append({"hour": h, "sl": 1.0, "sl_vip": 1.0, "wq": 0.0, "p_ab": 0.0, "util": float(util_h)})
             continue
-            
-        sl_h = ((df_h["served"] == 1) & (df_h["wait"] <= wait_thresh)).sum() / n_h
-        df_h_vip = df_h[df_h["vip"] == 1]
-        sl_h_vip = (((df_h_vip["served"] == 1) & (df_h_vip["wait"] <= wait_thresh_vip)).sum() / len(df_h_vip)) if len(df_h_vip) > 0 else np.nan
-        wq_h = df_h["wait"].mean()
-        p_ab_h = (df_h["served"] == 0).mean()
+
+        served_h = served_mask[in_h]
+        wait_h = wait[in_h]
+        vip_h = vip_mask[in_h]
+        sl_h = np.count_nonzero(served_h & (wait_h <= wait_thresh)) / n_h
+        n_h_vip = np.count_nonzero(vip_h)
+        sl_h_vip = (np.count_nonzero(vip_h & served_h & (wait_h <= wait_thresh_vip)) / n_h_vip) if n_h_vip > 0 else np.nan
+        wq_h = wait_h.mean()
+        p_ab_h = np.count_nonzero(~served_h) / n_h
 
         hourly.append({
             "hour": h,
