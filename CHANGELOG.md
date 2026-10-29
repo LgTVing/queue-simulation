@@ -1,5 +1,15 @@
 # NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG)
 
+## v4.0 (tài liệu) — Đồng bộ toàn bộ tài liệu với `results/final_v4/` (2026-10-29)
+
+- `docs/bao_cao_tong_ket.md`, `docs/slide_thuyet_trinh.md`: viết lại theo V4 (Lịch 45, Lịch 48 bền vững, M1–M5, ca làm việc 48 q-h công). Bản cũ mang số V1–V3 (Lịch 44).
+- `docs/bao_cao_kiem_chung.md`, `docs/ngoai_mau.md` (mục 1–4), `docs/dac_ta_mo_hinh.md` (bảng tham số), README §14–15: cập nhật theo V4 và dữ liệu thật. Sửa JSQ 90.8% → 81.1%, Kiểm tra A 13.87 → 14.22, tham số mô hình 14 ngày → train.
+- `docs/uoc_luong_kiem_dinh.md`, `docs/TONG_HOP_SO_LIEU_CHI_TIET.md`: sửa phương sai ngày 7.591,8 → 7.586,7 ($p$ 3.65e-23 → 1.77e-23), số khách phục vụ train 6.388 → 6.346, $\hat\theta$ = 521/4.793,6, AIC Gamma 26.279,7, CI λ trong Excel là khoảng Poisson, sheet `Quyet_dinh` theo tham số train.
+- `tong_hop.md`: dải tải 15h–16h các ngày khác 2.88–5.33; ghi chú `chi_phi.csv` chạy riêng (150 lần lặp, seed 70000).
+- `data/xuat_thong_ke.py`: bỏ đường dẫn cứng `d:\KHDV`, nhãn Poisson 3 mức, phân phối tốt nhất "Gamma (theo AIC)", thêm sheet `qua_phan_tan`; sinh lại `docs/thong_ke_mo_ta.xlsx`, `docs/bang_tham_so.xlsx`.
+- `docs/bang_quyet_dinh.md`, `docs/doi_chieu_mo_phong.md` chuyển vào `docs/lich_su/`.
+- `tools/check_consistency.py`: quét thuật ngữ trên `README.md` và mọi `docs/*.md` hiện hành; chặn link `file:///`.
+
 ## v4.0 (code) — Sửa lỗi động cơ mô phỏng và hợp nhất pipeline (2026-10-29)
 
 Theo `docs/KE_HOACH_CAI_TIEN.md`, giai đoạn 1–5. Số liệu đóng băng tại `results/final_v4/` (`python main.py --stage all --reps-scale 1.0`, 33,3 phút, 2026-10-29).

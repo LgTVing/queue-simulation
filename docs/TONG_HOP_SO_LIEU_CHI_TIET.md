@@ -37,23 +37,23 @@ Dự án đã hoàn thành trọn vẹn lộ trình 3 tuần từ nghiên cứu 
 ### 1.2 Phân công Trách nhiệm và Sản phẩm Bàn giao Cụ thể
 - **Thành viên A (Nguyễn Văn A - Dữ liệu & Thống kê):**
   - Quản lý tệp dữ liệu sạch `data/clean/data_clean.csv` ($9.836$ bản ghi).
-  - Ước lượng các tham số $\lambda_h$, $E[S]$, $\theta$, $p_{vip}$ trên tập Train 10 ngày ($6.867$ bản ghi) và xuất `docs/params.json` (Phiên bản v2.0).
+  - Ước lượng các tham số $\lambda_h$, $E[S]$, $\theta$, $p_{vip}$ trên tập Train 10 ngày ($6.867$ bản ghi) và xuất `docs/params.json` (hiện là bản v4.0, trùng `results/final_v4/params.json`).
   - Kiểm định phân phối Poisson theo giờ và so sánh AIC thời gian phục vụ (Gamma tốt nhất).
-  - Thực hiện Thí nghiệm E4 (Độ bất định tham số 50 bộ bootstrap) $\implies$ [`fig_a_bat_dinh.png`](file:///d:/KHDV/results/final_v1/hinh/fig_a_bat_dinh.png).
-  - Thực hiện Thí nghiệm E5 (Độ nhạy phân phối phục vụ) và E6 (Kiểm tra ngoài mẫu trên tập Test 4 ngày) $\implies$ [`fig_a_ngoai_mau.png`](file:///d:/KHDV/results/final_v1/hinh/fig_a_ngoai_mau.png).
+  - Thực hiện Thí nghiệm E4 (Độ bất định tham số 50 bộ bootstrap) $\implies$ [`fig_a_bat_dinh.png`](../results/archive/final_v1/hinh/fig_a_bat_dinh.png).
+  - Thực hiện Thí nghiệm E5 (Độ nhạy phân phối phục vụ) và E6 (Kiểm tra ngoài mẫu trên tập Test 4 ngày) $\implies$ [`fig_a_ngoai_mau.png`](../results/archive/final_v1/hinh/fig_a_ngoai_mau.png).
   - Soạn thảo Mục 3, Mục 4 trong Báo cáo tổng kết và Slide 3, 4, 5.
 - **Thành viên B (Trần Thị B - Lý thuyết, Chi phí & Vận hành):**
   - Xây dựng mô hình giải tích `b_theory.py` và bảng tính tự động `excel/erlang.xlsx`.
   - Phân tích bảng quyết định định biên SIPP Erlang C (47 q-h) và Erlang-A (44 q-h).
-  - Xây dựng hàm chi phí kinh tế $C(k) = \text{quầy-giờ} + k \cdot N_{ab}$ với $k \in \{0.1, 0.25, 0.5, 1.0, 2.0\}$ và vẽ đường đánh đổi Pareto $\implies$ [`fig_b_chi_phi.png`](file:///d:/KHDV/results/final_v1/hinh/fig_b_chi_phi.png).
-  - Thiết lập và giải bài toán Quy hoạch Tuyến tính Nguyên MILP (`scipy.optimize.milp`) lập lịch theo ca làm việc (ca 4h, ca 8h, ca hỗn hợp) $\implies$ [`fig_b_ca_lam.png`](file:///d:/KHDV/results/final_v1/hinh/fig_b_ca_lam.png).
+  - Xây dựng hàm chi phí kinh tế $C(k) = \text{quầy-giờ} + k \cdot N_{ab}$ với $k \in \{0.1, 0.25, 0.5, 1.0, 2.0\}$ và vẽ đường đánh đổi Pareto $\implies$ [`fig_b_chi_phi.png`](../results/archive/final_v1/hinh/fig_b_chi_phi.png).
+  - Thiết lập và giải bài toán Quy hoạch Tuyến tính Nguyên MILP (`scipy.optimize.milp`) lập lịch theo ca làm việc (ca 4h, ca 8h, ca hỗn hợp) $\implies$ [`fig_b_ca_lam.png`](../results/archive/final_v1/hinh/fig_b_ca_lam.png).
   - Phân tích lịch bền vững theo quy tắc căn bậc hai $c \approx a + \beta \sqrt{a}$.
   - Soạn thảo Mục 5, Mục 6 trong Báo cáo tổng kết và Slide 6, 7, 8, 9.
 - **Thành viên C (Lê Văn C - Mô phỏng, Tối ưu & Tổng hợp):**
   - Xây dựng động cơ mô phỏng sự kiện rời rạc SimPy `c_sim.py` với blocker động và đồng bộ hóa CRN.
   - Thực hiện kiểm chứng 3 tầng, sửa lỗi hiệu suất $\rho$, thực hiện Kiểm tra A (M/G/1 exact) và Kiểm tra B.
   - Lập trình thuật toán tối ưu hóa 2 pha (*Ramp-up* & *Pruning*).
-  - Đánh giá 5 chính sách phục vụ với 300 lần lặp độc lập và phân tích độ nhạy T6 $\implies$ [`fig_c_do_nhay.png`](file:///d:/KHDV/results/final_v1/hinh/fig_c_do_nhay.png).
+  - Đánh giá 5 chính sách phục vụ với 300 lần lặp độc lập và phân tích độ nhạy T6 $\implies$ [`fig_c_do_nhay.png`](../results/archive/final_v1/hinh/fig_c_do_nhay.png).
   - Tổng hợp, kiểm tra chéo số liệu và đóng băng toàn bộ kết quả vào `results/final_v1/`.
   - Soạn thảo Mục 7, Mục 8, Mục 9 trong Báo cáo tổng kết, Slide 10, 11, 12, 13 và kịch bản thuyết trình.
 
@@ -72,35 +72,37 @@ Tệp gồm 2 sheets ghi nhận kết quả xử lý mô tả trên toàn bộ 1
 #### Sheet 1: `Thong_ke_theo_gio` (10 hàng $\times$ 13 cột)
 Ghi nhận đặc trưng dòng khách và phục vụ theo từng khung giờ trong ngày:
 
-| Khung giờ | Hour ID | Số khách TB $\bar{N}_h$ (khách/ngày) | Tốc độ đến $\lambda_h$ (khách/phút) | CI95 Low $\lambda$ | CI95 High $\lambda$ | Chỉ số phân tán $D$ | $p$-value Poisson | Kết luận Poisson ($\alpha=0.05$) | Tỉ lệ bỏ về $p_{ab}$ | Tỉ lệ khách VIP | $E[S]$ theo giờ (phút) | $\text{std}[S]$ theo giờ (phút) |
+| Khung giờ | Hour ID | Số khách TB $\bar{N}_h$ (khách/ngày) | Tốc độ đến $\lambda_h$ (khách/phút) | CI95 Poisson Low | CI95 Poisson High | Chỉ số phân tán $D$ | $p$-value Poisson | Kết luận Poisson ($\alpha=0.05$) | Tỉ lệ bỏ về $p_{ab}$ | Tỉ lệ khách VIP | $E[S]$ theo giờ (phút) | $\text{std}[S]$ theo giờ (phút) |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **8h - 9h** | 0 | 61.14 | 1.0190 | **0.9180** | **1.1200** | 23.55 | 0.0356 | **Bác bỏ (nhẹ)** | 2.80% | 16.94% | 2.61 | 2.83 |
-| **9h - 10h** | 1 | 86.00 | 1.4333 | **1.3137** | **1.5530** | 23.58 | 0.0352 | **Bác bỏ (nhẹ)** | 3.99% | 32.23% | 2.95 | 3.74 |
-| **10h - 11h** | 2 | 98.64 | 1.6440 | **1.4593** | **1.8287** | 48.77 | 0.0000 | **Bác bỏ (mạnh)** | 10.86% | 42.65% | 2.80 | 3.08 |
-| **11h - 12h** | 3 | 86.36 | 1.4393 | **1.2844** | **1.5942** | 39.15 | 0.0002 | **Bác bỏ (mạnh)** | 7.94% | 39.04% | 2.90 | 2.95 |
-| **12h - 13h** | 4 | 74.36 | 1.2393 | **1.1340** | **1.3446** | 20.83 | 0.0763 | **Chưa bác bỏ** | 2.40% | 19.31% | 2.71 | 3.00 |
-| **13h - 14h** | 5 | 74.57 | 1.2429 | **1.1148** | **1.3709** | 30.73 | 0.0037 | **Bác bỏ (mạnh)** | 4.12% | 28.45% | 2.81 | 3.07 |
-| **14h - 15h** | 6 | 79.29 | 1.3214 | **1.1741** | **1.4687** | 38.08 | 0.0003 | **Bác bỏ (mạnh)** | 8.83% | 35.59% | 3.09 | 3.34 |
-| **15h - 16h** | 7 | 78.29 | 1.3048 | **1.1688** | **1.4407** | 33.61 | 0.0014 | **Bác bỏ (mạnh)** | 13.32% | 49.82% | 3.25 | 3.24 |
-| **16h - 17h** | 8 | 63.93 | 1.0655 | **0.9555** | **1.1755** | 26.61 | 0.0141 | **Bác bỏ (nhẹ)** | 8.16% | 33.07% | 2.74 | 2.82 |
+| **8h - 9h** | 0 | 61.14 | 1.0190 | 0.9508 | 1.0873 | 23.55 | 0.0356 | **Bác bỏ (nhẹ)** | 2.80% | 16.94% | 2.61 | 2.83 |
+| **9h - 10h** | 1 | 86.00 | 1.4333 | 1.3524 | 1.5143 | 23.58 | 0.0352 | **Bác bỏ (nhẹ)** | 3.99% | 32.23% | 2.95 | 3.74 |
+| **10h - 11h** | 2 | 98.64 | 1.6440 | 1.5573 | 1.7308 | 48.77 | 0.0000 | **Bác bỏ (mạnh)** | 10.86% | 42.65% | 2.80 | 3.08 |
+| **11h - 12h** | 3 | 86.36 | 1.4393 | 1.3582 | 1.5204 | 39.15 | 0.0002 | **Bác bỏ (mạnh)** | 7.94% | 39.04% | 2.90 | 2.95 |
+| **12h - 13h** | 4 | 74.36 | 1.2393 | 1.1640 | 1.3146 | 20.83 | 0.0763 | **Chưa bác bỏ** | 2.40% | 19.31% | 2.71 | 3.00 |
+| **13h - 14h** | 5 | 74.57 | 1.2429 | 1.1675 | 1.3182 | 30.73 | 0.0037 | **Bác bỏ (mạnh)** | 4.12% | 28.45% | 2.81 | 3.07 |
+| **14h - 15h** | 6 | 79.29 | 1.3214 | 1.2437 | 1.3992 | 38.08 | 0.0003 | **Bác bỏ (mạnh)** | 8.83% | 35.59% | 3.09 | 3.34 |
+| **15h - 16h** | 7 | 78.29 | 1.3048 | 1.2275 | 1.3820 | 33.61 | 0.0014 | **Bác bỏ (mạnh)** | 13.32% | 49.82% | 3.25 | 3.24 |
+| **16h - 17h** | 8 | 63.93 | 1.0655 | 0.9957 | 1.1353 | 26.61 | 0.0141 | **Bác bỏ (nhẹ)** | 8.16% | 33.07% | 2.74 | 2.82 |
 
 > [!NOTE]
 > **Quy tắc gắn nhãn kiểm định Poisson rõ ràng:**
 > - $p < 0.01$: Bác bỏ (mạnh).
 > - $0.01 \le p < 0.05$: Bác bỏ (nhẹ).
 > - $p \ge 0.05$: Chưa bác bỏ.
+>
+> Cột CI95 trong Excel là khoảng Poisson $\hat\lambda \pm 1.96\sqrt{\bar N/14}/60$. Vì số khách quá phân tán, khoảng này hẹp hơn thực tế 1.4–2.1 lần; khoảng Student-t ($df = 13$) nằm ở `tong_hop.md` mục 2.2.
 > Kết quả: Có tới **8/9 khung giờ bị bác bỏ Poisson ở mức ý nghĩa 5%** (5/9 giờ bị bác bỏ mạnh ở mức 1%). Chỉ duy nhất khung giờ 12h–13h ($p = 0.0763$) là chưa bác bỏ. Giả định dòng khách đến tuân theo tiến trình Poisson thuần túy với $\lambda_h$ cố định không phản ánh đầy đủ thực tế.
 
 #### Thống kê Quá Phân Tán Lưu Lượng Khách theo Ngày (`qua_phan_tan_ngay.csv`)
 - **Số ngày quan sát:** 14 ngày làm việc tiêu chuẩn.
 - **Tổng khách trung bình mỗi ngày ($\mu$):** $702.6$ khách/ngày.
-- **Phương sai thực tế ($\sigma^2$):** $7.591,8 \implies$ Độ lệch chuẩn thực tế $\sigma = 87.1$ khách.
+- **Phương sai thực tế ($\sigma^2$):** $7.586,7 \implies$ Độ lệch chuẩn thực tế $\sigma = 87.1$ khách.
 - **Độ lệch chuẩn phân phối Poisson thuần ($\sqrt{\mu}$):** $26.5$ khách.
 - **Tỉ số Phương sai / Trung bình ($\text{Var}/\text{Mean}$):** $10.8 \gg 1$ (Dữ liệu bị quá phân tán mạnh so với Poisson).
 - **Hệ số biến thiên thực tế ($CV_{\text{ngày}}$):** $12.4\%$.
 - **Ước lượng $CV_{\text{ngày}}$ sau khi loại trừ nhiễu Poisson:**
-  $$CV_{\text{ngày}}^2 = \frac{\text{Var}(N_d) - \mu}{\mu^2} = \frac{7591.8 - 702.6}{702.6^2} = 0.0139 \implies CV_{\text{ngày}} = 11.8\%.$$
-- **Kiểm định quá phân tán:** $D = 140.4$ ($df=13$), $p\text{-value} = 3.65 \times 10^{-23}$ $\implies$ Bác bỏ mạnh giả định Poisson thuần cho tổng ngày.
+  $$CV_{\text{ngày}}^2 = \frac{\text{Var}(N_d) - \mu}{\mu^2} = \frac{7586.7 - 702.6}{702.6^2} = 0.0139 \implies CV_{\text{ngày}} = 11.8\%.$$
+- **Kiểm định quá phân tán:** $D = 140.4$ ($df=13$), $p\text{-value} = 1.77 \times 10^{-23}$ $\implies$ Bác bỏ mạnh giả định Poisson thuần cho tổng ngày.
 
 #### Sheet 2: `Khach_theo_ngay_gio` (15 hàng $\times$ 10 cột)
 Ma trận đầy đủ số lượng khách hàng đến theo từng ngày (14 ngày: Ngày 0 đến Ngày 13) và từng khung giờ (tổng cộng 126 quan sát):
@@ -127,12 +129,12 @@ Ma trận đầy đủ số lượng khách hàng đến theo từng ngày (14 n
 
 ### 2.2 File `docs/bang_tham_so.xlsx`
 
-Tệp gồm 2 sheets chuẩn hóa bộ tham số đầu vào được trích xuất từ dữ liệu.
+Tệp gồm 3 sheets: `theo_gio`, `chung` và `qua_phan_tan` (các chỉ số quá phân tán đã nêu ở mục 2.1).
 
 #### Sheet 1: `theo_gio` (10 hàng $\times$ 6 cột)
 Tham số dòng khách đến theo 9 khung giờ:
 
-| Khung giờ | $\bar{N}_h$ (khách/ngày) | $\lambda_h$ (khách/phút) | CI95 Low | CI95 High | $p$-value Poisson |
+| Khung giờ | $\bar{N}_h$ (khách/ngày) | $\lambda_h$ (khách/phút) | CI95 Poisson Low | CI95 Poisson High | $p$-value Poisson |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | **8h - 9h** | 61.14 | 1.0190 | 0.9508 | 1.0873 | 0.0356 |
 | **9h - 10h** | 86.00 | 1.4333 | 1.3524 | 1.5143 | 0.0352 |
@@ -159,7 +161,7 @@ Toàn bộ tham số phân phối dịch vụ và hành vi bỏ về:
 | **Tỉ lệ khách VIP ($p_{vip}$)** | **$0.3385$** | [0.3291, 0.3478] | Khách hàng priority level 2 trong hệ thống ngân hàng |
 | **Tỉ lệ bỏ về trung bình toàn ngày**| **$0.0715$ (7.15%)** | - | 703 cuộc bỏ về trên tổng số 9.836 lượt khách đến |
 
-*(Lưu ý: Bộ tham số chốt v2.0 tại `docs/params.json` được tinh chỉnh trên tập Train 10 ngày chuẩn là: $E[S] = 2.9236$, $cv = 1.0963$, $cs^2 = 1.2018$, $\theta = 0.1087$, $p_{vip} = 0.3543$).*
+*(Lưu ý: sheet này tính trên 14 ngày. Bộ tham số mô hình v4.0 (`docs/params.json`) ước lượng trên tập Train 10 ngày: $E[S] = 2.9236$, $cv = 1.0963$, $cs^2 = 1.2018$, $\theta = 0.1087$, $p_{vip} = 0.3543$).*
 
 ---
 
@@ -235,21 +237,23 @@ Tính toán thời gian chờ $W_q(M/G/c) \approx \frac{1+cs^2}{2} W_q(M/M/c)$ v
 | 13 | 0.0003 phút | 0.0002 phút | 0.0003 phút | 0.0004 phút | $+10.0\%$ |
 | 14 | 0.00008 phút | 0.00006 phút | 0.00009 phút | 0.00010 phút | $+10.0\%$ |
 
-#### Sheet 5: `Quyet_dinh` (Định biên SIPP Erlang C 9 khung giờ)
-Bảng tra số quầy SIPP trên toàn bộ 9 khung giờ bằng Erlang C ($E[S] = 2.88$ phút, $cs^2 = 1.20$, $\text{SLA} \ge 90\%$):
+#### Sheet 5: `Quyet_dinh` (Định biên SIPP Erlang C và Erlang-A, 9 khung giờ)
+Tham số tập train (10 ngày): $E[S] = 2.9236$ phút, $\theta = 0.1087$/phút; SLA: $P(\text{phục vụ và chờ} \le 5\text{p}) \ge 90\%$. Số liệu trùng `results/final_v4/bang_sipp.csv`:
 
-| Khung giờ | $\lambda_h$ (khách/phút) | $E[S]$ (phút) | $cs^2$ | Tải $a_h$ (Erlang) | Số quầy $c$ (Erlang C) | Hiệu suất $\rho$ | $P(W_q \le 5\text{p})$ dự kiến | Đạt SLA? |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **8h - 9h** | 1.0190 | 2.88 | 1.20 | 2.935 | **4** | 73.37% | 92.45% | **ĐẠT** |
-| **9h - 10h** | 1.4333 | 2.88 | 1.20 | 4.128 | **6** | 68.80% | 98.78% | **ĐẠT** |
-| **10h - 11h (Đỉnh)** | 1.6440 | 2.88 | 1.20 | 4.735 | **6** | 78.91% | 94.53% | **ĐẠT** |
-| **11h - 12h** | 1.4393 | 2.88 | 1.20 | 4.145 | **6** | 69.09% | 98.73% | **ĐẠT** |
-| **12h - 13h** | 1.2393 | 2.88 | 1.20 | 3.569 | **5** | 71.38% | 96.68% | **ĐẠT** |
-| **13h - 14h** | 1.2429 | 2.88 | 1.20 | 3.580 | **5** | 71.59% | 96.59% | **ĐẠT** |
-| **14h - 15h** | 1.3214 | 2.88 | 1.20 | 3.806 | **5** | 76.11% | 93.98% | **ĐẠT** |
-| **15h - 16h** | 1.3048 | 2.88 | 1.20 | 3.758 | **5** | 75.16% | 94.66% | **ĐẠT** |
-| **16h - 17h** | 1.0655 | 2.88 | 1.20 | 3.069 | **5** | 61.37% | 99.12% | **ĐẠT** |
-| **TỔNG CỘNG / TB** | | | | | **47 quầy-giờ** | **71.75%** | **96.17%** | **ĐẠT** |
+| Khung giờ | $\lambda_h$ train | Quầy Erlang C | SL Erlang C | Quầy Erlang-A | SL Erlang-A | $p_{ab}$ Erlang-A | $\rho$ Erlang-A |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **8h - 9h** | 0.9900 | **4** | 92.97% | **4** | 93.63% | 5.77% | 68.19% |
+| **9h - 10h** | 1.3767 | **6** | 99.01% | **5** | 93.07% | 6.43% | 75.32% |
+| **10h - 11h (Đỉnh)** | 1.5350 | **6** | 96.85% | **6** | 95.78% | 4.09% | 71.74% |
+| **11h - 12h** | 1.3900 | **6** | 98.90% | **5** | 92.83% | 6.64% | 75.88% |
+| **12h - 13h** | 1.2400 | **5** | 96.01% | **5** | 95.23% | 4.52% | 69.23% |
+| **13h - 14h** | 1.2017 | **5** | 96.99% | **5** | 95.74% | 4.05% | 67.42% |
+| **14h - 15h** | 1.3383 | **5** | 91.89% | **5** | 93.73% | 5.85% | 73.67% |
+| **15h - 16h** | 1.3167 | **5** | 93.04% | **5** | 94.09% | 5.54% | 72.73% |
+| **16h - 17h** | 1.0567 | **5** | 99.01% | **4** | 92.19% | 6.98% | 71.84% |
+| **TỔNG QUẦY-GIỜ** | | **47** | | **44** | | | |
+
+*Lưu ý:* `excel/erlang.xlsx` do `excel/tao_erlang_excel.py` sinh bằng openpyxl nên các ô công thức chưa có giá trị lưu sẵn; cần mở bằng Excel/LibreOffice (tự tính lại) để thấy số.
 
 ---
 
@@ -298,7 +302,7 @@ Bảng đối chiếu số quầy theo từng giờ giữa các phương pháp (
 | **TỔNG QUẦY-GIỜ** | **47 quầy-giờ** | **44 quầy-giờ** | **45 quầy-giờ** | **48 quầy-giờ** | **54 quầy-giờ** |
 | **Tỉ lệ tiết kiệm so với 54** | -12.96% | -18.52% | **-16.67%** | -11.11% | Gốc mốc |
 
-Cột Excel ở Sheet 5 mục 2.3 dùng tham số 14 ngày ($E[S] = 2.88$); cột Erlang C ở đây dùng tham số train ($E[S] = 2.9236$). Hai cách cho cùng 47 quầy-giờ.
+Cột Excel/Erlang C và Erlang-A dùng cùng tham số train ($E[S] = 2.9236$, $\theta = 0.1087$), trùng Sheet 5 mục 2.3 và `bang_sipp.csv`.
 
 ### Giải thích chênh lệch
 

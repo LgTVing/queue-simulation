@@ -92,22 +92,25 @@ flowchart TD
 
 ---
 
-## 6. Tham số đầu vào (Từ kết quả bàn giao của Thành viên A)
+## 6. Tham số đầu vào (tập train 10 ngày, `results/final_v4/params.json`)
 
 | Tham số | Ký hiệu | Giá trị thực tế | Nguồn dữ liệu |
 |---|---|---|---|
-| Tốc độ đến theo giờ | $\lambda_h$ | `[1.019, 1.433, 1.644, 1.439, 1.239, 1.243, 1.321, 1.305, 1.066]` | `bang_tham_so.xlsx` (`theo_gio`) |
-| Thời gian phục vụ trung bình | $E[S]$ | $2.88$ phút ($\mu = 0.3475$ khách/phút) | `bang_tham_so.xlsx` (`chung`) |
-| Hệ số biến thiên phục vụ | $cv$ | $1.095$ ($cs^2 = 1.20$) | `bang_tham_so.xlsx` (`chung`) |
-| Phân phối phục vụ | Dist | Lognormal / Gamma ($\text{scale}=2.68, \text{shape}=1.08$) | Kiểm định phân phối |
-| Tốc độ bỏ về | $\theta$ | $0.1123$ (1/phút) $\implies$ Kiên nhẫn TB = $8.91$ phút | `bang_tham_so.xlsx` (`chung`) |
-| Tỉ lệ khách VIP | $p_{\text{vip}}$ | $33.85\%$ | `bang_tham_so.xlsx` (`chung`) |
+| Tốc độ đến theo giờ | $\lambda_h$ | `[0.990, 1.377, 1.535, 1.390, 1.240, 1.202, 1.338, 1.317, 1.057]` | `params.json` (`rates_per_min`) |
+| Thời gian phục vụ trung bình | $E[S]$ | $2.9236$ phút ($\mu = 0.3420$ khách/phút) | `params.json` (`service.mean`) |
+| Hệ số biến thiên phục vụ | $cv$ | $1.0963$ ($cs^2 = 1.2018$) | `params.json` (`service.cv`) |
+| Phân phối phục vụ | Dist | Thực nghiệm: lấy mẫu có hoàn lại từ 6.346 thời gian phục vụ train. Gamma (shape 1.0955, scale 2.6688, $cs^2 = 0.91$) chỉ dùng cho độ nhạy | `kiem_dinh_phan_phoi_chi_tiet.csv` |
+| Tốc độ bỏ về | $\theta$ | $0.1087$ (1/phút) $\implies$ Kiên nhẫn TB = $9.20$ phút | `params.json` (`theta`) |
+| Tỉ lệ khách VIP | $p_{\text{vip}}$ | $35.43\%$ | `params.json` (`p_vip`) |
+| Biến động quy mô ngày | $CV_{\text{ngày}}$ | $14.0\%$ (hệ số nhân $m_d \sim$ Gamma) | `params.json` (`day_cv`) |
+
+Các giá trị 14 ngày trong `bang_tham_so.xlsx` ($E[S] = 2.88$, $\theta = 0.1123$, $p_{vip} = 33.85\%$) chỉ dùng để mô tả dữ liệu, không đưa vào mô hình.
 
 ---
 
 ## 7. Các giả định mô hình và cơ sở chấp nhận
 
-1. **Tốc độ đến không đổi trong từng block 1 giờ:** Kiểm định phân tán $\chi^2$ cho thấy dòng khách trong từng giờ riêng lẻ không bác bỏ phân phối Poisson.
+1. **Tốc độ đến không đổi trong từng block 1 giờ:** đây là giả định làm việc. Kiểm định phân tán bác bỏ Poisson giữa các ngày ở 8/9 giờ (quá phân tán), nên mô hình bổ sung hệ số nhân ngày $m_d$ để tính phần biến động này.
 2. **Quầy có năng suất đồng nhất:** Các giao dịch viên có kỹ năng tương đương nhau trên cùng nghiệp vụ chuẩn `PS`.
 3. **Không ngắt quãng phục vụ (Non-preemptive):** Khách VIP được ưu tiên đứng đầu hàng chờ nhưng không ngắt quãng khách thường đang ngồi tại quầy.
 4. **Hệ thống mở cửa trống (Empty system at opening):** 8h00 sáng mở cửa không có khách tồn đọng từ hôm trước.

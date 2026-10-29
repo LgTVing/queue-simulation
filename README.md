@@ -33,7 +33,7 @@ Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0
 12. [Giai đoạn 8: Báo cáo và thuyết trình](#12-giai-đoạn-8-báo-cáo-và-thuyết-trình)
 13. [Cấu trúc mã nguồn và cách chạy](#13-cấu-trúc-mã-nguồn-và-cách-chạy)
 14. [Chuyển từ dữ liệu giả lập sang dữ liệu thật](#14-chuyển-từ-dữ-liệu-giả-lập-sang-dữ-liệu-thật)
-15. [Kết quả tham chiếu từ bản chạy thử](#15-kết-quả-tham-chiếu-từ-bản-chạy-thử)
+15. [Kết quả chính (V4, dữ liệu thật)](#15-kết-quả-chính-v4-dữ-liệu-thật)
 16. [Kế hoạch 3 tuần và phân công](#16-kế-hoạch-3-tuần-và-phân-công)
 17. [Rủi ro và cách xử lý](#17-rủi-ro-và-cách-xử-lý)
 18. [Câu hỏi phản biện thường gặp](#18-câu-hỏi-phản-biện-thường-gặp)
@@ -505,77 +505,49 @@ Danh mục đầy đủ kèm mô tả từng tệp nằm trong `results/final_v4
 
 ## 14. Chuyển từ dữ liệu giả lập sang dữ liệu thật
 
-Bản code hiện tại dùng **dữ liệu giả lập** (hàm `generate_log` trong `a_data.py` chạy mô phỏng một "hệ thống thật" với các tham số `TRUE_*` trong `common.py`). Khi có dữ liệu thật, thay đổi như sau.
+**Đã hoàn tất.** Pipeline hiện đọc dữ liệu thật đã làm sạch `data/clean/data_clean.csv` (sinh bởi `data/lam_sach.py` từ `data/raw/September1999.txt`), với các cột `day, t, hour, cls, vip, wait, served, svc` (ý nghĩa ở [mục 5.1](#51-biến-cần-ghi-cho-mỗi-khách)). Các thay đổi đã thực hiện so với bản giả lập:
 
-1. **Viết hàm đọc dữ liệu** `load_log(path)` trong `a_data.py`, trả về DataFrame có đúng các cột `day, t, hour, cls, vip, wait, served, svc` (ý nghĩa ở [mục 5.1](#51-biến-cần-ghi-cho-mỗi-khách)). Với Anonymous Bank, ánh xạ cột dựa vào tài liệu mô tả đi kèm bộ dữ liệu: giờ vào hàng, thời gian chờ, thời gian phục vụ, kết quả cuộc gọi (được phục vụ hay bỏ về). Chú ý đổi đơn vị sang **phút** nếu dữ liệu gốc tính bằng giây.
-2. **Chọn khung giờ và số giờ:** sửa `HOURS`, `H_LABELS` trong `common.py` theo giờ mở cửa thực tế, và để `t` tính từ giờ mở cửa.
-3. **Thay lệnh gọi trong `main.py`:** dùng `df = a_data.load_log(...)` thay cho `a_data.generate_log(...)`.
-4. **Bỏ phần "hệ thống thật":** các hàm và hằng `TRUE_*`, `true_model()`, `REF_SCHEDULE` chỉ dùng cho dữ liệu giả lập. Bước "kiểm tra trên hệ thống THẬT" trong `main.py` không còn ý nghĩa, thay bằng **kiểm tra theo ngày** (ước lượng trên một số ngày, so sánh với các ngày còn lại, xem [mục 10](#10-giai-đoạn-6-kiểm-chứng-mô-hình)).
-5. **Nếu dữ liệu không có loại giao dịch:** bỏ tách hai loại, fit một phân phối lognormal hoặc gamma duy nhất, dùng `lognorm_service(mean, cv)` trong `common.py`.
-6. **Nếu dữ liệu không ghi nhận khách bỏ về:** đặt `theta = 0` và nêu rõ đây là hạn chế.
-7. **Nếu không có VIP:** đặt `p_vip = 0` và bỏ tiêu chí VIP trong hàm `feasible`.
-8. Chạy lại toàn bộ và đối chiếu bảng quyết định tính tay (mục 8) với kết quả mô phỏng.
+1. Bỏ hàm sinh dữ liệu giả lập và các hằng "hệ thống thật" (`generate_log`, `TRUE_*`, `true_model()`, `REF_SCHEDULE`).
+2. Chia **train 10 ngày / test 4 ngày** để ước lượng và kiểm tra ngoài mẫu (thay cho bước "kiểm tra trên hệ thống thật").
+3. Dữ liệu không có loại giao dịch: dùng một phân phối phục vụ, lấy mẫu thực nghiệm từ tập train.
+4. Dữ liệu có khách bỏ về và VIP: ước lượng θ bằng MLE có kiểm duyệt, $p_{vip}$ từ tỉ lệ thực tế.
+
+Muốn chạy với một bộ dữ liệu khác (ví dụ log máy lấy số tại quầy), chỉ cần tạo `data_clean.csv` cùng định dạng cột rồi chạy `python main.py --stage all`.
 
 ---
 
-## 15. Kết quả tham chiếu từ bản chạy thử
+## 15. Kết quả chính (V4, dữ liệu thật)
 
-> **Lưu ý quan trọng:** các số dưới đây lấy từ **dữ liệu giả lập** (10 ngày, khoảng 7.900 bản ghi, chi nhánh mở 9 giờ, đỉnh khoảng 120 khách/giờ). Chúng dùng để minh họa quy trình và kiểm tra code, **không phải kết luận về một ngân hàng thật**. Khi có dữ liệu thật, nhóm cần thay bằng kết quả của mình.
+Số liệu từ `results/final_v4/` (Anonymous Bank, 14 ngày, 9.836 khách; tham số ước lượng trên 10 ngày train). Bảng đầy đủ và nguồn từng con số: [`tong_hop.md`](tong_hop.md); báo cáo: [`docs/bao_cao_tong_ket.md`](docs/bao_cao_tong_ket.md).
 
-### 15.1 Dữ liệu và ước lượng
+### 15.1 Tham số (train)
 
-- Tốc độ đến ước lượng sát giá trị thật. Số khách đến trong từng giờ khớp Poisson (p-value của kiểm định phân tán từ 0,05 đến 0,94).
-- Giả thuyết "mọi giờ cùng tốc độ" bị bác bỏ rất mạnh, nên bắt buộc dùng mô hình theo khung giờ.
-- Thời gian phục vụ gộp hai loại không khớp phân phối đơn nào (KS p ≈ 0). Tách theo loại giao dịch thì lognormal khớp tốt (KS p = 0,99 và 0,62).
-- Tỉ lệ giao dịch nhanh ước lượng 0,694. Tốc độ bỏ về `θ̂ = 0,092 ± 0,008`. Thời gian phục vụ trung bình hỗn hợp 3,24 phút, `cs² = 1,11`.
+λ theo giờ 0,99–1,54 khách/phút (đỉnh 10h–11h); E[S] = 2,92 phút, cs² = 1,20; θ = 0,1087/phút (kiên nhẫn TB 9,2 phút); VIP 35,4%; CV quy mô ngày 14,0%. 8/9 giờ bác bỏ Poisson giữa các ngày (quá phân tán). Cả 4 phân phối phục vụ tham số bị KS bác bỏ, nên mô phỏng lấy mẫu trực tiếp từ dữ liệu.
 
-### 15.2 Kiểm chứng mô phỏng và lý thuyết (hệ dừng)
+### 15.2 Kiểm chứng
 
 | Mô hình | Chỉ số | Lý thuyết | Mô phỏng | Sai lệch |
 |---|---|---|---|---|
-| M/M/c | SL = P(Wq ≤ 5) | 0,9654 | 0,9664 | +0,1% |
-| M/M/c | Wq (phút) | 0,8433 | 0,8385 | −0,6% |
-| M/M/c | Hiệu suất ρ | 0,7500 | 0,7506 | +0,1% |
-| M/M/c+M | SL (phục vụ và chờ ≤ 5) | 0,8689 | 0,8694 | +0,1% |
-| M/M/c+M | Wq (phút) | 1,1444 | 1,1334 | −1,0% |
-| M/M/c+M | Tỉ lệ bỏ về | 0,1144 | 0,1140 | −0,3% |
-| M/G/c (cv = 0,5) | Wq theo Allen–Cunneen | 0,5271 | 0,5473 | +3,8% |
-| M/G/c (cv = 1,5) | Wq theo Allen–Cunneen | 1,3704 | 1,1935 | −12,9% |
+| M/M/c | SL | 0,9654 | 0,9688 | +0,35% |
+| Erlang-A | SL | 0,8689 | 0,8695 | +0,07% |
+| Erlang-A | Tỉ lệ bỏ về | 0,1144 | 0,1142 | −0,21% |
+| M/G/1 (P-K chính xác) | Wq (phút) | 14,625 | 14,218 | −2,78% |
 
-Nhận xét: tầng 1 và 2 khớp rất tốt. Tầng 3 sai lệch tăng theo `cs²`, với cv = 1,5 sai lệch −12,9% trong khi khoảng tin cậy của mô phỏng là ±8%, nên một phần là sai số xấp xỉ của công thức Allen–Cunneen.
+### 15.3 Lịch quầy (300 lần lặp, seed đánh giá tách khỏi seed chọn lịch)
 
-### 15.3 Hàng chung và hàng riêng (6 quầy, 90 khách/giờ, phục vụ trung bình 3 phút)
+| Chính sách | Lịch (8h → 16h) | Quầy-giờ | SL ngày | Giờ tệ nhất (cận dưới CI) | Bỏ về |
+|---|---|---|---|---|---|
+| Hằng số 6 quầy | 6 × 9 | 54 | 0,976 | 0,949 | 2,2% |
+| SIPP Erlang C | 4, 6, 6, 6, 5, 5, 5, 5, 5 | 47 | 0,953 | 0,928 | 4,1% |
+| SIPP Erlang-A | 4, 5, 6, 5, 5, 5, 5, 5, 4 | 44 | 0,937 | 0,904 (sát ngưỡng) | 5,4% |
+| **Tối ưu mô phỏng** | **4, 5, 6, 5, 5, 5, 5, 5, 5** | **45** | **0,942** | **0,924** | **5,0%** |
+| Bền vững (+10%) | 4, 6, 6, 6, 5, 5, 6, 5, 5 | 48 | 0,958 | 0,933 | 3,7% |
 
-| Cách tổ chức | P(chờ ≤ 5 phút) |
-|---|---|
-| Hàng chung (M/M/6), lý thuyết | 0,965 |
-| 6 hàng riêng, chọn ngẫu nhiên, lý thuyết | 0,506 |
-| 6 hàng riêng, chọn ngẫu nhiên, mô phỏng | 0,500 |
-| 6 hàng riêng, vào hàng ngắn nhất, mô phỏng | 0,908 |
+### 15.4 Độ bền và khuyến nghị
 
-### 15.4 Lịch quầy (đánh giá 300 ngày mới, trên hệ thống "thật")
-
-| Chính sách | Lịch (8h → 16h) | Quầy-giờ | SL toàn ngày | SL giờ tệ nhất (cận dưới CI) |
-|---|---|---|---|---|
-| Hằng số | 8 quầy cả ngày | 72 | 0,982 | 0,960 |
-| SIPP (chỉ lý thuyết) | 4, 5, 6, 7, 6, 6, 7, 7, 4 | 52 | 0,931 | 0,880 (vi phạm) |
-| Tối ưu bằng mô phỏng | 4, 5, 6, 7, 6, 6, 7, 8, 5 | 54 | 0,944 | 0,915 |
-
-Lịch tối ưu tiết kiệm khoảng **25%** quầy-giờ so với lịch hằng số. Lịch SIPP bỏ sót hai giờ cuối vì lý thuyết bỏ qua VIP và phân phối hỗn hợp, và mô phỏng bổ sung đúng vào hai giờ đó.
-
-### 15.5 Độ nhạy theo nhu cầu (SL của giờ tệ nhất, cận dưới CI)
-
-| Nhu cầu | Hằng số | Tối ưu bằng mô phỏng |
-|---|---|---|
-| ×0,9 | 0,974 | 0,939 |
-| ×1,0 | 0,957 | 0,903 |
-| ×1,1 | 0,935 | 0,863 |
-| ×1,2 | 0,894 | 0,793 |
-| ×1,3 | 0,847 | 0,721 |
-
-Lịch tối ưu rất sát giới hạn: nhu cầu tăng 10% là giờ tệ nhất đã xuống dưới 90%. Đây là điểm để thảo luận giữa chi phí và độ bền, và là lý do nên đề xuất thêm phương án có dự phòng.
-
-(Giá trị ×1,0 trong bảng này dùng 150 lần lặp nên hơi khác với 0,915 ở mục 15.4 dùng 300 lần lặp; sự khác biệt đến từ nhiễu mẫu.)
+- Lịch 45 đạt SLA 12/14 ngày thực tế và không chịu được nhu cầu +10% (giờ tệ nhất 0,879); Lịch 48 đạt 14/14 và chịu được +10% (0,909).
+- Xếp ca 8h/4h với nghỉ trưa 11h–14h: Lịch 45 cần 48 giờ công (không phủ đúng được), Lịch 48 phủ đúng 48 giờ công. Vì cùng giờ công, khuyến nghị vận hành là Lịch 48.
+- Nếu khách quầy kiên nhẫn hơn khách tổng đài, số quầy-giờ tối thiểu là 46–48.
 
 ---
 

@@ -35,14 +35,14 @@ FORBIDDEN_PATTERNS = [
     (r"Thứ\s+[2-7]|thứ\s+[2-7]|chủ\s+nhật", "Khẳng định về thứ trong tuần không có trong dữ liệu"),
     (r"tuyệt\s+đối\s+chính\s+xác|đúng\s+tuyệt\s+đối|hoàn\s+hảo", "Từ ngữ tuyệt đối hóa kết quả mô phỏng"),
     (r"biên\s+an\s+toàn\s+rất\s+cao|biên\s+an\s+toàn\s+tốt", "Cụm từ phóng đại độ an toàn khi giá trị sát ngưỡng"),
+    (r"file:///", "Link tuyệt đối tới máy cá nhân (dùng đường dẫn tương đối)"),
 ]
 
-FILES_TO_CHECK = [
-    os.path.join(BASE_DIR, "tong_hop.md"),
-    os.path.join(DOCS_DIR, "bao_cao_tong_ket.md"),
-    os.path.join(DOCS_DIR, "slide_thuyet_trinh.md"),
-    os.path.join(DOCS_DIR, "TONG_HOP_SO_LIEU_CHI_TIET.md"),
-]
+# Tai lieu hien hanh: tong_hop.md, README.md va docs/*.md (tru docs/lich_su/ va ke hoach trich dan trang thai cu)
+EXCLUDED_DOCS = {"KE_HOACH_CAI_TIEN.md"}
+FILES_TO_CHECK = [os.path.join(BASE_DIR, "tong_hop.md"), os.path.join(BASE_DIR, "README.md")] + sorted(
+    os.path.join(DOCS_DIR, f) for f in os.listdir(DOCS_DIR) if f.endswith(".md") and f not in EXCLUDED_DOCS
+)
 
 def check_forbidden_terms():
     print("=" * 70)

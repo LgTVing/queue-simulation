@@ -12,8 +12,19 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def poisson_label(p: float) -> str:
+    if p < 0.01:
+        return 'Bác bỏ (mạnh)'
+    if p < 0.05:
+        return 'Bác bỏ (nhẹ)'
+    return 'Chưa bác bỏ'
+
+
 def generate_excel_reports():
-    clean_path = os.path.join(r"d:\KHDV", "data", "clean", "data_clean.csv")
+    clean_path = os.path.join(BASE_DIR, "data", "clean", "data_clean.csv")
     df = pd.read_csv(clean_path)
     n_days = df['day'].nunique()
 
@@ -49,11 +60,11 @@ def generate_excel_reports():
             'Hour_ID': h,
             'N_tb (khach/ngay)': round(n_bar, 2),
             'lambda (khach/phut)': round(lam, 4),
-            'CI95_lambda_low': round(ci_lam_low, 4),
-            'CI95_lambda_high': round(ci_lam_high, 4),
+            'CI95_Poisson_low': round(ci_lam_low, 4),
+            'CI95_Poisson_high': round(ci_lam_high, 4),
             'Chi so phan tan D': round(disp, 2),
             'p-value Poisson': round(p_poisson, 4),
-            'Ket luan Poisson': 'Chua bac bo' if p_poisson >= 0.01 else 'Lech nhe',
+            'Ket luan Poisson (alpha=0.05)': poisson_label(p_poisson),
             'Ti le bo ve': round(ab_rate, 4),
             'Ti le VIP': round(vip_rate, 4),
             'E[S] theo gio (phut)': round(mean_svc_h, 2),
@@ -87,7 +98,7 @@ def generate_excel_reports():
         {'Tham so': 'std[S] - Do lech chuan phuc vu (phut)', 'Gia tri': round(std_svc, 4), 'CI95': '-', 'Ghi chu': 'Phan anh bien thien thoi gian thao tac'},
         {'Tham so': 'cv - He so bien thien (std/mean)', 'Gia tri': round(cv_svc, 4), 'CI95': '-', 'Ghi chu': 'cv > 1 cho thay bien thien lon hon phan phoi mu chuan (cv=1)'},
         {'Tham so': 'cs^2 - Binh phuong cv (cs^2 = cv^2)', 'Gia tri': round(cs2_svc, 4), 'CI95': '-', 'Ghi chu': 'Dung trong cong thuc xap xi Allen-Cunneen cho M/G/c'},
-        {'Tham so': 'Phan phoi phuc vu tot nhat', 'Gia tri': 'Gamma / Lognormal', 'CI95': '-', 'Ghi chu': 'Phan phoi mu bi bac bo do du lieu thuc te co duoi phai dai'},
+        {'Tham so': 'Phan phoi phuc vu tot nhat', 'Gia tri': 'Gamma (theo AIC)', 'CI95': '-', 'Ghi chu': 'Ca 4 phan phoi (Gamma, Weibull, Exponential, Lognormal) deu bi KS bootstrap bac bo; Lognormal co AIC kem nhat'},
         {'Tham so': 'theta - Toc do bo ve (1/phut)', 'Gia tri': round(theta_hat, 4), 'CI95': f'[{theta_low:.4f}, {theta_high:.4f}]', 'Ghi chu': 'Uoc luong hop ly cuc dai (MLE) voi du lieu bi kiem duyet'},
         {'Tham so': 'Kien nhan trung binh (1/theta) (phut)', 'Gia tri': round(1/theta_hat, 2), 'CI95': f'[{1/theta_high:.2f}, {1/theta_low:.2f}]', 'Ghi chu': 'Thoi gian khach san sang cho doi truoc khi bo ve'},
         {'Tham so': 'Ti le khach VIP (p_vip)', 'Gia tri': round(p_vip, 4), 'CI95': f'[{vip_low:.4f}, {vip_high:.4f}]', 'Ghi chu': 'Khach hang priority level 2 trong he thong ngan hang'},
@@ -95,10 +106,27 @@ def generate_excel_reports():
     ]
     df_chung = pd.DataFrame(chung_rows)
 
+    # Qua phan tan so khach theo ngay
+    daily = df.groupby('day').size()
+    mu_d, var_d = daily.mean(), daily.var(ddof=1)
+    d_stat = var_d * (n_days - 1) / mu_d
+    cv2_corr = max(var_d - mu_d, 0.0) / mu_d ** 2
+    df_qpt = pd.DataFrame([
+        {'Chi so': 'Trung binh khach/ngay (mu)', 'Gia tri': round(mu_d, 1), 'Ghi chu': f'{n_days} ngay lam viec tieu chuan'},
+        {'Chi so': 'Do lech chuan thuc te (sigma)', 'Gia tri': round(np.sqrt(var_d), 1), 'Ghi chu': f'Phuong sai {var_d:.1f}'},
+        {'Chi so': 'Do lech chuan Poisson (sqrt(mu))', 'Gia tri': round(np.sqrt(mu_d), 1), 'Ghi chu': None},
+        {'Chi so': 'Phuong sai / Trung binh (Var/Mean)', 'Gia tri': round(var_d / mu_d, 1), 'Ghi chu': '>> 1 cho thay qua phan tan manh'},
+        {'Chi so': 'CV ngay (%)', 'Gia tri': round(np.sqrt(var_d) / mu_d * 100, 1), 'Ghi chu': None},
+        {'Chi so': 'CV_ngay^2 sau hieu chinh nhieu Poisson', 'Gia tri': round(cv2_corr, 4), 'Ghi chu': '(Var(N_d) - mu) / mu^2'},
+        {'Chi so': 'CV_ngay sau hieu chinh (%)', 'Gia tri': round(np.sqrt(cv2_corr) * 100, 1), 'Ghi chu': '14 ngay; mo phong V4 dung CV uoc luong tren train (params.json, day_cv)'},
+        {'Chi so': 'D kiem dinh qua phan tan', 'Gia tri': round(d_stat, 1), 'Ghi chu': f'df = {n_days - 1}'},
+        {'Chi so': 'p-value kiem dinh', 'Gia tri': f'{stats.chi2.sf(d_stat, n_days - 1):.2e}', 'Ghi chu': poisson_label(stats.chi2.sf(d_stat, n_days - 1))},
+    ])
+
     # ----------------------------------------------------
     # 3. Xuat docs/thong_ke_mo_ta.xlsx
     # ----------------------------------------------------
-    path_thong_ke = os.path.join(r"d:\KHDV", "docs", "thong_ke_mo_ta.xlsx")
+    path_thong_ke = os.path.join(BASE_DIR, "docs", "thong_ke_mo_ta.xlsx")
     with pd.ExcelWriter(path_thong_ke, engine='openpyxl') as writer:
         df_hourly.to_excel(writer, sheet_name='Thong_ke_theo_gio', index=False)
         counts_matrix.columns = [f'{h+8}h-{h+9}h' for h in counts_matrix.columns]
@@ -124,16 +152,17 @@ def generate_excel_reports():
     # ----------------------------------------------------
     # 4. Xuat docs/bang_tham_so.xlsx
     # ----------------------------------------------------
-    path_tham_so = os.path.join(r"d:\KHDV", "docs", "bang_tham_so.xlsx")
+    path_tham_so = os.path.join(BASE_DIR, "docs", "bang_tham_so.xlsx")
     
     # Sheet theo_gio
-    sheet_theo_gio_cols = ['Khung gio', 'N_tb (khach/ngay)', 'lambda (khach/phut)', 'CI95_lambda_low', 'CI95_lambda_high', 'p-value Poisson']
+    sheet_theo_gio_cols = ['Khung gio', 'N_tb (khach/ngay)', 'lambda (khach/phut)', 'CI95_Poisson_low', 'CI95_Poisson_high', 'p-value Poisson']
     df_tham_so_gio = df_hourly[sheet_theo_gio_cols].copy()
-    df_tham_so_gio.columns = ['Khung giờ', 'N̄_h (khách/ngày)', 'λ_h (khách/phút)', 'CI95_low', 'CI95_high', 'p-value Poisson']
+    df_tham_so_gio.columns = ['Khung giờ', 'N̄_h (khách/ngày)', 'λ_h (khách/phút)', 'CI95_Poisson_low', 'CI95_Poisson_high', 'p-value Poisson']
 
     with pd.ExcelWriter(path_tham_so, engine='openpyxl') as writer:
         df_tham_so_gio.to_excel(writer, sheet_name='theo_gio', index=False)
         df_chung.to_excel(writer, sheet_name='chung', index=False)
+        df_qpt.to_excel(writer, sheet_name='qua_phan_tan', index=False)
 
     wb2 = openpyxl.load_workbook(path_tham_so)
     for sheet in wb2.sheetnames:

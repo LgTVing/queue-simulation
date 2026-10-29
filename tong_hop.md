@@ -343,7 +343,7 @@ So sánh mô phỏng Lịch 45 (1.000 bộ 4 ngày có biến động lưu lư�
 
 > [!NOTE]
 > **Kết luận điều tra 15h–16h (M4, `dieu_tra_15h_16h.csv`, chi tiết `docs/ngoai_mau.md` mục 5):**  
-> Bất thường tập trung ở **một ngày (ngày 10)**: SL 15h–16h chỉ 31.5%, bỏ về 39.3%. Ba ngày test còn lại có SL 93.2%, 97.5%, 93.7%, khớp mô phỏng. Ngày 10 có λ cao hơn train 13% và $E[S]$ cao hơn 29% (4.14 so với 3.21 phút), nên tải đề nghị $a = 6.14$ Erlang, cao hơn mọi ngày khác (3.45–4.22). Số phiên phục vụ chồng lấn trung bình trong giờ đó chỉ 3.67, tức nhân sự hiệu dụng khoảng 4 người. Đây là ngày nhu cầu cao gặp nhân sự hiệu dụng thấp, không phải sai lệch của mô hình. Hệ quả vận hành: cần cơ chế tăng cường quầy trong ngày khi thời gian phục vụ hoặc hàng chờ tăng bất thường.
+> Bất thường tập trung ở **một ngày (ngày 10)**: SL 15h–16h chỉ 31.5%, bỏ về 39.3%. Ba ngày test còn lại có SL 93.2%, 97.5%, 93.7%, khớp mô phỏng. Ngày 10 có λ cao hơn train 13% và $E[S]$ cao hơn 29% (4.14 so với 3.21 phút), nên tải đề nghị $a = 6.14$ Erlang, cao nhất trong 14 ngày (13 ngày còn lại: 2.88–5.33). Số phiên phục vụ chồng lấn trung bình trong giờ đó chỉ 3.67, tức nhân sự hiệu dụng khoảng 4 người. Đây là ngày nhu cầu cao gặp nhân sự hiệu dụng thấp, không phải sai lệch của mô hình. Hệ quả vận hành: cần cơ chế tăng cường quầy trong ngày khi thời gian phục vụ hoặc hàng chờ tăng bất thường.
 
 ---
 
@@ -412,7 +412,7 @@ Mô phỏng Lịch 45 với 150 lần lặp, cùng bộ seed (CRN), hiệu số 
 
 ### 7.3 Đường cong đánh đổi Pareto và Hàm chi phí với truyền sai số (S11)
 
-Hàm chi phí $C(k) = \text{Quầy-giờ} + k \cdot N \cdot p_{ab}$ với $N = 686.7$ khách/ngày, CI truyền sai số từ $p_{ab}$ và hiệu số theo cặp $\Delta C = C_{45} - C_{48}$ (`results/final_v4/chi_phi.csv`):
+Hàm chi phí $C(k) = \text{Quầy-giờ} + k \cdot N \cdot p_{ab}$ với $N = 686.7$ khách/ngày, CI truyền sai số từ $p_{ab}$ và hiệu số theo cặp $\Delta C = C_{45} - C_{48}$ (`results/final_v4/chi_phi.csv`; chạy riêng 150 lần lặp, seed 70000, nên $p_{ab}$ hơi khác bảng 4.1):
 
 | Hệ số $k$ | Chi phí Lịch 45 (CI95) | Chi phí Lịch 48 (CI95) | Chi phí Mốc 6 quầy (CI95) | Hiệu số $C_{45} - C_{48}$ | CI 95% Hiệu số | Có ý nghĩa? | Chính sách kinh tế nhất |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
