@@ -7,7 +7,11 @@ c_sim.py: Dong co mo phong su kien roi rac bang SimPy (Tuan 2):
 5. Mo phong he thong hang tach rieng (Random vs JSQ) va duong Welch chon warm-up
 """
 
-from typing import List, Dict, Tuple, Optional, Callable
+import os
+import atexit
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
+from typing import List, Dict, Tuple, Optional, Callable, Sequence
 import numpy as np
 import pandas as pd
 import simpy
@@ -328,6 +332,53 @@ def rep_stats(
         "hourly": hourly
     }
 
+# =============================================================================
+# CHAY SONG SONG (P1)
+# =============================================================================
+# Moi dot chay co seed rieng (khong phu thuoc dot khac) nen chay song song cho
+# ket qua giong het chay tuan tu, mien la gom ket qua dung thu tu job.
+# QS_WORKERS=1: chay tuan tu (hanh vi cu). Mac dinh: min(so CPU - 1, 8); moi tien trinh con
+# nap lai main.py (~145 MB) nen gioi han 8 de khong can RAM tren may 16 GB.
+N_WORKERS = int(os.environ.get("QS_WORKERS") or max(1, min((os.cpu_count() or 2) - 1, 8)))
+_POOL: Optional[ProcessPoolExecutor] = None
+
+
+def _get_pool() -> ProcessPoolExecutor:
+    global _POOL
+    if _POOL is None:
+        _POOL = ProcessPoolExecutor(max_workers=N_WORKERS)
+        atexit.register(_POOL.shutdown)
+    return _POOL
+
+
+def _run_job(args):
+    post, sim_kwargs, post_args = args
+    return post(simulate(**sim_kwargs), *post_args)
+
+
+def map_sim(jobs: Sequence[Dict], post: Callable, post_args: tuple = ()) -> List:
+    """
+    Chay simulate(**job) cho tung job roi tra ve post(df, *post_args), dung thu tu jobs.
+    post phai la ham cap module (pickle duoc); job chua Model voi bo sinh pickle duoc.
+    """
+    global _POOL
+    tasks = [(post, job, post_args) for job in jobs]
+    if N_WORKERS <= 1 or len(tasks) < 2:
+        return [_run_job(t) for t in tasks]
+    chunk = max(1, len(tasks) // (N_WORKERS * 4))
+    try:
+        return list(_get_pool().map(_run_job, tasks, chunksize=chunk))
+    except BrokenProcessPool:
+        # Tien trinh con chet (thuong do thieu RAM): chay lai tuan tu, ket qua khong doi vi seed theo job
+        print(f"  [canh bao] process pool hong, chay lai {len(tasks)} job tuan tu (giam QS_WORKERS neu lap lai)")
+        _POOL = None
+        return [_run_job(t) for t in tasks]
+
+
+def _rep_stats_post(df: pd.DataFrame, schedule: List[int], hour_len: float, t_start: float) -> Dict:
+    return rep_stats(df, schedule, hour_len, t_start=t_start)
+
+
 def run_reps(
     model: Model,
     schedule: List[int],
@@ -359,10 +410,10 @@ def run_reps(
         eff_hour_len = model.hour_len
         t_start = 0.0
 
-    for i in range(n_reps):
-        seed = seed_base + i * 1000
-        df_rep = simulate(model, schedule, run_time, warm_up, seed, day_cv=day_cv, drain_policy=drain_policy)
-        st = rep_stats(df_rep, schedule, eff_hour_len, t_start=t_start)
+    jobs = [dict(model=model, schedule=schedule, run_time=run_time, warm_up=warm_up,
+                 seed=seed_base + i * 1000, day_cv=day_cv, drain_policy=drain_policy)
+            for i in range(n_reps)]
+    for st in map_sim(jobs, _rep_stats_post, (schedule, eff_hour_len, t_start)):
         reps_data.append(st)
         for h, h_st in enumerate(st["hourly"]):
             hourly_reps[h].append(h_st)

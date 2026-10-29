@@ -13,7 +13,7 @@ pytest -q                                    # kiểm thử tự động
 python main.py --stage all                   # chạy toàn bộ pipeline, ghi vào results/final_v4/
 ```
 
-Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v4/MO_TA.md`.
+Các lần lặp mô phỏng chạy song song trên `min(số CPU − 1, 8)` tiến trình (mỗi tiến trình khoảng 145 MB RAM); đặt biến môi trường `QS_WORKERS=1` để chạy tuần tự, hoặc số khác để đổi số tiến trình. Kết quả không phụ thuộc số tiến trình. Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v4/MO_TA.md`.
 
 ---
 

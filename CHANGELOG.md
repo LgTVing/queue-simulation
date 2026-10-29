@@ -1,5 +1,14 @@
 # NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG)
 
+## v5 (đang phát triển, `docs/KE_HOACH_V5.md`)
+
+### P1 — Chạy song song các lần lặp mô phỏng (2026-10-29)
+- `common.py`: các bộ sinh thời gian phục vụ đổi từ `lambda` sang class có `__call__` (pickle được); thứ tự gọi `rng` giữ nguyên.
+- `c_sim.py`: thêm `map_sim(jobs, post, post_args)` chạy song song bằng `ProcessPoolExecutor`, giữ thứ tự job; `run_reps` dùng `map_sim`. Số tiến trình `QS_WORKERS` (mặc định `min(CPU − 1, 8)`; mỗi tiến trình ~145 MB). Pool hỏng thì chạy lại lô đó tuần tự.
+- `e_robustness.py`: 4 vòng gọi `simulate` trực tiếp (S2, S4, S6, S7) chuyển sang `map_sim`; S6 rút hệ số nhân ngày trước theo đúng thứ tự cũ.
+- Kiểm chứng: toàn bộ CSV và hình của `python main.py --stage all --reps-scale 1.0` giống từng byte với `results/final_v4/`. Thời gian chạy 33.28 → 5.49 phút (`optimize` 8.0 → 1.6, `robust` 24.9 → 3.7).
+- `tests/test_p1_parallel.py`: 9 test (pickle, khớp bản lambda cũ, song song = tuần tự). `pytest -q`: 44/44 pass.
+
 ## v4.0 (tài liệu) — Đồng bộ toàn bộ tài liệu với `results/final_v4/` (2026-10-29)
 
 - `docs/bao_cao_tong_ket.md`, `docs/slide_thuyet_trinh.md`: viết lại theo V4 (Lịch 45, Lịch 48 bền vững, M1–M5, ca làm việc 48 q-h công). Bản cũ mang số V1–V3 (Lịch 44).

@@ -44,6 +44,16 @@ def _day_sl(df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
     return (np.bincount(hours, minlength=HOURS)[:HOURS],
             np.bincount(hours, weights=ok, minlength=HOURS)[:HOURS])
 
+# Ham hau xu ly chay trong tien trinh con cua sim.map_sim (phai o cap module de pickle duoc)
+
+def _post_sl_all(df: pd.DataFrame, sched: List[int]) -> float:
+    return sim.rep_stats(df, sched)["sl_all"]
+
+def _post_hour_day(df: pd.DataFrame, sched: List[int]):
+    stt = sim.rep_stats(df, sched)
+    arr, ok = _day_sl(df)
+    return [x["sl"] for x in stt["hourly"]], stt["sl_all"], arr, ok
+
 # =============================================================================
 # DO NHAY THEO NHU CAU, E[S], THETA
 # =============================================================================
@@ -106,17 +116,17 @@ def conditional_expectation(model: Model, policies: Dict[str, List[int]], cv_day
         m_ok = np.zeros(HOURS)
         n_month = month_ok = 0
         day_counter = 0
+        m_vals = [float(_gamma_mult(rng, cv_day)) for _ in range(K)]
+        out = sim.map_sim([dict(model=model, schedule=sched, seed=seed + k * 1000 + r, day_multiplier=m_vals[k])
+                           for k in range(K) for r in range(R)], _post_hour_day, (sched,))
         for k in range(K):
-            m_val = float(_gamma_mult(rng, cv_day))
             hour_sl = np.zeros((R, HOURS))
             day_sl = np.zeros(R)
             for r in range(R):
-                df = sim.simulate(model, sched, seed=seed + k * 1000 + r, day_multiplier=m_val)
-                stt = sim.rep_stats(df, sched)
-                hour_sl[r] = [x["sl"] for x in stt["hourly"]]
-                day_sl[r] = stt["sl_all"]
+                h_sl, sl_all, arr, ok = out[k * R + r]
+                hour_sl[r] = h_sl
+                day_sl[r] = sl_all
                 actual_ok.append(bool(np.all(hour_sl[r] >= TARGET_SLA)))
-                arr, ok = _day_sl(df)
                 m_arr += arr
                 m_ok += ok
                 day_counter += 1
@@ -208,9 +218,9 @@ def volume_threshold(model: Model, df_all: pd.DataFrame, policies: Dict[str, Lis
         m_v = v / n_mean
         sl = {}
         for k, name in enumerate([opt_name, rob_name]):
-            vals = [sim.rep_stats(sim.simulate(model, policies[name], seed=30000 + 10000 * k + int(v) * 10 + r,
-                                               day_multiplier=m_v), policies[name])["sl_all"]
-                    for r in range(R)]
+            vals = sim.map_sim([dict(model=model, schedule=policies[name],
+                                     seed=30000 + 10000 * k + int(v) * 10 + r, day_multiplier=m_v)
+                                for r in range(R)], _post_sl_all, (policies[name],))
             sl[name] = float(np.mean(vals))
         rows.append({"luu_luong_ngay_V": int(v), "he_so_m": round(m_v, 3),
                      f"SL_{opt_name}": sl[opt_name], f"SL_{rob_name}": sl[rob_name],
@@ -316,12 +326,15 @@ def out_of_sample(model: Model, df_test: pd.DataFrame, sched: List[int], cv_day:
     n_days = df_test["day"].nunique()
     rng = np.random.default_rng(seed)
     sim_sl = np.zeros((K, HOURS))
+    # Rut he so nhan ngay truoc, dung thu tu (k, d) nhu khi chay tuan tu, roi moi chia job
+    mults = [float(_gamma_mult(rng, cv_day)) for _ in range(K * n_days)]
+    out = sim.map_sim([dict(model=model, schedule=sched, seed=seed + k * 10 + d, day_multiplier=mults[k * n_days + d])
+                       for k in range(K) for d in range(n_days)], _day_sl)
     for k in range(K):
         arr = np.zeros(HOURS)
         ok = np.zeros(HOURS)
         for d in range(n_days):
-            df = sim.simulate(model, sched, seed=seed + k * 10 + d, day_multiplier=float(_gamma_mult(rng, cv_day)))
-            a, o = _day_sl(df)
+            a, o = out[k * n_days + d]
             arr += a
             ok += o
         sim_sl[k] = ok / np.maximum(arr, 1)
@@ -360,8 +373,8 @@ def fourteen_days(model: Model, df_all: pd.DataFrame, policies: Dict[str, List[i
     for i, (d, n_d) in enumerate(totals.items()):
         row = {"ngay": int(d), "phan_tap": "Train" if i < 10 else "Test", "tong_khach": int(n_d)}
         for k, (name, s) in enumerate(policies.items()):
-            vals = [sim.rep_stats(sim.simulate(model, s, seed=10000 * (k + 1) + int(d) * 100 + r,
-                                               day_multiplier=n_d / n_mean), s)["sl_all"] for r in range(R)]
+            vals = sim.map_sim([dict(model=model, schedule=s, seed=10000 * (k + 1) + int(d) * 100 + r,
+                                     day_multiplier=n_d / n_mean) for r in range(R)], _post_sl_all, (s,))
             m, lo, hi, _, _ = t_ci(vals)
             row.update({f"SL_{name}": m, f"CI95_low_{name}": lo, f"CI95_high_{name}": hi,
                         f"Dat_SLA_{name}": "Dat" if m >= TARGET_SLA else "Hut"})

@@ -69,30 +69,86 @@ class Model:
 # CAC BO SINH THOI GIAN PHUC VU (SERVICE SAMPLERS)
 # =============================================================================
 
+# Cac bo sinh la class co __call__ (khong dung lambda/closure) de pickle duoc khi
+# chay song song bang ProcessPoolExecutor tren Windows (spawn) - P1.
+# Thu tu goi rng giu nguyen nhu ban lambda cu de ket qua khong doi.
+
+class _ExpService:
+    def __init__(self, mean: float):
+        self.mean = mean
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(rng.exponential(self.mean)), 0
+
+
+class _LognormService:
+    def __init__(self, mu_log: float, sigma: float):
+        self.mu_log, self.sigma = mu_log, sigma
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(rng.lognormal(self.mu_log, self.sigma)), 0
+
+
+class _GammaService:
+    def __init__(self, shape: float, scale: float):
+        self.shape, self.scale = shape, scale
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(rng.gamma(self.shape, self.scale)), 0
+
+
+class _WeibullService:
+    def __init__(self, shape: float, scale: float):
+        self.shape, self.scale = shape, scale
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(self.scale * rng.weibull(self.shape)), 0
+
+
+class _EmpiricalService:
+    def __init__(self, samples: np.ndarray):
+        self.s = np.asarray(samples, dtype=float)
+        self.n = len(self.s)
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(self.s[rng.integers(self.n)]), 0
+
+
+class _MixService:
+    def __init__(self, p_quick: float, quick_sampler, complex_sampler):
+        self.p_quick = p_quick
+        self.quick_sampler, self.complex_sampler = quick_sampler, complex_sampler
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        if rng.random() < self.p_quick:
+            svc, _ = self.quick_sampler(rng)
+            return svc, 0
+        svc, _ = self.complex_sampler(rng)
+        return svc, 1
+
+
 def exp_service(mean: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi mu (Exponential) voi ky vong mean (cv = 1.0)."""
-    return lambda rng: (float(rng.exponential(mean)), 0)
+    return _ExpService(mean)
 
 def lognorm_service(mean: float, cv: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi Lognormal voi ky vong mean va he so bien thien cv."""
     sigma2 = np.log(1.0 + cv**2)
     sigma = np.sqrt(sigma2)
     mu_log = np.log(mean) - 0.5 * sigma2
-    return lambda rng: (float(rng.lognormal(mu_log, sigma)), 0)
+    return _LognormService(mu_log, sigma)
 
 def gamma_service(shape: float, scale: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi Gamma voi tham so shape (k) va scale (theta)."""
-    return lambda rng: (float(rng.gamma(shape, scale)), 0)
+    return _GammaService(shape, scale)
 
 def weibull_service(shape: float, scale: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi Weibull voi tham so shape (k) va scale (lambda)."""
-    return lambda rng: (float(scale * rng.weibull(shape)), 0)
+    return _WeibullService(shape, scale)
 
 def empirical_service(samples: np.ndarray) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Lay mau co hoan lai tu du lieu thuc te (Bootstrap)."""
-    s = np.asarray(samples, dtype=float)
-    n = len(s)
-    return lambda rng: (float(s[rng.integers(n)]), 0)
+    return _EmpiricalService(samples)
 
 def mix_service(
     p_quick: float,
@@ -100,14 +156,7 @@ def mix_service(
     complex_sampler: Callable[[np.random.Generator], Tuple[float, int]]
 ) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Hon hop hai loai dich vu: nhanh (cls=0) va phuc tap (cls=1)."""
-    def sampler(rng: np.random.Generator) -> Tuple[float, int]:
-        if rng.random() < p_quick:
-            svc, _ = quick_sampler(rng)
-            return svc, 0
-        else:
-            svc, _ = complex_sampler(rng)
-            return svc, 1
-    return sampler
+    return _MixService(p_quick, quick_sampler, complex_sampler)
 
 
 # =============================================================================
