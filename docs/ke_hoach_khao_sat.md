@@ -74,3 +74,18 @@ Nếu sau Ngày 3 của Tuần 1, các ngân hàng và đơn vị hành chính �
 - **Nguyên tắc:** **Tuyệt đối không chờ đợi làm đình trệ tiến độ.**
 - Toàn bộ trọng tâm phân tích định lượng sẽ sử dụng bộ dữ liệu chuẩn `Anonymous Bank` (Technion SEE Center) với 9.836 giao dịch đã được làm sạch hoàn chỉnh.
 - Tiến hành đo nhanh 1 buổi 2 tiếng tại **Căng tin hoặc Phòng Đào tạo của trường** để có ví dụ minh họa thực tế tại Việt Nam đưa vào phần thảo luận và đối chiếu trong báo cáo.
+
+---
+
+## 7. Đo tốc độ bỏ về θ tại quầy thật (V4, liên hệ nhiệm vụ M1)
+
+**Vì sao cần.** Mô hình hiện dùng θ ước lượng từ tổng đài (kiên nhẫn trung bình khoảng 9 phút, hành vi cúp máy). Khách ở quầy có lấy số thường kiên nhẫn hơn nhiều. Kịch bản M1 (`results/final_v4/do_nhay_kien_nhan.csv`) cho thấy số quầy-giờ cần thiết thay đổi theo kiên nhẫn trung bình, từ mức Erlang-A (θ gốc) lên tới mức Erlang C (không ai bỏ về). Vì vậy, muốn áp dụng khuyến nghị cho một quầy cụ thể, phải đo θ tại chỗ.
+
+**Cần ghi cho mỗi khách** (đã có trong biểu mẫu mục 4):
+1. Giờ vào hàng (lấy số) A.
+2. Với khách được phục vụ: giờ bắt đầu phục vụ B → thời gian chờ W = B − A (quan sát bị kiểm duyệt phải: chỉ biết kiên nhẫn ≥ W).
+3. Với khách bỏ về: giờ bỏ về (hoặc giờ được gọi số mà không có mặt) → thời gian chờ đến khi bỏ về (quan sát đầy đủ).
+
+**Ước lượng.** θ̂ = (số khách bỏ về) / (tổng thời gian chờ của mọi khách, cả bỏ về lẫn được phục vụ), là ước lượng hợp lý cực đại với kiên nhẫn mũ và kiểm duyệt phải (cùng công thức `a_data.fit_patience`). Kiểm tra giả định mũ bằng đường Kaplan-Meier (`a_data.patience_km`).
+
+**Cỡ mẫu.** Sai số chuẩn tương đối của θ̂ xấp xỉ 1/√(số khách bỏ về). Muốn CI95 của θ trong khoảng ±20% thì cần 1,96/√n ≤ 0,20, tức **n ≥ 96, làm tròn ≥ 100 khách bỏ về**. Nếu tỉ lệ bỏ về tại quầy chỉ khoảng 2–3%, cần quan sát khoảng 3.500–5.000 lượt khách (vài ngày làm việc trọn vẹn). Nếu không đủ khách bỏ về, báo cáo cận trên của θ và dùng kịch bản kiên nhẫn dài trong M1, vì khi đó nghiêng về Erlang C là an toàn.

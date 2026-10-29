@@ -1,4 +1,27 @@
-# NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG v1 -> v2)
+# NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG)
+
+## v4.0 (code) — Sửa lỗi động cơ mô phỏng và hợp nhất pipeline (2026-10-29)
+
+Theo `docs/KE_HOACH_CAI_TIEN.md`, giai đoạn 1–4. **Chưa có số liệu V4 đóng băng**: `results/final_v4/` sẽ được sinh bằng `python main.py --stage all` ở giai đoạn 5; mục này sẽ bổ sung bảng đối chiếu `doi_chieu_v3_v4.csv` khi chạy xong.
+
+**Lỗi động cơ mô phỏng đã sửa (`c_sim.py`):**
+- F1: sau 17h mô phỏng nhả mọi blocker nên toàn bộ `c_max` quầy xả hàng → SL giờ 16h–17h bị lạc quan. Giờ giữ số quầy của giờ cuối (`drain_policy="keep_last"`); hành vi cũ chạy lại được bằng `"all_open"` (kết quả so sánh: `doi_chieu_xa_hang.csv`).
+- F2: khoảng đến rút theo λ của giờ hiện tại kể cả khi rơi sang giờ sau. Với λ = [0,5; 3,0], code V3 sinh trung bình 174,9 khách ở giờ 2 thay vì 180 (test `test_nhpp_hourly_counts`). Giờ nhảy tới ranh giới giờ và rút lại.
+- F3: hiệu suất theo giờ gán theo giờ khách đến; giờ tính theo thời gian bận thực tế giao khung giờ.
+- Blocker chưa được cấp quầy bị `release()` vẫn nằm trong hàng đợi và có thể chiếm quầy vĩnh viễn; đổi sang `cancel()`.
+
+**Pipeline:** `main.py --stage all|data|theory|verify|optimize|robust|report --reps-scale`; logic S1–S11, C6, T1, T2, T5 từ `tools/` hợp nhất vào `a_data.py`, `d_experiments.py`, `e_robustness.py`, `chay_kiem_chung.py`; lịch tối ưu truyền qua `lich_khuyen_nghi.json`, không hard-code; một nguồn cấu hình `common.RESULTS_DIR`.
+
+**Thay đổi mô hình/phương pháp:**
+- M3: phục vụ thực nghiệm (lấy mẫu từ train, cs² = 1,20) là mô hình chính; Gamma (cs² = 0,91) chuyển sang độ nhạy.
+- M1 kịch bản kiên nhẫn 9,2 → ∞ phút; M2 ràng buộc tỉ lệ bỏ về; M5 số lần lặp cần thiết và xác suất giờ tệ nhất; M4 điều tra 15h–16h (`docs/ngoai_mau.md` mục 5).
+- Pha 3 (C6) dùng mô phỏng thay cho kiểm tra Erlang-A từng giờ.
+- KS bootstrap (S10): quy đổi thống kê KS theo cỡ mẫu (mẫu gốc n = 6.346, mẫu mô phỏng 1.000).
+- Nested bootstrap (S5) resample trực tiếp mẫu phục vụ thay vì fit lại Gamma.
+
+**Repo:** `results/final_v1`, `final_v2` → `results/archive/`; script cũ → `tools/archive/`; tài liệu lịch sử → `docs/lich_su/`; requirements ghim phiên bản; thêm 13 test (T1-a … T1-i).
+
+---
 
 ## v3.1 — Rà soát đối chiếu số liệu (2026-10-23)
 
