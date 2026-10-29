@@ -522,7 +522,87 @@ def check_abandon_constraint(ck: TableChecker):
         ck.expect(lab + " wq", cells[6], r["wq_phut"])
 
 
+# =============================================================================
+# DOI CHIEU SO TRONG BAO CAO, SLIDE, README (T2)
+# =============================================================================
+
+REPORT_FILES = {
+    "bao_cao_tong_ket.md": os.path.join(DOCS_DIR, "bao_cao_tong_ket.md"),
+    "slide_thuyet_trinh.md": os.path.join(DOCS_DIR, "slide_thuyet_trinh.md"),
+    "README.md": os.path.join(BASE_DIR, "README.md"),
+}
+# Chinh sach xuat hien trong bang tom tat cua slide va README
+SUMMARY_POLICIES = ["Moc co so 6 quay", "SIPP (Erlang C)", "SIPP (Erlang-A)", "Toi uu mo phong", "Ben vung (+10% nhu cau)"]
+
+
+def _expected_report_strings() -> dict:
+    """Moi tai lieu -> danh sach (nhan, chuoi phai xuat hien), sinh tu CSV theo dung dinh dang hien thi."""
+    pol = _csv("so_sanh_chinh_sach.csv").set_index("chinh_sach")
+    bc, sl, rd = [], [], []
+    for name, r in pol.iterrows():
+        lab = f"9.2 {name}"
+        bc += [(lab + " SL", f"{r.sl_toan_ngay:.4f} ± {r.sl_ci_half:.4f}"),
+               (lab + " gio te nhat", f"{r.sl_gio_te_nhat_low:.4f}"),
+               (lab + " VIP", f"{r.sl_vip:.4f}"),
+               (lab + " bo ve", f"{r.ti_le_bo_ve * 100:.2f}%"),
+               (lab + " Wq", f"{r.wq_phut:.4f}"),
+               (lab + " rho", f"{r.hieu_suat_rho * 100:.2f}%")]
+    for name in SUMMARY_POLICIES:
+        r = pol.loc[name]
+        sl += [(f"slide 9 {name} SL", f"{r.sl_toan_ngay * 100:.2f}%"),
+               (f"slide 9 {name} gio te nhat", f"{r.sl_gio_te_nhat_low * 100:.2f}%")]
+        rd += [(f"README 15.3 {name} SL", f"{r.sl_toan_ngay:.3f}".replace(".", ",")),
+               (f"README 15.3 {name} gio te nhat", f"{r.sl_gio_te_nhat_low:.3f}".replace(".", ","))]
+    for _, r in _csv("kiem_chung.csv").iterrows():
+        bc += [(f"8 {r.kiem_chung} {r.chi_so}", f"{r.mo_phong:.4f} | {r.ci95}")]
+    for _, r in _csv("bang_sipp.csv").iterrows():
+        bc += [(f"6.1 {r.khung_gio}", f"| {r.c_erlang_c} | {r.sl_erlang_c * 100:.1f}% | {r.c_erlang_a} | "
+                                     f"{r.sl_erlang_a * 100:.1f}% | {r.p_ab_erlang_a * 100:.1f}% |")]
+    for _, r in _csv("chi_phi.csv").iterrows():
+        lab = f"6.2 k={r.k_he_so_mat_khach}"
+        for c in (OPT, ROB, BASE):
+            bc += [(f"{lab} {c}", f"{r['Chi_phi_' + c]:.2f} ± {r['CI95_half_' + c]:.2f}")]
+        d = r[f"Hieu_so_{OPT}_tru_{ROB}"]
+        bc += [(lab + " hieu so", f"{d:+.2f} [{r.CI95_hieu_so_low:+.2f}, {r.CI95_hieu_so_high:+.2f}]".lstrip("+"))]
+    for _, r in _csv("do_nhay.csv").iterrows():
+        bc += [(f"9.4 {r.nhom_yeu_to} x{r.he_so} {r.chinh_sach}", f"{r.sl_gio_te_nhat_low:.4f}")]
+    for _, r in _csv("lich_ben_vung_delta.csv").iterrows():
+        bc += [(f"6.4 delta={r.delta_du_phong}", f"`{r.lich_quay}`")]
+    for _, r in _csv("lich_theo_ca.csv").dropna().iterrows():
+        bc += [(f"6.3 {r.truong_hop}", f"`{r.phu_quay}`")]
+    return {"bao_cao_tong_ket.md": bc, "slide_thuyet_trinh.md": sl, "README.md": rd}
+
+
+def check_report_numbers(texts: dict = None) -> list:
+    """
+    T2: doi chieu so trong bao cao tong ket, slide va README voi CSV nguon.
+    texts: {ten tep: noi dung} de kiem tra van ban tuy y (test); mac dinh doc tu dia.
+    Chuan hoa dau tru Unicode '−' thanh '-' truoc khi so.
+    """
+    print("\n" + "=" * 70)
+    print("ĐỐI CHIẾU SỐ TRONG BÁO CÁO, SLIDE, README (T2)")
+    print("=" * 70)
+    if texts is None:
+        texts = {k: open(p, encoding="utf-8").read() for k, p in REPORT_FILES.items()}
+    errors, n = [], 0
+    for fname, items in _expected_report_strings().items():
+        text = texts[fname].replace("−", "-")
+        for label, needle in items:
+            n += 1
+            if needle not in text:
+                errors.append(f"{fname} [{label}]: khong tim thay '{needle}'")
+    print(f"  Da doi chieu {n} gia tri trong {len(texts)} tai lieu")
+    if errors:
+        print(f"  ❌ {len(errors)} gia tri KHONG khop nguon:")
+        for e in errors:
+            print("     -", e)
+    else:
+        print("  ✓ Tat ca gia tri da doi chieu deu khop du lieu nguon")
+    return errors
+
+
 if __name__ == "__main__":
     term_issues = check_forbidden_terms()
     num_issues = check_numeric_consistency()
-    sys.exit(1 if (term_issues or num_issues) else 0)
+    report_issues = check_report_numbers()
+    sys.exit(1 if (term_issues or num_issues or report_issues) else 0)
