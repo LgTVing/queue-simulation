@@ -19,7 +19,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from common import Model, HOURS, H_LABELS, TARGET_SLA, scaled, out_path
+from common import Model, HOURS, H_LABELS, TARGET_SLA, scaled, out_path, empirical_service
 import b_theory as th
 import c_sim as sim
 import d_experiments as dx
@@ -238,3 +238,77 @@ def run_scenarios_robust(ctx: Dict) -> None:
     need, worst = worst_hour_stability(ctx["model"], {"Toi uu": sch["toi_uu"], "Ben vung (+10%)": sch["ben_vung"]})
     _save(need, "so_lan_lap_can_thiet.csv")
     _save(worst, "gio_te_nhat.csv")
+    print("[M8] Tang quay trong ngay theo hang cho...")
+    _save(surge_policies(ctx, sch), "chinh_sach_tang_quay.csv")
+
+
+# =============================================================================
+# M8: CHINH SACH TANG QUAY TRONG NGAY THEO HANG CHO
+# =============================================================================
+SEED_M8 = 400000  # dai seed rieng cho M8
+
+def _post_surge(df: pd.DataFrame, sched: List[int]):
+    stt = sim.rep_stats(df, sched)
+    return stt["sl_all"], [h["sl"] for h in stt["hourly"]], stt["p_ab_all"], df.attrs.get("extra_counter_min", 0.0)
+
+
+def _eval_surge(model: Model, sched: List[int], surge, n: int, seed: int, day_cv: float = 0.0,
+                multipliers=None) -> Dict:
+    """Chay n lan lap (hoac moi he so nhan ngay trong multipliers), tra chi so tong hop."""
+    if multipliers is None:
+        jobs = [dict(model=model, schedule=sched, seed=seed + 1000 * i, day_cv=day_cv, surge_policy=surge) for i in range(n)]
+    else:
+        jobs = [dict(model=model, schedule=sched, seed=seed + 1000 * i, day_multiplier=m, surge_policy=surge)
+                for i, m in enumerate(multipliers)]
+    out = sim.map_sim(jobs, _post_surge, (sched,))
+    sl_day = np.array([o[0] for o in out])
+    hour = np.array([o[1] for o in out])
+    t = 1.96 if len(out) > 30 else 2.0
+    low = hour.mean(axis=0) - t * hour.std(axis=0, ddof=1) / np.sqrt(len(out))
+    return {"sl_day": sl_day, "sl_ngay": float(sl_day.mean()), "gio_te_nhat_low": float(low.min()),
+            "p_ab": float(np.mean([o[2] for o in out])), "phut_quay_du_phong": float(np.mean([o[3] for o in out]))}
+
+
+# Luoi tham so: lan quet tham do (nguong 4-10, cua so 10 phut) gan nhu khong kich hoat (khach bo ve
+# lam hang ngan lai); luoi duoi day la vung co tac dung (quet nguong 1-3, cua so 3/5, 1-2 quay).
+SURGE_GRID = [(1, 5, 1), (2, 5, 1), (3, 5, 1), (3, 5, 2), (2, 3, 1)]
+
+
+def surge_policies(ctx: Dict, sch: Dict[str, List[int]], grid=SURGE_GRID, R: int = 300, R14: int = 40) -> pd.DataFrame:
+    """
+    M8: so sanh Lich 45 + mo them quay khi hang cho dai voi Lich 45 va Lich 48 co dinh.
+    Kich ban: danh dinh, bien dong ngay (CV train), nhu cau +10%, E[S] +10%, 14 ngay thuc te.
+    Quay-gio TB = quay-gio lich + phut-quay du phong / 60.
+    """
+    model, cv = ctx["model"], ctx["params"]["day_cv"]
+    R, R14 = scaled(R), scaled(R14)
+    totals = ctx["df_all"].groupby("day").size()
+    pols = [("Lich 45 co dinh", sch["toi_uu"], None), ("Lich 48 co dinh", sch["ben_vung"], None)]
+    pols += [(f"Lich 45 + tang quay (cho > {t} trong {w} phut, toi da +{e})", sch["toi_uu"],
+              {"threshold": t, "window": w, "max_extra": e, "min_hold": 30}) for t, w, e in grid]
+    scen = {"danh dinh": (model, 0.0), "bien dong ngay": (model, cv),
+            "nhu cau +10%": (dx.scale_demand(model, 1.1), 0.0),
+            "E[S] +10%": (dataclasses.replace(model, service=empirical_service(ctx["svc_train"] * 1.1),
+                                              mean_svc=model.mean_svc * 1.1), 0.0)}
+    rows = []
+    for name, sched, surge in pols:
+        row = {"chinh_sach": name, "lich_quay": str(sched), "quay_gio_lich": sum(sched),
+               "nguong_cho": surge["threshold"] if surge else None, "cua_so_phut": surge["window"] if surge else None,
+               "quay_du_phong_toi_da": surge["max_extra"] if surge else 0}
+        for k, (sname, (m, dcv)) in enumerate(scen.items()):
+            r = _eval_surge(m, sched, surge, R, SEED_M8 + 100000 * k, day_cv=dcv)
+            row.update({f"SL_{sname}": r["sl_ngay"], f"gio_te_nhat_low_{sname}": r["gio_te_nhat_low"],
+                        f"bo_ve_{sname}": r["p_ab"], f"quay_gio_TB_{sname}": sum(sched) + r["phut_quay_du_phong"] / 60.0})
+            if dcv > 0:
+                row["P_SL_ngay_ge90_bien_dong"] = float(np.mean(r["sl_day"] >= TARGET_SLA))
+        ok = 0
+        extra14 = []
+        for i, (d, n_d) in enumerate(totals.items()):
+            r = _eval_surge(model, sched, surge, R14, SEED_M8 + 900000 + 100 * int(d),
+                            multipliers=[n_d / ctx["n_day_mean"]] * R14)
+            ok += int(r["sl_ngay"] >= TARGET_SLA)
+            extra14.append(r["phut_quay_du_phong"])
+        row.update({"so_ngay_dat_14": ok, "quay_gio_TB_14_ngay": sum(sched) + float(np.mean(extra14)) / 60.0})
+        rows.append(row)
+        print(f"  • M8 {name}: SL {row['SL_danh dinh']:.4f}, 14 ngay {ok}/14, q-h TB {row['quay_gio_TB_14_ngay']:.2f}")
+    return pd.DataFrame(rows)

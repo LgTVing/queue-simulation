@@ -52,6 +52,7 @@ FILE_DESC = {
     "toi_uu_rang_buoc_bo_ve.csv": ("optimize / M2", "Toi uu voi rang buoc ti le bo ve, SL o nguong 2/3/5 phut"),
     "toi_uu_theo_ca.csv": ("optimize / M6", "Moi lich phu theo ca da thu (gio cong, phuong an ca, SL, can duoi gio te nhat)"),
     "toi_uu_xac_suat_ngay.csv": ("optimize / M7", "Lich nho nhat theo muc P(SL ngay >= 90%) co bien dong ngay, quay-gio va theo ca, 14 ngay thuc te"),
+    "chinh_sach_tang_quay.csv": ("robust / M8", "Lich 45 + mo them quay khi hang cho dai so voi Lich 45/48 co dinh, 4 kich ban + 14 ngay"),
     "toi_uu_theo_ca_top.csv": ("optimize / M6", "Top-5 lich kha thi o gio cong nho nhat: seed danh gia, bien dong ngay, nhu cau +10%"),
     "m3_dich_vu_thuc_nghiem.csv": ("optimize / M3", "Lich toi uu va danh gia duoi phuc vu thuc nghiem vs Gamma"),
     "do_nhay.csv": ("robust", "Do nhay nhu cau, E[S], theta (CRN)"),

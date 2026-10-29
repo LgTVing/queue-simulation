@@ -74,3 +74,28 @@ def test_util_hourly_sums():
     total_svc = df.loc[df["served"] == 1, "svc"].sum()
     assert busy_hours + r["busy_after_close"] == pytest.approx(total_svc, abs=1e-6)
     assert all(0.0 <= h["util"] <= 1.0 + 1e-9 for h in r["hourly"])
+
+
+# ----------------------------------------------------------------------------- M8
+SURGE = {"threshold": 2, "window": 3, "max_extra": 2, "min_hold": 10}
+
+
+def test_surge_none_identical():
+    """M8: surge_policy=None cho ket qua giong het hanh vi cu; bat surge nhung khong kich hoat cung vay."""
+    m = Model(rates=[1.0, 1.4, 1.0], service=exp_service(3.0), theta=0.1, p_vip=0.3)
+    a = cs.simulate(m, [5, 6, 5], seed=11)
+    b = cs.simulate(m, [5, 6, 5], seed=11, surge_policy=None)
+    c = cs.simulate(m, [5, 6, 5], seed=11, surge_policy={"threshold": 10 ** 6, "window": 5})
+    assert a.equals(b) and a.equals(c)
+    assert c.attrs["n_surge"] == 0
+
+
+def test_surge_opens_counter():
+    """M8: hang cho dai -> mo them quay; so quay ban khong vuot lich + max_extra, va co vuot lich."""
+    m = Model(rates=[3.0, 3.0, 3.0], service=exp_service(3.0), theta=0.05, p_vip=0.0)
+    sched = [5, 5, 5]
+    df = cs.simulate(m, sched, seed=5, surge_policy=SURGE)
+    assert df.attrs["n_surge"] >= 1 and df.attrs["extra_counter_min"] > 0
+    busy = busy_at(df, np.arange(1.0, 179.0, 0.5))
+    assert busy.max() <= 5 + SURGE["max_extra"]
+    assert busy.max() > 5

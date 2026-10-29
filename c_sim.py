@@ -100,13 +100,23 @@ def customer_process(
 DRAIN_POLICIES = ("keep_last", "all_open")
 RECORD_COLUMNS = ["cid", "hour", "vip", "arr_time", "wait", "svc", "served", "start_svc", "end_svc"]
 
+class _CounterState:
+    """Trang thai quay dung chung giua counter_blocker_process va surge_monitor (M8)."""
+    def __init__(self):
+        self.block_reqs: List = []   # blocker cua gio hien tai (ke ca blocker surge_monitor tao lai)
+        self.extra = 0               # so quay du phong dang mo them
+        self.extra_minutes = 0.0     # tong phut-quay du phong da mo
+        self.n_open = 0              # so lan mo them quay
+
+
 def counter_blocker_process(
     env: simpy.Environment,
     resource: simpy.PriorityResource,
     c_max: int,
     schedule: List[int],
     hour_len: float,
-    drain_policy: str = "keep_last"
+    drain_policy: str = "keep_last",
+    state: Optional[_CounterState] = None
 ):
     """
     Tien trinh dieu chinh so quay theo gio:
@@ -119,10 +129,13 @@ def counter_blocker_process(
     """
     if drain_policy not in DRAIN_POLICIES:
         raise ValueError(f"drain_policy khong hop le: {drain_policy}")
+    if state is None:
+        state = _CounterState()
     for h, active_c in enumerate(schedule):
-        needed_blocks = max(0, c_max - active_c)
+        # Quay du phong dang mo (M8) duoc giu qua ranh gioi gio
+        needed_blocks = max(0, c_max - active_c - state.extra)
         # Chiem giu so quay khong hoat dong
-        block_reqs = [resource.request(priority=-1) for _ in range(needed_blocks)]
+        state.block_reqs = [resource.request(priority=-1) for _ in range(needed_blocks)]
 
         if h == len(schedule) - 1 and drain_policy == "keep_last":
             return
@@ -132,11 +145,56 @@ def counter_blocker_process(
         # Giai phong khi chuyen gio (de gio sau thiet lap lai).
         # Blocker chua duoc cap quay phai cancel() de go khoi hang doi,
         # neu chi release() thi request van nam trong hang va chiem quay ve sau.
-        for req in block_reqs:
+        for req in state.block_reqs:
             if req.triggered:
                 resource.release(req)
             else:
                 req.cancel()
+
+
+def surge_monitor(
+    env: simpy.Environment,
+    resource: simpy.PriorityResource,
+    state: _CounterState,
+    policy: Dict,
+    close_time: float
+):
+    """
+    M8: moi phut dem so khach dang cho (request priority >= 0 trong hang).
+    - Hang cho > threshold lien tuc window phut, con duoi max_extra va chua dong cua:
+      mo them 1 quay (huy 1 blocker dang cho, neu khong co thi nha 1 blocker dang giu quay).
+    - Hang cho = 0 va quay mo them gan nhat da mo >= min_hold phut: khoa lai 1 quay
+      (blocker moi chi chiem quay khi nhan vien phuc vu xong, khong ngat khach).
+    Khong dung rng nen khong lam doi day so ngau nhien cua khach.
+    """
+    thr, window = policy["threshold"], policy.get("window", 10)
+    max_extra, min_hold = policy.get("max_extra", 1), policy.get("min_hold", 30)
+    above, opened_at = 0, []
+    while True:
+        yield env.timeout(1.0)
+        state.extra_minutes += state.extra
+        q = sum(1 for r in resource.queue if r.priority >= 0)
+        above = above + 1 if q > thr else 0
+        if above >= window and state.extra < max_extra and env.now < close_time:
+            pending = [r for r in state.block_reqs if not r.triggered]
+            held = [r for r in state.block_reqs if r.triggered]
+            if pending:
+                req = pending[-1]
+                req.cancel()
+            elif held:
+                req = held[-1]
+                resource.release(req)
+            else:
+                continue
+            state.block_reqs.remove(req)
+            state.extra += 1
+            state.n_open += 1
+            opened_at.append(env.now)
+            above = 0
+        elif q == 0 and state.extra > 0 and env.now - opened_at[-1] >= min_hold:
+            state.block_reqs.append(resource.request(priority=-1))
+            state.extra -= 1
+            opened_at.pop()
 
 # =============================================================================
 # 2. HAM MO PHONG TOAN BO NGAY / DOT CHAY
@@ -150,7 +208,8 @@ def simulate(
     seed: int = 42,
     day_cv: float = 0.0,
     day_multiplier: Optional[float] = None,
-    drain_policy: str = "keep_last"
+    drain_policy: str = "keep_last",
+    surge_policy: Optional[Dict] = None
 ) -> pd.DataFrame:
     """
     Chay 1 dot mo phong don le.
@@ -158,6 +217,9 @@ def simulate(
     day_cv > 0: ap dung he so nhan ngay m_d ~ Gamma(1/day_cv^2, day_cv^2).
     day_multiplier: truyen truc tiep gia tri he so nhan ngay (neu co).
     drain_policy: cach xu ly so quay sau gio dong cua (xem counter_blocker_process).
+    surge_policy (M8): None = hanh vi cu (ket qua khong doi); dict {"threshold", "window",
+        "max_extra", "min_hold"} = mo them quay khi hang cho dai (xem surge_monitor).
+        Phut-quay du phong va so lan mo ghi o df.attrs["extra_counter_min"], df.attrs["n_surge"].
     """
     rng = np.random.default_rng(seed)
     env = simpy.Environment()
@@ -173,15 +235,20 @@ def simulate(
         m_d = 1.0
     
     c_max = max(schedule) if len(schedule) > 0 else 1
+    if surge_policy is not None:
+        c_max += surge_policy.get("max_extra", 1)
     resource = simpy.PriorityResource(env, capacity=c_max)
     records = []
-    
+
     total_time = run_time if run_time is not None else float(len(schedule) * model.hour_len)
     hour_len = model.hour_len
-    
+    state = _CounterState()
+
     # Khoi chay tien trinh dieu phoi lich quay neu lich co su thay doi
     if len(schedule) > 1:
-        env.process(counter_blocker_process(env, resource, c_max, schedule, hour_len, drain_policy))
+        env.process(counter_blocker_process(env, resource, c_max, schedule, hour_len, drain_policy, state))
+        if surge_policy is not None:
+            env.process(surge_monitor(env, resource, state, surge_policy, len(schedule) * hour_len))
 
     def arrival_generator():
         """
@@ -234,7 +301,10 @@ def simulate(
     # Loai bo doan warm-up neu co
     if warm_up > 0:
         df = df[df["arr_time"] >= warm_up].copy()
-        
+    if surge_policy is not None:
+        df.attrs["extra_counter_min"] = state.extra_minutes
+        df.attrs["n_surge"] = state.n_open
+
     return df
 
 # =============================================================================

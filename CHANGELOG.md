@@ -41,6 +41,14 @@
 - Thời gian: giai đoạn `optimize` 1.6 → 10.4 phút (chủ yếu duyệt 52 giờ công cho mức 0.95); pipeline đầy đủ ước ~15 phút, vượt mục tiêu 10 phút của P1. `pytest -q` (gồm smoke test) 7 phút.
 - Test `test_p_day_matches_definition`.
 
+### M8 — Tăng quầy trong ngày theo hàng chờ (2026-10-30)
+- `c_sim.py`: `simulate(..., surge_policy=None)`; tiến trình `surge_monitor` mỗi phút đếm khách chờ: chờ > `threshold` liên tục `window` phút thì mở thêm 1 quầy (tối đa `max_extra`, giữ ≥ `min_hold` phút), hàng về 0 thì khóa lại; trạng thái dùng chung với `counter_blocker_process` (`_CounterState`) để quầy dự phòng giữ qua ranh giới giờ. Không dùng `rng`; `surge_policy=None` cho kết quả giống hệt (toàn bộ CSV V4 vẫn giống từng byte).
+- `f_scenarios.surge_policies` → `chinh_sach_tang_quay.csv` (giai đoạn `robust`): Lịch 45 + tăng quầy so với Lịch 45/48 cố định trên danh định, biến động ngày, nhu cầu +10%, E[S] +10% (300 lần lặp) và 14 ngày thực tế (40 lần lặp/ngày).
+- Lưới tham số: ngưỡng 4–10 người, cửa sổ 10 phút gần như không kích hoạt (khách bỏ về làm hàng ngắn lại). Vùng có tác dụng là ngưỡng 1–3, cửa sổ 3–5 phút.
+- **Kết quả nổi bật:** Lịch 45 + tăng quầy (chờ > 2 trong 5 phút, tối đa +1) dùng TB 46.2–46.4 quầy-giờ mở, đạt $P(SL_{\text{ngày}} \ge 90\%)$ = 97.3% (Lịch 48: 94.0%), giờ tệ nhất khi nhu cầu +10% 0.919 (0.903), khi E[S] +10% 0.913 (0.901), 14/14 ngày. Điều kiện: luôn có 1 người dự phòng sẵn sàng ra quầy (chi phí người này không nằm trong quầy-giờ mở).
+- Khác kế hoạch: kịch bản "ngày 10" (E[S] tăng chỉ 14h–17h) cần thời gian phục vụ theo giờ, `Model` chưa hỗ trợ; thay bằng E[S] +10% cả ngày.
+- Pipeline đầy đủ (M6–M8): 9.9 phút. Test `test_surge_none_identical`, `test_surge_opens_counter`; `pytest -q` 59/59.
+
 ### T3 — CI (2026-10-29)
 - `.github/workflows/ci.yml`: Python 3.12, `pytest -q -m "not slow"` và checker trên mỗi push / pull request (`QS_WORKERS=2`). Chưa kiểm chứng trên GitHub (cần push).
 
