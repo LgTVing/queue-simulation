@@ -475,6 +475,31 @@ def run_reps(
         "hourly": hourly_summary
     }
 
+def summary_row(name: str, schedule: List[int], res: Dict, target_sla: float = TARGET_SLA) -> Dict:
+    """Mot dong bang so sanh (gia tri so, khong dinh dang chuoi) tu ket qua run_reps."""
+    worst = min(res["hourly"], key=lambda x: x["sl_ci95_low"])
+    return {
+        "chinh_sach": name,
+        "lich_quay": str(list(schedule)),
+        "quay_gio": int(sum(schedule)),
+        "n_reps": res["n_reps"],
+        "sl_toan_ngay": res["sl_mean"],
+        "sl_ci_half": res["sl_ci_half"],
+        "sl_2p": res.get("sl_t2_mean", np.nan),
+        "sl_3p": res.get("sl_t3_mean", np.nan),
+        "gio_te_nhat": worst["hour"],
+        "sl_gio_te_nhat": worst["sl_mean"],
+        "sl_gio_te_nhat_low": worst["sl_ci95_low"],
+        "sl_vip": res["sl_vip_mean"],
+        "ti_le_bo_ve": res["p_ab_mean"],
+        "ti_le_bo_ve_ci_half": res["p_ab_ci_half"],
+        "wq_phut": res["wq_mean"],
+        "wq_ci_half": res["wq_ci_half"],
+        "hieu_suat_rho": res["util_mean"],
+        "rho_ci_half": res["util_ci_half"],
+        "dat_sla": "Y" if worst["sl_ci95_low"] >= target_sla else "N"
+    }
+
 # =============================================================================
 # 4. CAC THI NGHIEM BO SUNG (HANG CHUNG VS HANG RIENG, WELCH WARM-UP)
 # =============================================================================

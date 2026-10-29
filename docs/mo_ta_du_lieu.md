@@ -17,7 +17,7 @@
 
 ### Điều kiện sử dụng và bản quyền
 Dữ liệu được cấp quyền sử dụng tự do cho mục đích nghiên cứu và học thuật với hai điều kiện bắt buộc:
-1. Gửi thông báo sử dụng tới Giáo sư Avi Mandelbaum (`avim@ie.technion.ac.il`). *(Xem mẫu email tại mục 11.1 của TUAN_1_HUONG_DAN.md)*.
+1. Gửi thông báo sử dụng tới Giáo sư Avi Mandelbaum (`avim@ie.technion.ac.il`). *(Xem mẫu email tại mục 11.1 của docs/lich_su/TUAN_1_HUONG_DAN.md)*.
 2. Trích dẫn đầy đủ nguồn dữ liệu và tài liệu trong báo cáo và slide thuyết trình.
 
 ---

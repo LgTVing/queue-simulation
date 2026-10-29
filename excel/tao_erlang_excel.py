@@ -1,7 +1,7 @@
 """
 Script tao file Excel Erlang C: excel/erlang.xlsx
 Sua loi triet de #NAME? bang cach dung ham tuong thich toan cau POISSON() thay vi POISSON.DIST().
-Thong nhat o tham chieu dung 100% theo Muc 5.2 cua TUAN_1_HUONG_DAN.md.
+Thong nhat o tham chieu theo Muc 5.2 cua docs/lich_su/TUAN_1_HUONG_DAN.md.
 """
 
 import os
@@ -37,7 +37,7 @@ def build_erlang_excel():
     )
 
     # =========================================================================
-    # 1. SHEET Input (Chuan theo 5.2 TUAN_1_HUONG_DAN.md: B1 den B6)
+    # 1. SHEET Input (Chuan theo 5.2 docs/lich_su/TUAN_1_HUONG_DAN.md: B1 den B6)
     # =========================================================================
     ws_input = wb.create_sheet('Input')
     ws_input.views.sheetView[0].showGridLines = True
@@ -262,13 +262,14 @@ def build_erlang_excel():
             ws_ac[f'{col_l}{r}'].alignment = Alignment(horizontal='center')
 
     # =========================================================================
-    # 5. SHEET Quyet_dinh (tham so TRAIN tu results/final_v3/params.json)
+    # 5. SHEET Quyet_dinh (tham so TRAIN tu params.json cua ban ket qua hien hanh)
     # =========================================================================
     import sys, json
     sys.path.insert(0, BASE_DIR)
     import b_theory as bt
+    import common
 
-    with open(os.path.join(BASE_DIR, "results", "final_v3", "params.json"), encoding="utf-8") as f:
+    with open(os.path.join(common.RESULTS_DIR, "params.json"), encoding="utf-8") as f:
         prm = json.load(f)
     train_lambdas = prm["rates_per_min"]
     es_train = prm["service"]["mean"]

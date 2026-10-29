@@ -5,6 +5,18 @@
 
 ---
 
+## Chạy nhanh trong 3 lệnh
+
+```bash
+pip install -r requirements-dev.txt          # thư viện đã ghim phiên bản (Python 3.12)
+pytest -q                                    # kiểm thử tự động
+python main.py --stage all                   # chạy toàn bộ pipeline, ghi vào results/final_v4/
+```
+
+Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v4/MO_TA.md`.
+
+---
+
 ## Mục lục
 
 1. [Tổng quan và mục tiêu](#1-tổng-quan-và-mục-tiêu)
@@ -446,51 +458,48 @@ Báo cáo: tổng quầy-giờ, `SL` toàn ngày, `SL` giờ tệ nhất (cận 
 ## 13. Cấu trúc mã nguồn và cách chạy
 
 ```
-queue_project/
-├── README.md        # tài liệu tổng quan và hướng dẫn
-├── common.py        # tham số chung, cấu trúc Model, bộ sinh thời gian phục vụ, hàm CI
-├── a_data.py        # [Thành viên A] đọc log, ước lượng, kiểm định, chia tập train/test
-├── b_theory.py      # [Thành viên B] M/M/c, Allen-Cunneen, Erlang-A ma trận hấp thụ, SIPP
-├── b_shifts.py      # [Thành viên B] Lập lịch theo ca MILP (Mô hình A & Mô hình B, HiGHS solver)
-├── c_sim.py         # [Thành viên C] Động cơ mô phỏng SimPy, blocker quầy động, CRN, tối ưu lịch
-├── d_experiments.py # [Cả nhóm] Kịch bản thực thi các thí nghiệm mở rộng và xuất dữ liệu
-├── main.py          # Ghép nối quy trình chuẩn
-├── tests/           # 18 ca kiểm thử đơn vị tự động (pytest)
-├── tools/           # Công cụ kiểm tra nhất quán (check_consistency.py) và tạo bảng (build_tables.py)
-├── results/final_v1/# Kết quả đóng băng đợt 1
-└── results/final_v2/# Kết quả đóng băng đợt 2 (hiệu chỉnh theo yêu cầu)
+queue-simulation/
+├── README.md, CHANGELOG.md, tong_hop.md
+├── requirements.txt       # thư viện ghim phiên bản; requirements-dev.txt thêm pytest
+├── common.py              # cấu hình chung (RESULTS_DIR, BASELINE_C, --reps-scale), Model, bộ sinh phục vụ, CI
+├── stats_utils.py         # Wilson CI, Student-t CI, Holm-Bonferroni
+├── a_data.py              # [A] đọc log, ước lượng, kiểm định (S1, T1, S10), M4 (15h-16h, số NV ước lượng)
+├── b_theory.py            # [B] M/M/c, Allen-Cunneen, Erlang-A ma trận hấp thụ, SIPP
+├── b_shifts.py            # [B] xếp ca MILP (mô hình A/B)
+├── c_sim.py               # [C] động cơ SimPy: NHPP theo giờ, blocker quầy, xả hàng, tối ưu 2 pha + Pha 3
+├── chay_kiem_chung.py     # [C] kiểm chứng 3 tầng + M/G/1 P-K + M/G/6, Welch, pooling
+├── d_experiments.py       # ngữ cảnh chung; giai đoạn theory/optimize (tối ưu, so sánh chính sách, xếp ca)
+├── e_robustness.py        # giai đoạn robust: độ nhạy, S2–S9, S11
+├── f_scenarios.py         # M1 kiên nhẫn, M2 ràng buộc bỏ về, M3 phục vụ thực nghiệm, M5 giờ tệ nhất
+├── g_report.py            # giai đoạn report: doi_chieu_v3_v4.csv, MO_TA.md
+├── main.py                # điều phối: python main.py --stage ... --reps-scale ...
+├── data/  docs/  excel/  tests/
+├── tools/                 # check_consistency.py, build_tables.py, update_tong_hop_chi_tiet.py; archive/ = script V2/V3 cũ
+└── results/final_v4/      # kết quả hiện hành; final_v3/ mốc đối chiếu; archive/ = final_v1, final_v2
 ```
 
 ### 13.1 Cài đặt và chạy
 
 ```bash
-pip install -r requirements.txt
-pytest
-python main.py
-python tools/build_tables.py
-python tools/check_consistency.py
+pip install -r requirements-dev.txt
+pytest -q                       # thêm -m "not slow" để bỏ qua smoke test pipeline
+python main.py --stage all      # hoặc --stage data|theory|verify|optimize|robust|report
 ```
 
-Thời gian chạy khoảng 2 phút.
+`--reps-scale 0.1` nhân mọi số lần lặp/số kịch bản với 0,1 để chạy nhanh. Biến môi trường `QS_RESULTS_DIR` cho phép ghi kết quả ra thư mục khác (chạy thử không đụng vào bản đóng băng).
 
-### 13.2 Vai trò từng module và hàm chính
+### 13.2 Giai đoạn và tệp kết quả
 
-| Module | Hàm chính | Việc làm |
+| Giai đoạn | Hàm | Tệp chính trong `results/final_v4/` |
 |---|---|---|
-| `common.py` | `Model`, `mix_service`, `mix_moments`, `mean_ci` | Cấu trúc mô hình, bộ sinh phục vụ, tính cs² hỗn hợp, CI |
-| `a_data.py` | `generate_log`, `fit_arrivals`, `fit_service`, `fit_patience`, `estimate_all` | Tạo log giả lập, ước lượng λ theo giờ, kiểm định Poisson, fit phân phối, ước lượng θ |
-| `b_theory.py` | `mmc`, `allen_cunneen`, `mm1_random_split`, `erlang_a`, `sipp_schedule` | Công thức lý thuyết và lịch ban đầu |
-| `c_sim.py` | `simulate`, `rep_stats`, `run_reps`, `feasible`, `optimize_schedule`, `simulate_separate`, `welch_curve` | Mô phỏng, thống kê theo giờ, tối ưu, so sánh hàng riêng, Welch |
-| `main.py` | | Chạy 6 bước: dữ liệu, kiểm chứng, warm-up và pooling, tối ưu, đánh giá cuối, độ nhạy |
+| `data` | `a_data.estimate_all`, `lambda_ci_table`, `poisson_overdispersion`, `service_fit_details`, `patience_km`, `cluster_bootstrap_params`, `investigate_hour`, `estimate_concurrency` | `params.json`, `khoang_tin_cay_lambda.csv`, `kiem_dinh_poisson.csv`, `kiem_dinh_phan_phoi_chi_tiet.csv`, `dieu_tra_15h_16h.csv`, `nhan_vien_uoc_luong*.csv` |
+| `theory` | `d_experiments.run_theory` | `bang_sipp.csv`, `lich_khuyen_nghi.json` |
+| `verify` | `chay_kiem_chung.run_all_verification` | `kiem_chung.csv`, `kiem_chung_pooling.csv` |
+| `optimize` | `d_experiments.run_optimize`, `f_scenarios.run_scenarios_optimize` | `lich_toi_uu.csv`, `pha3.csv`, `so_sanh_chinh_sach*.csv`, `lich_theo_ca.csv`, `doi_chieu_xa_hang.csv`, `do_nhay_kien_nhan.csv`, `toi_uu_rang_buoc_bo_ve.csv`, `m3_dich_vu_thuc_nghiem.csv` |
+| `robust` | `e_robustness.run_robust`, `f_scenarios.run_scenarios_robust` | `do_nhay.csv`, `chi_so_ky_vong_dieu_kien.csv`, `ngoai_mau.csv`, `theo_14_ngay.csv`, `chi_phi.csv`, `gio_te_nhat.csv`, … |
+| `report` | `g_report.run_report` | `doi_chieu_v3_v4.csv`, `MO_TA.md` |
 
-### 13.3 Hình và bảng sinh ra
-
-- `fig_a_fit.png`: tốc độ đến theo giờ, phân phối phục vụ, Q-Q plot theo loại giao dịch.
-- `fig_c_welch.png`: đường Welch chọn warm-up.
-- `fig_c_pooling.png`: so sánh hàng chung và hàng riêng.
-- `fig_c_lich_quay.png`: lịch quầy và SLA theo giờ.
-- `fig_c_do_nhay.png`: độ nhạy theo nhu cầu.
-- `ket_qua_kiem_chung.csv`, `ket_qua_hang_chung_vs_rieng.csv`, `ket_qua_danh_gia_chinh_sach.csv`, `ket_qua_do_nhay.csv`.
+Danh mục đầy đủ kèm mô tả từng tệp nằm trong `results/final_v4/MO_TA.md` (sinh tự động).
 
 ---
 

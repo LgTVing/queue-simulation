@@ -43,3 +43,6 @@ ENV/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# pytest
+.pytest_cache/

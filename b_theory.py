@@ -81,7 +81,7 @@ def mm1_random_split(lam: float, mu: float, c: int, t: float = 5.0) -> float:
         return 0.0
     return float(1.0 - rho * math.exp(-mu * (1.0 - rho) * t))
 
-def erlang_a(lam: float, mu: float, theta: float, c: int, t: float = 5.0, K: int = 200) -> Dict[str, float]:
+def erlang_a(lam: float, mu: float, theta: float, c: int, t: float = 5.0, K: int = 200, M: Optional[int] = None) -> Dict[str, float]:
     """
     Mo hinh Erlang-A (M/M/c + M): chuoi sinh tu co khach bo ve voi toc do theta.
     Tinh toan chinh xac:
@@ -89,6 +89,8 @@ def erlang_a(lam: float, mu: float, theta: float, c: int, t: float = 5.0, K: int
     - Wq: thoi gian cho trung binh tren MOI khach (Lq / lam)
     - p_ab: ti le bo ve (theta * Lq / lam)
     - util: hieu suat thuc te cua quay
+    K: so trang thai hang doi toi da cua phan phoi dung (cat duoi chuoi sinh tu).
+    M: so trang thai dung trong ma tran hap thu SL(t) (mac dinh min(K, 80)).
     """
     if theta <= 0:
         # Khi theta = 0, tro ve M/M/c
@@ -114,7 +116,7 @@ def erlang_a(lam: float, mu: float, theta: float, c: int, t: float = 5.0, K: int
     util = (lam * (1.0 - p_ab) / (c * mu)) if (c * mu) > 0 else 0.0
     
     # 2. Tinh SL(t) chinh xac bang chuoi Markov hap thu
-    M = min(K, 80)
+    M = min(K, 80) if M is None else min(K, M)
     Q = np.zeros((M, M))
     for k in range(M):
         diag = -(c * mu + (k + 1) * theta) if k > 0 else -(c * mu + theta)

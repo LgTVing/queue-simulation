@@ -1,5 +1,5 @@
 """
-tools/stats_helpers.py:
+stats_utils.py:
 Cac ham tien ich thong ke:
 1. Khoang tin cay Wilson cho ti le (binomial proportion)
 2. Khoang tin cay Student-t cho trung binh mau

@@ -1,0 +1,3 @@
+# Phu thuoc phat trien va kiem thu
+-r requirements.txt
+pytest==9.2.0

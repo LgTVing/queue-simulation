@@ -3,10 +3,42 @@ common.py: Tham so dung chung, cau truc Model, bo sinh thoi gian phuc vu,
 va cac ham tien ich thong ke cho du an mo phong hang doi.
 """
 
+import os
 from dataclasses import dataclass
 from typing import Callable, Tuple, List, Optional, Union
 import numpy as np
 import scipy.stats as stats
+
+# =============================================================================
+# CAU HINH DUONG DAN VA PHIEN BAN KET QUA (NGUON DUY NHAT)
+# =============================================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_CLEAN = os.path.join(BASE_DIR, "data", "clean", "data_clean.csv")
+RESULTS_VERSION = "final_v4"
+# QS_RESULTS_DIR: ghi ket qua ra thu muc khac (chay thu / smoke test), khong dong vao ban dong bang
+RESULTS_DIR = os.environ.get("QS_RESULTS_DIR") or os.path.join(BASE_DIR, "results", RESULTS_VERSION)
+HINH_DIR = os.path.join(RESULTS_DIR, "hinh")
+
+# Moc co so: so quay co dinh ca ngay (BASELINE_C * HOURS quay-gio)
+BASELINE_C = 6
+
+# He so nhan so lan lap (--reps-scale); 0.1 de chay nhanh khi phat trien
+REPS_SCALE = 1.0
+
+def set_reps_scale(scale: float) -> None:
+    """Dat he so nhan so lan lap cho toan bo pipeline."""
+    global REPS_SCALE
+    REPS_SCALE = float(scale)
+
+def scaled(n: int, min_n: int = 3) -> int:
+    """So lan lap/so kich ban sau khi nhan REPS_SCALE (toi thieu min_n)."""
+    return max(min_n, int(round(n * REPS_SCALE)))
+
+def out_path(name: str, sub: str = "") -> str:
+    """Duong dan tep ket qua trong RESULTS_DIR (tu tao thu muc)."""
+    d = os.path.join(RESULTS_DIR, sub) if sub else RESULTS_DIR
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, name)
 
 # Khung gio lam viec ban ngay (8h - 17h: 9 khung gio)
 HOURS = 9

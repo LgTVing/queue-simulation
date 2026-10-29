@@ -84,7 +84,7 @@ def test_c6_coverage_cannot_be_done_by_6_staff():
 
 def test_wilson_ci_properties():
     """Kiem tra tinh chat cua khoang tin cay Wilson Score."""
-    from tools.stats_helpers import wilson_ci
+    from stats_utils import wilson_ci
     
     # 50/50: [92.9%, 100%]
     p, l, h, hw = wilson_ci(50, 50, conf=0.95)
@@ -106,7 +106,7 @@ def test_wilson_ci_properties():
 
 def test_student_t_ci_degrees_of_freedom():
     """Kiem tra Student-t CI co do nua rong lon hon 1.96*s/sqrt(n) voi n < 100."""
-    from tools.stats_helpers import t_ci
+    from stats_utils import t_ci
     import scipy.stats as st
     
     data = [10.0, 12.0, 11.5, 9.8, 10.5, 11.2, 12.8, 10.1, 9.9, 11.0, 10.4, 12.1, 11.7, 10.3] # n=14
@@ -122,7 +122,7 @@ def test_student_t_ci_degrees_of_freedom():
 
 def test_holm_bonferroni_adjustment():
     """Kiem tra thuat toan Holm-Bonferroni dieu chinh p-value va bao toan tinh don dieu."""
-    from tools.stats_helpers import holm_bonferroni
+    from stats_utils import holm_bonferroni
     
     raw_p = [0.01, 0.04, 0.03, 0.80]
     adj_p, reject = holm_bonferroni(raw_p, alpha=0.05)
