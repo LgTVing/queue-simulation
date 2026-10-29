@@ -23,6 +23,8 @@ from common import Model, HOURS, H_LABELS, TARGET_SLA, scaled, out_path
 import b_theory as th
 import c_sim as sim
 import d_experiments as dx
+import h_staffing as hs
+import b_shifts
 
 # =============================================================================
 # M1: KICH BAN KIEN NHAN DAI (QUAY GIAO DICH CO LAY SO)
@@ -183,6 +185,17 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     _save(abandonment_constraint(model), "toi_uu_rang_buoc_bo_ve.csv")
     print("[M3] Phuc vu thuc nghiem vs Gamma...")
     _save(service_model_comparison(model, ctx["model_gamma"], sch["toi_uu"]), "m3_dich_vu_thuc_nghiem.csv")
+    print("[M6] Toi uu theo gio cong ca (nghi trua 11h-14h)...")
+    # slack=0: lan tham do slack=1 (3.180 lich phu, gio cong 36-48) khong co lich kha thi nao
+    # co gio thieu quay so voi SIPP Erlang-A (tot nhat 0.8867), xem docs/KE_HOACH_V5.md M6.
+    # Can tren gio cong: so gio cong phu lich toi uu quay-gio. Lich phu do co moi gio >= lich toi uu
+    # (da kha thi o seed chon lich) nen luon co ung vien kha thi o muc nay (V4: 48).
+    w_max = b_shifts.solve_shift_scheduling(sch["toi_uu"])["total_work_hours"]
+    m6 = hs.optimize_shift_staffing(model, sch["sipp_erlang_a"], slack=0, w_max=w_max, cv_day=ctx["params"]["day_cv"])
+    _save(m6["trials"], "toi_uu_theo_ca.csv")
+    _save(m6["top"], "toi_uu_theo_ca_top.csv")
+    if len(m6["top"]):
+        dx.save_schedules({"toi_uu_theo_ca": eval(m6["top"].iloc[0]["phu_quay"])})
 
 def run_scenarios_robust(ctx: Dict) -> None:
     """M5 (thuoc giai doan robust)."""

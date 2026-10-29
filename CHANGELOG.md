@@ -20,6 +20,13 @@
 - `tools/check_consistency.py`: thêm `check_report_numbers()` đối chiếu 132 giá trị trong `docs/bao_cao_tong_ket.md`, `docs/slide_thuyet_trinh.md`, `README.md` với 7 CSV nguồn; chuẩn hóa dấu trừ Unicode.
 - `tests/test_t2_checker.py`: tài liệu hiện tại khớp; cố ý sửa sai một số trong mỗi tài liệu thì checker báo lỗi đúng tệp.
 
+### M6 — Tối ưu trực tiếp theo giờ công ca (2026-10-29)
+- `h_staffing.py` (mới): biến quyết định là số nhân viên theo 9 loại ca (mô hình B, nghỉ trưa 11h–14h); duyệt giờ công W tăng dần, mô phỏng mọi lịch phủ có mọi giờ ≥ SIPP Erlang-A − `slack` (seed 1000, 60 lần lặp), dừng ở W nhỏ nhất có lịch khả thi; top-5 xác nhận bằng seed 50000 (300 lần lặp), biến động ngày (CV 14%) và nhu cầu +10%.
+- **Lượt thăm dò đầy đủ (`slack=1`, 3.180 lịch phủ, W = 36–48):** W ≤ 44 có 0/917 lịch khả thi (tốt nhất là lịch Erlang-A, cận dưới 0.8893) → **tối thiểu 48 giờ công**. Ở W = 48 có 33/2.258 lịch khả thi, và cả 33 đều có mọi giờ ≥ SIPP Erlang-A (không lịch nào thiếu quầy ở giờ nào khả thi; tốt nhất 0.8867) → pipeline dùng `slack=0` (95 lịch).
+- **Kết quả:** lịch tốt nhất trong 48 giờ công là `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (4 ca 8h + 4 ca 4h), trùng Lịch 48 bền vững của V4, và trội hơn 4 lịch còn lại trong top-5 ở mọi chỉ số: SL 0.9579, cận dưới giờ tệ nhất 0.9327, bỏ về 3.70%, $P(SL_{\text{ngày}} \ge 90\%)$ = 94.7%, nhu cầu +10% còn 0.9146 (lịch duy nhất ≥ 0.90). Lịch phủ của Lịch 45 khi xếp ca (`[5, 5, 6, 5, 5, 5, 6, 6, 5]`) khả thi nhưng chỉ đạt 0.9069.
+- Pipeline (giai đoạn `optimize`): thêm `toi_uu_theo_ca.csv`, `toi_uu_theo_ca_top.csv`, khóa `toi_uu_theo_ca` trong `lich_khuyen_nghi.json`; cận trên W = số giờ công phủ lịch tối ưu quầy-giờ. Các CSV khác không đổi. Smoke test (`--reps-scale 0.02`) tăng lên ~2.7 phút do M6 phải duyệt tới W = 60.
+- `tests/test_m6_staffing.py`: 3 test (độ phủ nhất quán với MILP, Lịch 48 nằm trong không gian tìm kiếm, W = 44 chỉ có lịch Erlang-A).
+
 ### T3 — CI (2026-10-29)
 - `.github/workflows/ci.yml`: Python 3.12, `pytest -q -m "not slow"` và checker trên mỗi push / pull request (`QS_WORKERS=2`). Chưa kiểm chứng trên GitHub (cần push).
 

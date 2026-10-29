@@ -50,6 +50,8 @@ FILE_DESC = {
     "doi_chieu_xa_hang.csv": ("optimize / F1", "SL gio cuoi khi xa hang giu so quay gio cuoi vs mo het c_max"),
     "do_nhay_kien_nhan.csv": ("optimize / M1", "Lich va chi so theo kien nhan trung binh 9,2 -> vo cung"),
     "toi_uu_rang_buoc_bo_ve.csv": ("optimize / M2", "Toi uu voi rang buoc ti le bo ve, SL o nguong 2/3/5 phut"),
+    "toi_uu_theo_ca.csv": ("optimize / M6", "Moi lich phu theo ca da thu (gio cong, phuong an ca, SL, can duoi gio te nhat)"),
+    "toi_uu_theo_ca_top.csv": ("optimize / M6", "Top-5 lich kha thi o gio cong nho nhat: seed danh gia, bien dong ngay, nhu cau +10%"),
     "m3_dich_vu_thuc_nghiem.csv": ("optimize / M3", "Lich toi uu va danh gia duoi phuc vu thuc nghiem vs Gamma"),
     "do_nhay.csv": ("robust", "Do nhay nhu cau, E[S], theta (CRN)"),
     "chi_so_ky_vong_dieu_kien.csv": ("robust / S2", "Chi so ky vong co dieu kien theo he so nhan ngay"),
