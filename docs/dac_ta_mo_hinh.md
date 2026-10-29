@@ -111,6 +111,9 @@ flowchart TD
 2. **Quầy có năng suất đồng nhất:** Các giao dịch viên có kỹ năng tương đương nhau trên cùng nghiệp vụ chuẩn `PS`.
 3. **Không ngắt quãng phục vụ (Non-preemptive):** Khách VIP được ưu tiên đứng đầu hàng chờ nhưng không ngắt quãng khách thường đang ngồi tại quầy.
 4. **Hệ thống mở cửa trống (Empty system at opening):** 8h00 sáng mở cửa không có khách tồn đọng từ hôm trước.
+5. **Xả hàng sau giờ đóng cửa (V4, sửa F1):** Sau giờ đóng cửa không nhận khách mới; số quầy giữ như giờ cuối (16h–17h) đến khi phục vụ xong khách đã vào hàng. Bản V1–V3 vô tình mở toàn bộ `c_max` quầy khi xả hàng, làm SL giờ 16h–17h bị lạc quan; hành vi cũ vẫn chạy được bằng `drain_policy="all_open"` để đối chiếu.
+6. **Quá trình đến không đồng nhất (V4, sửa F2):** Khách đến theo quá trình Poisson với $\lambda_h$ hằng số trong từng giờ. Khi khoảng đến rút ra vượt qua ranh giới giờ, mô phỏng nhảy tới ranh giới và rút lại với $\lambda_{h+1}$ (hợp lệ nhờ tính không nhớ của phân phối mũ). Bản V1–V3 rút khoảng đến theo $\lambda$ của giờ hiện tại kể cả khi lần đến rơi sang giờ sau, làm đầu giờ có $\lambda$ tăng bị thiếu khách.
+7. **Hiệu suất theo giờ (V4, sửa F3):** $\rho_h$ = thời gian bận thực tế của các quầy giao với khung giờ $[h \cdot 60, (h+1) \cdot 60)$ chia cho $c_h \cdot 60$ (thời gian bận sau giờ đóng cửa báo cáo riêng). Bản V1–V3 gán toàn bộ thời gian phục vụ vào giờ khách đến.
 
 ---
 

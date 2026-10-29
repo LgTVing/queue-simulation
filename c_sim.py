@@ -57,7 +57,9 @@ def customer_process(
                     "arr_time": arr_time,
                     "wait": wait_time,
                     "svc": svc_time,
-                    "served": 1
+                    "served": 1,
+                    "start_svc": start_service,
+                    "end_svc": end_service
                 })
             else:
                 # Het kien nhan bo ve
@@ -69,7 +71,9 @@ def customer_process(
                     "arr_time": arr_time,
                     "wait": wait_time,
                     "svc": np.nan,
-                    "served": 0
+                    "served": 0,
+                    "start_svc": np.nan,
+                    "end_svc": np.nan
                 })
         else:
             # Khong bao gio bo ve (patience = inf)
@@ -84,34 +88,51 @@ def customer_process(
                 "arr_time": arr_time,
                 "wait": wait_time,
                 "svc": svc_time,
-                "served": 1
+                "served": 1,
+                "start_svc": start_service,
+                "end_svc": env.now
             })
+
+DRAIN_POLICIES = ("keep_last", "all_open")
+RECORD_COLUMNS = ["cid", "hour", "vip", "arr_time", "wait", "svc", "served", "start_svc", "end_svc"]
 
 def counter_blocker_process(
     env: simpy.Environment,
     resource: simpy.PriorityResource,
     c_max: int,
     schedule: List[int],
-    hour_len: float
+    hour_len: float,
+    drain_policy: str = "keep_last"
 ):
     """
     Tien trinh dieu chinh so quay theo gio:
     Trong khung gio h, chi cho phep schedule[h] quay hoat dong.
     c_max - schedule[h] quay con lai bi chiem giu boi blocker voi priority cao nhat (-1).
+    drain_policy = 'keep_last': sau gio dong cua giu nguyen so quay cua gio cuoi
+        cho den khi phuc vu xong khach da vao hang (gia dinh chinh, F1).
+    drain_policy = 'all_open': nha het blocker sau gio cuoi -> mo toan bo c_max quay
+        de xa hang (hanh vi cu V1-V3, chi dung de doi chieu).
     """
+    if drain_policy not in DRAIN_POLICIES:
+        raise ValueError(f"drain_policy khong hop le: {drain_policy}")
     for h, active_c in enumerate(schedule):
         needed_blocks = max(0, c_max - active_c)
-        block_reqs = []
         # Chiem giu so quay khong hoat dong
-        for _ in range(needed_blocks):
-            req = resource.request(priority=-1)
-            block_reqs.append(req)
-            
+        block_reqs = [resource.request(priority=-1) for _ in range(needed_blocks)]
+
+        if h == len(schedule) - 1 and drain_policy == "keep_last":
+            return
+
         yield env.timeout(hour_len)
-        
-        # Giai phong khi chuyen gio (de gio sau thiet lap lai)
+
+        # Giai phong khi chuyen gio (de gio sau thiet lap lai).
+        # Blocker chua duoc cap quay phai cancel() de go khoi hang doi,
+        # neu chi release() thi request van nam trong hang va chiem quay ve sau.
         for req in block_reqs:
-            resource.release(req)
+            if req.triggered:
+                resource.release(req)
+            else:
+                req.cancel()
 
 # =============================================================================
 # 2. HAM MO PHONG TOAN BO NGAY / DOT CHAY
@@ -124,13 +145,15 @@ def simulate(
     warm_up: float = 0.0,
     seed: int = 42,
     day_cv: float = 0.0,
-    day_multiplier: Optional[float] = None
+    day_multiplier: Optional[float] = None,
+    drain_policy: str = "keep_last"
 ) -> pd.DataFrame:
     """
     Chay 1 dot mo phong don le.
     Tra ve DataFrame ghi nhan chi tiet lich su moi khach hang.
     day_cv > 0: ap dung he so nhan ngay m_d ~ Gamma(1/day_cv^2, day_cv^2).
     day_multiplier: truyen truc tiep gia tri he so nhan ngay (neu co).
+    drain_policy: cach xu ly so quay sau gio dong cua (xem counter_blocker_process).
     """
     rng = np.random.default_rng(seed)
     env = simpy.Environment()
@@ -154,26 +177,35 @@ def simulate(
     
     # Khoi chay tien trinh dieu phoi lich quay neu lich co su thay doi
     if len(schedule) > 1:
-        env.process(counter_blocker_process(env, resource, c_max, schedule, hour_len))
-        
+        env.process(counter_blocker_process(env, resource, c_max, schedule, hour_len, drain_policy))
+
     def arrival_generator():
+        """
+        Qua trinh Poisson khong dong nhat voi lambda hang so tung khuc (F2).
+        Neu lan den tiep theo vuot qua ranh gioi khung gio, nhay toi ranh gioi
+        va rut lai voi lambda cua gio moi (hop le nho tinh khong nho cua phan phoi mu).
+        Chi so gio duoc dem bang bien h thay vi env.now // hour_len de tranh sai so
+        dau phay dong ngay tai ranh gioi.
+        """
         cid = 0
-        while env.now < total_time:
-            # Xac dinh khung gio hien tai
-            h = min(int(env.now // hour_len), len(model.rates) - 1)
+        n_h = len(model.rates)
+        h = 0
+        while True:
+            boundary = min((h + 1) * hour_len, total_time) if h < n_h - 1 else total_time
             lam = model.rates[h] * m_d
-            if lam <= 0:
-                yield env.timeout(1.0)
+            if lam > 0:
+                inter_arr = rng.exponential(1.0 / lam)
+            if lam <= 0 or env.now + inter_arr >= boundary:
+                if boundary - env.now > 0:
+                    yield env.timeout(boundary - env.now)
+                if boundary >= total_time:
+                    break
+                h += 1
                 continue
-                
-            # Sinh khoang thoi gian den tiep theo (Exp(lam))
-            inter_arr = rng.exponential(1.0 / lam)
             yield env.timeout(inter_arr)
-            if env.now >= total_time:
-                break
-                
+
             # Sinh thuoc tinh khach hang
-            h_arrival = min(int(env.now // hour_len), len(model.rates) - 1)
+            h_arrival = h
             if isinstance(model.p_vip, (list, tuple, np.ndarray)):
                 pv = model.p_vip[h_arrival] if h_arrival < len(model.p_vip) else model.p_vip[-1]
             else:
@@ -193,7 +225,7 @@ def simulate(
     
     df = pd.DataFrame(records)
     if len(df) == 0:
-        return pd.DataFrame(columns=["cid", "hour", "vip", "arr_time", "wait", "svc", "served"])
+        return pd.DataFrame(columns=RECORD_COLUMNS)
         
     # Loai bo doan warm-up neu co
     if warm_up > 0:
@@ -210,37 +242,64 @@ def rep_stats(
     schedule: List[int],
     hour_len: float = 60.0,
     wait_thresh: float = WAIT_THRESHOLD,
-    wait_thresh_vip: float = WAIT_THRESHOLD_VIP
+    wait_thresh_vip: float = WAIT_THRESHOLD_VIP,
+    t_start: float = 0.0,
+    extra_thresh: Tuple[float, ...] = (2.0, 3.0)
 ) -> Dict:
-    """Tinh toan cac chi so thong ke toan ngay va theo tung gio tu ket qua 1 dot chay."""
+    """
+    Tinh toan cac chi so thong ke toan ngay va theo tung gio tu ket qua 1 dot chay.
+    Khung gio h la [t_start + h*hour_len, t_start + (h+1)*hour_len).
+    Hieu suat theo gio (F3) = thoi gian ban thuc te giao voi khung gio / (c_h * hour_len),
+    tinh tu start_svc, end_svc cua tung khach; thoi gian ban sau gio dong cua
+    duoc bao cao rieng o 'busy_after_close'.
+    extra_thresh: cac nguong cho bo sung de bao cao SL toan ngay (vd 2 va 3 phut).
+    """
     if len(df) == 0:
         return {"sl_all": 0.0, "sl_vip": 0.0, "wq_all": 0.0, "p_ab_all": 0.0, "hourly": []}
-        
+
     # Toan ngay
     n_tot = len(df)
-    n_served_sla = ((df["served"] == 1) & (df["wait"] <= wait_thresh)).sum()
+    served_mask = df["served"] == 1
+    n_served_sla = (served_mask & (df["wait"] <= wait_thresh)).sum()
     sl_all = n_served_sla / n_tot if n_tot > 0 else 0.0
-    
+    sl_extra = {
+        f"sl_all_t{t:g}": float((served_mask & (df["wait"] <= t)).sum() / n_tot)
+        for t in extra_thresh
+    }
+
     df_vip = df[df["vip"] == 1]
     n_vip = len(df_vip)
     n_vip_sla = ((df_vip["served"] == 1) & (df_vip["wait"] <= wait_thresh_vip)).sum()
     sl_vip = n_vip_sla / n_vip if n_vip > 0 else np.nan
-    
+
     wq_all = df["wait"].mean()
     p_ab_all = (df["served"] == 0).mean()
 
     # Hieu suat su dung toan bo quay
-    tot_svc_all = df[df["served"] == 1]["svc"].sum() if "svc" in df.columns else 0.0
+    tot_svc_all = df[served_mask]["svc"].sum() if "svc" in df.columns else 0.0
     tot_c_time = sum(schedule) * hour_len
     util_all = tot_svc_all / tot_c_time if tot_c_time > 0 else 0.0
-    
+
+    # Khoang phuc vu thuc te (F3)
+    if "start_svc" in df.columns:
+        s_start = df.loc[served_mask, "start_svc"].to_numpy(dtype=float)
+        s_end = df.loc[served_mask, "end_svc"].to_numpy(dtype=float)
+    else:
+        s_start = s_end = np.zeros(0)
+    t_close = t_start + len(schedule) * hour_len
+    busy_after_close = float(np.clip(s_end - np.maximum(s_start, t_close), 0.0, None).sum())
+
     # Theo tung khung gio
     hourly = []
     for h, c in enumerate(schedule):
+        lo = t_start + h * hour_len
+        hi = lo + hour_len
+        busy_h = float(np.clip(np.minimum(s_end, hi) - np.maximum(s_start, lo), 0.0, None).sum())
+        util_h = busy_h / (c * hour_len) if c > 0 and hour_len > 0 else 0.0
         df_h = df[df["hour"] == h]
         n_h = len(df_h)
         if n_h == 0:
-            hourly.append({"hour": h, "sl": 1.0, "sl_vip": 1.0, "wq": 0.0, "p_ab": 0.0, "util": 0.0})
+            hourly.append({"hour": h, "sl": 1.0, "sl_vip": 1.0, "wq": 0.0, "p_ab": 0.0, "util": float(util_h)})
             continue
             
         sl_h = ((df_h["served"] == 1) & (df_h["wait"] <= wait_thresh)).sum() / n_h
@@ -248,11 +307,7 @@ def rep_stats(
         sl_h_vip = (((df_h_vip["served"] == 1) & (df_h_vip["wait"] <= wait_thresh_vip)).sum() / len(df_h_vip)) if len(df_h_vip) > 0 else np.nan
         wq_h = df_h["wait"].mean()
         p_ab_h = (df_h["served"] == 0).mean()
-        
-        # Hieu suat su dung quay trong gio h: tong thoi gian phuc vu / (c * hour_len)
-        tot_svc_h = df_h[df_h["served"] == 1]["svc"].sum()
-        util_h = tot_svc_h / (c * hour_len) if c > 0 and hour_len > 0 else 0.0
-        
+
         hourly.append({
             "hour": h,
             "sl": float(sl_h),
@@ -268,6 +323,8 @@ def rep_stats(
         "wq_all": float(wq_all),
         "p_ab_all": float(p_ab_all),
         "util_all": float(util_all),
+        "busy_after_close": busy_after_close,
+        **sl_extra,
         "hourly": hourly
     }
 
@@ -278,27 +335,34 @@ def run_reps(
     run_time: Optional[float] = None,
     warm_up: float = 0.0,
     seed_base: int = 42,
-    day_cv: float = 0.0
+    day_cv: float = 0.0,
+    drain_policy: str = "keep_last",
+    keep_reps: bool = False
 ) -> Dict:
     """
     Chay n_reps lan lap doc lap su dung ky thuat so ngau nhien chung (CRN).
     Tinh trung binh, sai so chuan va khoang tin cay 95% cho moi chi so.
     day_cv > 0: ap dung bien dong he so nhan ngay.
+    keep_reps: tra them ma tran SL theo gio tung lan lap (n_reps x H) va SL ngay
+        tung lan lap, dung cho hieu so theo cap (CRN) va xac suat gio te nhat.
     """
     reps_data = []
     hourly_reps = [[] for _ in range(len(schedule))]
-    
+
     # Xac dinh do dai gio hieu dung:
     # Neu he dung chay dai (len(schedule) == 1 va co run_time), do dai thuc te la run_time - warm_up
+    # va khung do bat dau tu warm_up
     if run_time is not None and len(schedule) == 1:
         eff_hour_len = max(1.0, run_time - warm_up)
+        t_start = warm_up
     else:
         eff_hour_len = model.hour_len
-    
+        t_start = 0.0
+
     for i in range(n_reps):
         seed = seed_base + i * 1000
-        df_rep = simulate(model, schedule, run_time, warm_up, seed, day_cv=day_cv)
-        st = rep_stats(df_rep, schedule, eff_hour_len)
+        df_rep = simulate(model, schedule, run_time, warm_up, seed, day_cv=day_cv, drain_policy=drain_policy)
+        st = rep_stats(df_rep, schedule, eff_hour_len, t_start=t_start)
         reps_data.append(st)
         for h, h_st in enumerate(st["hourly"]):
             hourly_reps[h].append(h_st)
@@ -374,9 +438,23 @@ def run_reps(
             "util_mean": round(m_ut_h, 4),
             "util_ci_half": round(ci_ut_h, 4)
         })
-        
+
+    # SL toan ngay o cac nguong cho bo sung (2, 3 phut) va so lieu tung lan lap
+    extra = {}
+    for key in reps_data[0]:
+        if key.startswith("sl_all_t"):
+            m_x, ci_x, _ = mean_ci([r[key] for r in reps_data])
+            extra[key.replace("sl_all_", "sl_") + "_mean"] = round(m_x, 4)
+            extra[key.replace("sl_all_", "sl_") + "_ci_half"] = round(ci_x, 4)
+    if keep_reps:
+        extra["rep_sl_day"] = np.array(sl_vals)
+        extra["rep_p_ab"] = np.array(p_ab_vals)
+        extra["rep_sl_hourly"] = np.array([[hourly_reps[h][i]["sl"] for h in range(len(schedule))]
+                                           for i in range(n_reps)])
+
     return {
         "n_reps": n_reps,
+        **extra,
         "sl_mean": round(m_sl, 4),
         "sl_ci95": [round(low_sl, 4), round(high_sl, 4)],
         "sl_ci_half": round(ci_sl, 4),
@@ -503,10 +581,17 @@ def welch_curve(
 # 5. THUAT TOAN TOI UU LICH QUAY DUA TREN MO PHONG (SIMULATION OPTIMIZATION)
 # =============================================================================
 
-def is_schedule_feasible(eval_res: Dict, target_sla: float = TARGET_SLA) -> Tuple[bool, List[int]]:
+def is_schedule_feasible(
+    eval_res: Dict,
+    target_sla: float = TARGET_SLA,
+    max_p_ab: Optional[float] = None
+) -> Tuple[bool, List[int]]:
     """
     Kiem tra lich co thoa man SLA (feasible) khong:
     Dung can duoi CI95 cua SL theo tung gio: sl_ci95_low >= target_sla.
+    max_p_ab (M2): neu khac None, them rang buoc can tren CI95 cua ti le bo ve
+    toan ngay <= max_p_ab; khi vi pham, gio co ti le bo ve cao nhat duoc
+    dua vao danh sach vi pham (de pha 1 tang quay o gio do).
     Tra ve (feasible, danh sach cac gio bi vi pham).
     """
     violated = []
@@ -514,6 +599,10 @@ def is_schedule_feasible(eval_res: Dict, target_sla: float = TARGET_SLA) -> Tupl
         h = h_info["hour"]
         if h_info["sl_ci95_low"] < target_sla:
             violated.append(h)
+    if max_p_ab is not None and eval_res["p_ab_mean"] + eval_res["p_ab_ci_half"] > max_p_ab:
+        worst_ab = max(eval_res["hourly"], key=lambda x: x["p_ab_mean"])["hour"]
+        if worst_ab not in violated:
+            violated.append(worst_ab)
     return len(violated) == 0, violated
 
 def optimize_schedule(
@@ -522,7 +611,8 @@ def optimize_schedule(
     target_sla: float = TARGET_SLA,
     n_reps: int = 60,
     c_cap: int = 15,
-    seed_base: int = 1000
+    seed_base: int = 1000,
+    max_p_ab: Optional[float] = None
 ) -> Dict:
     """
     Thuat toan toi uu lich quay 2 pha dua tren mo phong SimPy:
@@ -532,8 +622,12 @@ def optimize_schedule(
       Lap lai den khi moi gio deu dat SLA hoac dat c_cap.
     - Pha 2 (Reduction/Pruning): Thu giam 1 quay o tung gio (bat dau tu gio nhieu quay nhat).
       Giu nguyen giam neu toan bo lich van dat SLA (feasible).
+    max_p_ab: rang buoc ti le bo ve toan ngay (M2), None = khong rang buoc.
     Tra ve: {"schedule": optimal_schedule, "history": history, "eval": eval_final}
     """
+    def feasible(res):
+        return is_schedule_feasible(res, target_sla, max_p_ab)
+
     if initial_schedule is None:
         import b_theory as th
         sched = th.sipp_schedule(model.rates, 1.0 / model.mean_svc, model.theta, target=target_sla)
@@ -548,17 +642,18 @@ def optimize_schedule(
     
     while step < max_steps_phase1:
         eval_res = run_reps(model, sched, n_reps=n_reps, seed_base=seed_base)
-        feas, violated = is_schedule_feasible(eval_res, target_sla)
-        
+        feas, violated = feasible(eval_res)
+
         worst_hour = min(eval_res["hourly"], key=lambda x: x["sl_ci95_low"])
         worst_sl_low = worst_hour["sl_ci95_low"]
-        
+
         history.append({
             "step": step,
             "phase": 1,
             "schedule": list(sched),
             "total_c_hours": sum(sched),
             "sl_mean": eval_res["sl_mean"],
+            "p_ab_mean": eval_res["p_ab_mean"],
             "worst_hour": worst_hour["hour"],
             "worst_sl_low": worst_sl_low,
             "violated_hours": list(violated),
@@ -582,8 +677,8 @@ def optimize_schedule(
             test_sched = list(sched)
             test_sched[h] -= 1
             eval_test = run_reps(model, test_sched, n_reps=n_reps, seed_base=seed_base)
-            feas_test, violated_test = is_schedule_feasible(eval_test, target_sla)
-            
+            feas_test, violated_test = feasible(eval_test)
+
             step += 1
             worst_h_test = min(eval_test["hourly"], key=lambda x: x["sl_ci95_low"])
             history.append({
@@ -593,6 +688,7 @@ def optimize_schedule(
                 "schedule": list(test_sched),
                 "total_c_hours": sum(test_sched),
                 "sl_mean": eval_test["sl_mean"],
+                "p_ab_mean": eval_test["p_ab_mean"],
                 "worst_hour": worst_h_test["hour"],
                 "worst_sl_low": worst_h_test["sl_ci95_low"],
                 "violated_hours": list(violated_test),
@@ -610,3 +706,54 @@ def optimize_schedule(
         "history": history,
         "eval": final_eval
     }
+
+def local_search_phase3(
+    model: Model,
+    schedule: List[int],
+    target_sla: float = TARGET_SLA,
+    n_reps: int = 60,
+    seed_base: int = 1000,
+    max_p_ab: Optional[float] = None
+) -> List[Dict]:
+    """
+    Pha 3: kiem tra tinh toi thieu cuc bo cua lich bang mo phong (cung seed voi toi uu):
+    - Swap: bot 1 quay o gio i, them 1 quay o gio j (giu tong quay-gio).
+    - Giam 2 quay: bot 1 quay o hai gio i <= j (giam tong 2 quay-gio).
+    Lich la toi thieu cuc bo neu khong co phep giam 2 quay nao kha thi.
+    """
+    candidates = []
+    n_h = len(schedule)
+    for i in range(n_h):
+        for j in range(n_h):
+            if i != j and schedule[i] > 1:
+                cand = list(schedule)
+                cand[i] -= 1
+                cand[j] += 1
+                candidates.append(("Swap 1 quay", i, j, cand))
+    for i in range(n_h):
+        for j in range(i, n_h):
+            cand = list(schedule)
+            cand[i] -= 1
+            cand[j] -= 1
+            if min(cand) >= 1:
+                candidates.append(("Giam 2 quay", i, j, cand))
+
+    rows = []
+    for kind, i, j, cand in candidates:
+        res = run_reps(model, cand, n_reps=n_reps, seed_base=seed_base)
+        feas, violated = is_schedule_feasible(res, target_sla, max_p_ab)
+        worst = min(res["hourly"], key=lambda x: x["sl_ci95_low"])
+        rows.append({
+            "loai_thu_nghiem": kind,
+            "gio_i": i,
+            "gio_j": j,
+            "lich_thu_nghiem": str(cand),
+            "tong_quay_gio": sum(cand),
+            "sl_toan_ngay": res["sl_mean"],
+            "gio_te_nhat": worst["hour"],
+            "sl_gio_te_nhat_low": worst["sl_ci95_low"],
+            "ti_le_bo_ve": res["p_ab_mean"],
+            "gio_vi_pham": str(violated),
+            "kha_thi": "Y" if feas else "N"
+        })
+    return rows
