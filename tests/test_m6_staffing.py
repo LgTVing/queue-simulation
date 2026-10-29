@@ -31,3 +31,25 @@ def test_lich_48_in_search_space():
 
 def test_w44_only_erlang_a():
     assert list(hs.coverage_vectors(44, SIPP_A)) == [tuple(SIPP_A)]
+
+
+# ----------------------------------------------------------------------------- M7
+from common import Model, empirical_service  # noqa: E402
+from stats_utils import wilson_ci  # noqa: E402
+import c_sim as cs  # noqa: E402
+
+
+def _small_model():
+    return Model(rates=[1.2, 1.6, 1.0], service=empirical_service(np.random.default_rng(1).gamma(1.1, 2.7, 500)),
+                 theta=0.1, p_vip=0.35)
+
+
+def test_p_day_matches_definition():
+    """M7: P = ti le lan lap co SL ngay >= 90%, Wilson tinh tren so lan lap; ket qua dem lai giong het."""
+    m, sched = _small_model(), [4, 5, 4]
+    r = hs.p_day(m, sched, cv_day=0.14, n_reps=40, seed=123)
+    ref = cs.run_reps(m, sched, n_reps=40, seed_base=123, day_cv=0.14, keep_reps=True)
+    k = int(np.sum(np.asarray(ref["rep_sl_day"]) >= 0.90))
+    p, lo, hi, _ = wilson_ci(k, 40)
+    assert (r["p"], r["low"], r["high"]) == (p, lo, hi)
+    assert hs.p_day(m, sched, cv_day=0.14, n_reps=40, seed=123) is r

@@ -27,6 +27,20 @@
 - Pipeline (giai đoạn `optimize`): thêm `toi_uu_theo_ca.csv`, `toi_uu_theo_ca_top.csv`, khóa `toi_uu_theo_ca` trong `lich_khuyen_nghi.json`; cận trên W = số giờ công phủ lịch tối ưu quầy-giờ. Các CSV khác không đổi. Smoke test (`--reps-scale 0.02`) tăng lên ~2.7 phút do M6 phải duyệt tới W = 60.
 - `tests/test_m6_staffing.py`: 3 test (độ phủ nhất quán với MILP, Lịch 48 nằm trong không gian tìm kiếm, W = 44 chỉ có lịch Erlang-A).
 
+### M7 — Chọn lịch theo xác suất đạt SLA ngày (2026-10-30)
+- `h_staffing.py`: lịch khả thi khi đạt tiêu chí danh định theo giờ **và** cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$ ≥ `min_p` (300 lần lặp, CV ngày 14%, seed 3000). Không gian quầy-giờ: tham lam 2 pha từ Lịch 45. Không gian theo ca: khung M6, sàng lọc P bằng 100 lần lặp, đánh giá đầy đủ top 10. Kết quả tất định được cache giữa các mức.
+- `f_scenarios.p_day_levels` → `toi_uu_xac_suat_ngay.csv` (đánh giá lại bằng seed 50000 và 14 ngày thực tế):
+
+| min_p | Quầy-giờ: lịch / q-h / giờ công ca / P / 14 ngày | Theo ca: lịch / giờ công / P / 14 ngày |
+|:---:|---|---|
+| 0.80 | `[4,5,6,5,5,5,5,5,5]` / 45 / 48 / 85.7% / 12 | `[4,5,6,6,5,5,6,6,5]` / 48 / 95.0% / 14 |
+| 0.90 | `[4,6,6,6,5,5,5,6,5]` / 48 / 52 / 95.3% / 14 | `[4,5,6,6,5,5,6,6,5]` / 48 / 95.0% / 14 |
+| 0.95 | `[5,6,6,6,6,5,5,6,5]` / 50 / 52 / 98.0% / 14 | `[4,6,7,7,5,6,6,6,5]` / 52 / 99.3% / 14 |
+
+- **Kết luận:** đạt SLA ở ≥ 90% số ngày (độ tin cậy 95%) cần **48 giờ công**; ở ≥ 95% số ngày cần **52 giờ công**. Ở 48 giờ công, lịch M7 (P 95.0%) và Lịch 48 (P 94.7%, M6) không khác biệt có ý nghĩa với 300 lần lặp; Lịch 48 tốt hơn ở giờ tệ nhất và khi nhu cầu +10%.
+- Thời gian: giai đoạn `optimize` 1.6 → 10.4 phút (chủ yếu duyệt 52 giờ công cho mức 0.95); pipeline đầy đủ ước ~15 phút, vượt mục tiêu 10 phút của P1. `pytest -q` (gồm smoke test) 7 phút.
+- Test `test_p_day_matches_definition`.
+
 ### T3 — CI (2026-10-29)
 - `.github/workflows/ci.yml`: Python 3.12, `pytest -q -m "not slow"` và checker trên mỗi push / pull request (`QS_WORKERS=2`). Chưa kiểm chứng trên GitHub (cần push).
 

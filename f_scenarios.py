@@ -196,6 +196,40 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     _save(m6["top"], "toi_uu_theo_ca_top.csv")
     if len(m6["top"]):
         dx.save_schedules({"toi_uu_theo_ca": eval(m6["top"].iloc[0]["phu_quay"])})
+    print("[M7] Chon lich theo xac suat dat SLA ngay (bien dong ngay)...")
+    _save(p_day_levels(ctx, sch), "toi_uu_xac_suat_ngay.csv")
+
+
+def p_day_levels(ctx: Dict, sch: Dict[str, List[int]], levels=(0.80, 0.90, 0.95)) -> pd.DataFrame:
+    """
+    M7: voi moi muc min_p, lich nho nhat co can duoi Wilson P(SL_ngay >= 90%) >= min_p
+    (bien dong ngay CV train), trong khong gian quay-gio va theo ca; danh gia lai bang seed
+    danh gia 50000 (300 lan lap) va 14 ngay thuc te.
+    """
+    import e_robustness as er
+    model, cv = ctx["model"], ctx["params"]["day_cv"]
+    rows, pols = [], {}
+    for mp in levels:
+        found = {"quay-gio": (hs.optimize_p_day_counters(model, sch["toi_uu"], cv, mp)["schedule"], ""),
+                 "theo ca": None}
+        s = hs.optimize_p_day_shifts(model, sch["sipp_erlang_a"], cv, mp)
+        found["theo ca"] = (s["lich"], s["phuong_an_ca"])
+        for space, (lich, ca) in found.items():
+            print(f"  • M7 p>={mp:.2f} {space}: {lich}")
+            if lich is None:
+                rows.append({"min_p": mp, "khong_gian": space, "lich": None})
+                continue
+            ev = hs.p_day(model, lich, cv, seed=dx.SEED_EVAL)
+            gc = b_shifts.solve_shift_scheduling(lich)["total_work_hours"]
+            pols[f"{space} p>={mp:.2f}"] = lich
+            rows.append({"min_p": mp, "khong_gian": space, "lich": str(lich), "quay_gio": sum(lich), "gio_cong_ca": gc,
+                         "phuong_an_ca": ca, "P_ngay_danh_gia": ev["p"], "P_ngay_danh_gia_low95": ev["low"],
+                         "P_ngay_danh_gia_high95": ev["high"]})
+    _, summ = er.fourteen_days(model, ctx["df_all"], pols, ctx["n_day_mean"])
+    ok = summ.set_index("chinh_sach")["so_ngay_dat"]
+    out = pd.DataFrame(rows)
+    out["so_ngay_dat_14"] = [ok.get(f"{r.khong_gian} p>={r.min_p:.2f}") for r in out.itertuples()]
+    return out
 
 def run_scenarios_robust(ctx: Dict) -> None:
     """M5 (thuoc giai doan robust)."""
