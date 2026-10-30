@@ -9,7 +9,8 @@ f_scenarios.py: Cac kich ban cung co noi dung mo hinh (V4):
 - M5 worst_hour_stability(): so lan lap can thiet de CI SL moi gio <= 0,3 diem %,
   xac suat moi gio la gio te nhat -> gio_te_nhat.csv, so_lan_lap_can_thiet.csv
 V5:
-- M6 (h_staffing) toi uu theo gio cong ca -> toi_uu_theo_ca.csv, toi_uu_theo_ca_top.csv
+- M6 (h_staffing) toi uu theo gio cong ca -> toi_uu_theo_ca.csv, toi_uu_theo_ca_top.csv;
+  bien the nghi trua 9h-16h -> toi_uu_theo_ca_linh_hoat*.csv
 - M7 p_day_levels(): lich nho nhat theo muc P(SL ngay >= 90%) -> toi_uu_xac_suat_ngay.csv
 - M8 surge_policies(): mo them quay khi hang cho dai -> chinh_sach_tang_quay.csv;
   recommended_surge() chon chinh sach khuyen nghi
@@ -232,6 +233,9 @@ def _save(df: pd.DataFrame, name: str) -> None:
     df.to_csv(out_path(name), index=False, encoding="utf-8-sig")
     print(f"  -> {name}")
 
+LUNCH_FLEX = (1, 7)  # M6 bien the: nghi trua 1 gio trong 9h-16h
+
+
 def run_scenarios_optimize(ctx: Dict) -> None:
     """M1, M2, M3 (thuoc giai doan optimize)."""
     model = ctx["model"]
@@ -261,6 +265,12 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     _save(m6["top"], "toi_uu_theo_ca_top.csv")
     if len(m6["top"]):
         dx.save_schedules({"toi_uu_theo_ca": eval(m6["top"].iloc[0]["phu_quay"])})
+    print("[M6] Bien the nghi trua linh hoat 9h-16h...")
+    w_max_f = b_shifts.solve_shift_scheduling(sch["toi_uu"], lunch_window=LUNCH_FLEX)["total_work_hours"]
+    m6f = hs.optimize_shift_staffing(model, sch["sipp_erlang_a"], lunch_window=LUNCH_FLEX, slack=0, w_max=w_max_f,
+                                     cv_day=ctx["params"]["day_cv"])
+    _save(m6f["trials"], "toi_uu_theo_ca_linh_hoat.csv")
+    _save(m6f["top"], "toi_uu_theo_ca_linh_hoat_top.csv")
     print("[M7] Chon lich theo xac suat dat SLA ngay (bien dong ngay)...")
     _save(p_day_levels(ctx, sch), "toi_uu_xac_suat_ngay.csv")
 

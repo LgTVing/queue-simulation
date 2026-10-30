@@ -57,6 +57,8 @@ FILE_DESC = {
     "kien_nhan_weibull.csv": ("optimize / S12", "Lich toi uu va danh gia Lich 45/48 duoi kien nhan mu va Weibull"),
     "lambda_nua_gio.csv": ("optimize / S15", "Lambda hai nua moi khung gio (train), kiem dinh binomial va Holm-Bonferroni"),
     "khung_30_phut.csv": ("optimize / S15", "Lich 45/48 va lich toi uu khi lambda 8h-10h theo nua gio"),
+    "toi_uu_theo_ca_linh_hoat.csv": ("optimize / M6", "Nhu toi_uu_theo_ca.csv voi nghi trua linh hoat 9h-16h"),
+    "toi_uu_theo_ca_linh_hoat_top.csv": ("optimize / M6", "Top-5 lich kha thi, nghi trua linh hoat 9h-16h"),
     "toi_uu_theo_ca_top.csv": ("optimize / M6", "Top-5 lich kha thi o gio cong nho nhat: seed danh gia, bien dong ngay, nhu cau +10%"),
     "m3_dich_vu_thuc_nghiem.csv": ("optimize / M3", "Lich toi uu va danh gia duoi phuc vu thuc nghiem vs Gamma"),
     "do_nhay.csv": ("robust", "Do nhay nhu cau, E[S], theta (CRN)"),

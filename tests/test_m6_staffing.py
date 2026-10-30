@@ -3,6 +3,7 @@ tests/test_m6_staffing.py: Kiem thu toi uu theo gio cong ca (M6):
 1. Moi do phu liet ke co tong = gio cong va x tao ra dung do phu do
 2. Lich 48 (phu dung bang MILP) xuat hien trong tap do phu W = 48
 3. Lich Erlang-A 44 la do phu duy nhat W = 44 khi moi gio >= SIPP Erlang-A
+4. Nghi trua linh hoat 9h-16h: khong gian chua nghi 11h-14h, dem ca dung
 """
 
 import numpy as np
@@ -31,6 +32,16 @@ def test_lich_48_in_search_space():
 
 def test_w44_only_erlang_a():
     assert list(hs.coverage_vectors(44, SIPP_A)) == [tuple(SIPP_A)]
+
+
+def test_flexible_lunch_space():
+    """Nghi trua 9h-16h: W = 44 van chi co lich Erlang-A; W = 48 chua moi do phu cua nghi 11h-14h."""
+    flex = (1, 7)
+    assert list(hs.coverage_vectors(44, SIPP_A, flex)) == [tuple(SIPP_A)]
+    assert set(hs.coverage_vectors(48, SIPP_A)) <= set(hs.coverage_vectors(48, SIPP_A, flex))
+    for cov, x in hs.coverage_vectors(48, SIPP_A, flex).items():
+        n8, n4 = hs.shift_counts(x, flex)
+        assert 8 * n8 + 4 * n4 == 48
 
 
 # ----------------------------------------------------------------------------- M7

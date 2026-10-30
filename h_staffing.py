@@ -49,6 +49,12 @@ def coverage_vectors(W: int, lower: List[int], lunch_window: Tuple[int, int] = (
     return out
 
 
+def shift_counts(x: List[int], lunch_window: Tuple[int, int]) -> Tuple[int, int]:
+    """(so ca 8h, so ca 4h) cua phuong an x."""
+    hours = np.array(b_shifts.create_shifts("B", lunch_window)[3])
+    return int(np.dot(x, hours == 8)), int(np.dot(x, hours == 4))
+
+
 def _describe_x(x: List[int], lunch_window: Tuple[int, int]) -> str:
     _, _, names, _ = b_shifts.create_shifts("B", lunch_window)
     return "; ".join(f"{n} x{v}" for n, v in zip(names, x) if v > 0)
@@ -74,7 +80,7 @@ def optimize_shift_staffing(model: Model, sipp: List[int], lunch_window: Tuple[i
             feas, viol = sim.is_schedule_feasible(res)
             worst = min(res["hourly"], key=lambda r: r["sl_ci95_low"])
             rows.append({"gio_cong": w, "phu_quay": str(list(cov)), "quay_gio_mo": sum(cov),
-                         "phuong_an_ca": _describe_x(x, lunch_window), "n_ca_8h": sum(x[-3:]), "n_ca_4h": sum(x[:-3]),
+                         "phuong_an_ca": _describe_x(x, lunch_window), "n_ca_8h": shift_counts(x, lunch_window)[0], "n_ca_4h": shift_counts(x, lunch_window)[1],
                          "sl_toan_ngay": res["sl_mean"], "ti_le_bo_ve": res["p_ab_mean"],
                          "gio_te_nhat": worst["hour"], "sl_gio_te_nhat_low": worst["sl_ci95_low"],
                          "gio_vi_pham": str(viol), "kha_thi": "Y" if feas else "N"})
