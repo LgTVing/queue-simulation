@@ -442,6 +442,36 @@ def service_fit_details(svc: np.ndarray, B: int = 300, seed: int = 42) -> pd.Dat
                  "cs2_mo_hinh": float(np.var(svc, ddof=1) / np.mean(svc) ** 2)})
     return pd.DataFrame(rows)
 
+def fit_patience_weibull(df: pd.DataFrame, eps: float = 1.0 / 60) -> Dict:
+    """
+    S12: MLE kien nhan Weibull S(t) = exp(-(t/scale)^shape) voi kiem duyet phai:
+    khach bo ve dong gop mat do f(wait), khach duoc phuc vu dong gop S(wait).
+    Bo ve voi wait = 0 (4 khach train) lay wait = eps de mat do huu han.
+    So sanh voi mu (shape = 1): AIC va kiem dinh ti so hop ly chi^2(1).
+    """
+    from scipy.optimize import minimize
+    w = np.maximum(df["wait"].to_numpy(dtype=float), 0.0)
+    ab = (df["served"] == 0).to_numpy()
+    w_ab = np.maximum(w[ab], eps)
+
+    def nll(par):
+        k, lam = np.exp(par)
+        return -(np.sum(np.log(k / lam) + (k - 1) * np.log(w_ab / lam)) - np.sum((w / lam) ** k))
+
+    theta = ab.sum() / w.sum()
+    ll_exp = float(ab.sum() * np.log(theta) - theta * w.sum())
+    res = minimize(nll, x0=np.log([1.0, 1.0 / theta]), method="Nelder-Mead",
+                   options={"xatol": 1e-8, "fatol": 1e-8, "maxiter": 4000})
+    k, lam = (float(v) for v in np.exp(res.x))
+    ll_w = float(-res.fun)
+    lr = 2.0 * (ll_w - ll_exp)
+    from scipy.special import gamma as gamma_fn
+    return {"shape": k, "scale": lam, "mean_patience_weibull": lam * float(gamma_fn(1.0 + 1.0 / k)),
+            "theta_exp": float(theta), "mean_patience_exp": float(1.0 / theta),
+            "loglik_weibull": ll_w, "loglik_exp": ll_exp, "aic_weibull": 4.0 - 2.0 * ll_w,
+            "aic_exp": 2.0 - 2.0 * ll_exp, "lr_stat": lr, "lr_pvalue": float(stats.chi2.sf(lr, 1)),
+            "n_bo_ve": int(ab.sum()), "n_khach": int(len(w))}
+
 def patience_km(df: pd.DataFrame, theta: float) -> pd.DataFrame:
     """
     S10: Ham song Kaplan-Meier cua kien nhan (khach bo ve = su kien,

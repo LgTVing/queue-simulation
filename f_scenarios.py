@@ -13,6 +13,7 @@ V5:
 - M7 p_day_levels(): lich nho nhat theo muc P(SL ngay >= 90%) -> toi_uu_xac_suat_ngay.csv
 - M8 surge_policies(): mo them quay khi hang cho dai -> chinh_sach_tang_quay.csv;
   recommended_surge() chon chinh sach khuyen nghi
+- S12 patience_weibull_scenario(): kien nhan Weibull -> kien_nhan_weibull_fit.csv, kien_nhan_weibull.csv
 """
 
 import dataclasses
@@ -24,7 +25,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from common import Model, HOURS, H_LABELS, TARGET_SLA, scaled, out_path, empirical_service
+from common import Model, HOURS, H_LABELS, TARGET_SLA, scaled, out_path, empirical_service, weibull_patience
+import a_data
 import b_theory as th
 import c_sim as sim
 import d_experiments as dx
@@ -134,6 +136,28 @@ def service_model_comparison(model: Model, model_gamma: Model, sched_emp: List[i
 # M5: ON DINH GIO TE NHAT VA SO LAN LAP CAN THIET
 # =============================================================================
 
+def patience_weibull_scenario(ctx: Dict, sch: Dict[str, List[int]]):
+    """
+    S12: kien nhan Weibull co kiem duyet (fit tren train) thay cho mu. Toi uu lai lich (seed chon
+    lich, 60 lan lap) va danh gia Lich 45, Lich 48, lich toi uu Weibull duoi ca hai mo hinh kien nhan
+    (seed danh gia, 300 lan lap, cung seed nen so sanh theo cap).
+    Tra (bang tham so fit, bang chinh sach).
+    """
+    fit = a_data.fit_patience_weibull(ctx["df_train"])
+    model = ctx["model"]
+    model_w = dataclasses.replace(model, patience=weibull_patience(fit["shape"], fit["scale"]))
+    sched_w = dx.optimize(model_w)["schedule"]
+    print(f"  • S12 Weibull(k={fit['shape']:.3f}, scale={fit['scale']:.2f}): lich toi uu {sched_w} = {sum(sched_w)} q-h")
+    pols = {"Lich 45": sch["toi_uu"], "Lich 48": sch["ben_vung"], "Toi uu Weibull": sched_w}
+    rows = []
+    for m_name, m in (("Mu", model), ("Weibull", model_w)):
+        for p_name, sched in pols.items():
+            row = sim.summary_row(p_name, sched, dx.evaluate(m, sched))
+            row["kien_nhan"] = m_name
+            rows.append(row)
+    return pd.DataFrame([fit]), pd.DataFrame(rows)
+
+
 def worst_hour_stability(model: Model, policies: Dict[str, List[int]], target_hw: float = 0.003,
                          R_cap: int = 3000, block: int = 60, B: int = 1000, seed: int = 100000):
     """
@@ -190,6 +214,10 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     _save(abandonment_constraint(model), "toi_uu_rang_buoc_bo_ve.csv")
     print("[M3] Phuc vu thuc nghiem vs Gamma...")
     _save(service_model_comparison(model, ctx["model_gamma"], sch["toi_uu"]), "m3_dich_vu_thuc_nghiem.csv")
+    print("[S12] Kien nhan Weibull co kiem duyet...")
+    fit, pol_w = patience_weibull_scenario(ctx, sch)
+    _save(fit, "kien_nhan_weibull_fit.csv")
+    _save(pol_w, "kien_nhan_weibull.csv")
     print("[M6] Toi uu theo gio cong ca (nghi trua 11h-14h)...")
     # slack=0: lan tham do slack=1 (3.180 lich phu, gio cong 36-48) khong co lich kha thi nao
     # co gio thieu quay so voi SIPP Erlang-A (tot nhat 0.8867), xem docs/KE_HOACH_V5.md M6.
