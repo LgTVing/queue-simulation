@@ -555,6 +555,9 @@ Số liệu từ `results/final_v5/` (Anonymous Bank, 14 ngày, 9.836 khách; th
 - **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. Ở 44 giờ công không cách nào đạt SLA; ở 48 giờ công có 33/94 cách đạt, tốt nhất là Lịch 48 (4 ca 8h + 4 ca 4h). **Kết luận: tối thiểu 48 giờ công/ngày, xếp theo Lịch 48.**
 - **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công; ≥ 95% số ngày cần 52 giờ công.
 - **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút: trung bình 46,17 quầy-giờ mở, đạt SLA ở 97,3% số ngày (Lịch 48 cố định: 94,0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.
+- **Kiểm tra giả định (S12, S15):** kiên nhẫn Weibull khớp dữ liệu tốt hơn mũ nhưng lịch tối ưu vẫn 45 quầy-giờ; λ theo nửa giờ chỉ khác rõ ở 8h–9h và không đổi tổng quầy-giờ; nghỉ trưa linh hoạt 9h–16h vẫn cần 48 giờ công.
+- **Ngày phục vụ chậm như ngày 10:** không lịch nào giữ được giờ tệ nhất ≥ 90%; mở thêm quầy nâng giờ tệ nhất từ 0,82 lên 0,87.
+- **Dự báo sớm lúc 10h** (fit trên train, S13) sai số ngoài mẫu 63,9 khách, bỏ lỡ cả hai ngày hụt; khuyến nghị dùng quy tắc theo hàng chờ (M8) thay cho dự báo.
 - Mọi số của V4 giữ nguyên; đối chiếu ở `results/final_v5/doi_chieu_v4_v5.csv`.
 
 ---

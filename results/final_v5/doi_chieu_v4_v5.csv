@@ -48,3 +48,17 @@ Quay-gio mo TB 14 ngay: Lich 48 co dinh -> Lich 45 + tang quay,48.0,46.433839285
 P(SL ngay >= 90%) bien dong ngay: Lich 48 co dinh -> Lich 45 + tang quay,0.94,0.9733333333333334,0.03333333333333344,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge); cot V4 = Lich 48 co dinh cung kich ban
 SL gio te nhat (can duoi CI95) nhu cau +10%: Lich 48 co dinh -> Lich 45 + tang quay,0.9029234012622407,0.9192695457275776,0.016346144465336887,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge); cot V4 = Lich 48 co dinh cung kich ban
 "So ngay quan sat dat SLA (/14), Lich 45 + tang quay",,14.0,moi o V5,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge)
+SL gio te nhat (can duoi CI95) ngay 10: Lich 48 co dinh -> Lich 45 + tang quay,0.819331786075531,0.8747728932449126,0.055441107169381554,"M8 kich ban ngay 10 (E[S] x1.29 o 14h-17h, Model.service_by_hour); cot V4 = Lich 48 co dinh"
+"Gio cong toi thieu/ngay, nghi trua linh hoat 9h-16h (M6)",,48.0,moi o V5,M6 bien the
+"Lich theo ca tot nhat, nghi trua 9h-16h (M6)",,"[4, 6, 6, 6, 5, 5, 5, 6, 5]",moi o V5,M6 bien the
+Du bao som: he so goc,3.4862305512750402,4.19574569789675,0.7095151466217096,"S13: V4 fit tren 14 ngay (RMSE trong mau); V5 fit tren 10 ngay train, RMSE tren 4 ngay test"
+Du bao som: he so tu do,189.59750459810118,90.90411089866154,-98.69339369943964,"S13: V4 fit tren 14 ngay (RMSE trong mau); V5 fit tren 10 ngay train, RMSE tren 4 ngay test"
+Du bao som: r,0.841598272022542,0.9074127360908321,0.06581446406829006,"S13: V4 fit tren 14 ngay (RMSE trong mau); V5 fit tren 10 ngay train, RMSE tren 4 ngay test"
+Du bao som: RMSE (khach/ngay),45.332768673062226,63.87967225337726,18.546903580315032,"S13: V4 fit tren 14 ngay (RMSE trong mau); V5 fit tren 10 ngay train, RMSE tren 4 ngay test"
+Du bao som: so ngay hut SLA bi bo lo (/2),,2.0,moi o V5,S13
+P(thuc te moi gio >= 90%) Lich 45: do rong CI95 (Wilson -> cluster bootstrap),0.022949525369840518,0.06884583333333322,0.0458963079634927,S14: Wilson coi 6.000 ngay-lan lap doc lap; bootstrap resample 200 kich ban
+Kien nhan Weibull: shape (mu = 1),1.0,0.8554647782522294,-0.14453522174777056,S12
+Kien nhan TB (phut): mu -> Weibull,9.200767754318619,13.05054947327687,3.8497817189582513,S12
+AIC kien nhan: mu -> Weibull,3356.496983278917,3337.7861604746195,-18.71082280429755,S12
+Tong quay-gio lich toi uu: kien nhan mu -> Weibull,,45.0,moi o V5,S12
+Tong quay-gio lich toi uu: lambda theo gio -> nua gio 8h-10h,,45.0,moi o V5,S15

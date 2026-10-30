@@ -12,12 +12,12 @@
 
 | Giai đoạn | Hệ số lần lặp | Thời gian (phút) | Lúc chạy |
 |---|:---:|:---:|---|
-| data | 1.0 | 0.0 | 2026-10-30T07:25:41 |
-| theory | 1.0 | 0.0 | 2026-10-30T07:25:41 |
-| verify | 1.0 | 0.1 | 2026-10-30T07:25:49 |
-| optimize | 1.0 | 11.2 | 2026-10-30T07:36:58 |
-| robust | 1.0 | 5.9 | 2026-10-30T07:42:52 |
-| report | 1.0 | 0.0 | 2026-10-30T07:42:52 |
+| data | 1.0 | 0.1 | 2026-10-30T08:20:23 |
+| theory | 1.0 | 0.0 | 2026-10-30T08:20:23 |
+| verify | 1.0 | 0.2 | 2026-10-30T08:20:37 |
+| optimize | 1.0 | 9.8 | 2026-10-30T08:30:24 |
+| robust | 1.0 | 5.0 | 2026-10-30T08:35:24 |
+| report | 1.0 | 0.0 | 2026-10-30T08:35:24 |
 
 ## Danh mục tệp
 
@@ -40,10 +40,14 @@
 | [`du_bao_som_hoi_quy.csv`](du_bao_som_hoi_quy.csv) | robust / S4 | Hoi quy du bao som va nguong V* |
 | [`gio_te_nhat.csv`](gio_te_nhat.csv) | robust / M5 | Xac suat moi gio la gio te nhat |
 | [`khoang_tin_cay_lambda.csv`](khoang_tin_cay_lambda.csv) | data / S1 | CI95 lambda_h theo Poisson va Student-t qua 14 ngay |
+| [`khung_30_phut.csv`](khung_30_phut.csv) | optimize / S15 | Lich 45/48 va lich toi uu khi lambda 8h-10h theo nua gio |
 | [`kiem_chung.csv`](kiem_chung.csv) | verify / S8 | Kiem chung 3 tang + M/G/1 P-K 40.000 phut + M/G/6, CI95 Student-t |
 | [`kiem_chung_pooling.csv`](kiem_chung_pooling.csv) | verify | Hang chung vs hang rieng (ly thuyet va SimPy) |
 | [`kiem_dinh_phan_phoi_chi_tiet.csv`](kiem_dinh_phan_phoi_chi_tiet.csv) | data / S10 | AIC, BIC, KS bootstrap (da quy doi co mau) cho 4 phan phoi phuc vu |
 | [`kiem_dinh_poisson.csv`](kiem_dinh_poisson.csv) | data / T1 | Kiem dinh phan tan chi^2 theo gio, nhan chuan |
+| [`kien_nhan_weibull.csv`](kien_nhan_weibull.csv) | optimize / S12 | Lich toi uu va danh gia Lich 45/48 duoi kien nhan mu va Weibull |
+| [`kien_nhan_weibull_fit.csv`](kien_nhan_weibull_fit.csv) | optimize / S12 | MLE kien nhan Weibull co kiem duyet tren train so voi mu (AIC, ti so hop ly) |
+| [`lambda_nua_gio.csv`](lambda_nua_gio.csv) | optimize / S15 | Lambda hai nua moi khung gio (train), kiem dinh binomial va Holm-Bonferroni |
 | [`lich_ben_vung_delta.csv`](lich_ben_vung_delta.csv) | optimize | Lich toi uu theo muc du phong nhu cau +5/10/20% |
 | [`lich_khuyen_nghi.json`](lich_khuyen_nghi.json) | theory / optimize | Cac lich da tinh (SIPP, toi uu, ben vung, theo ca, Gamma) |
 | [`lich_theo_ca.csv`](lich_theo_ca.csv) | optimize | Xep ca MILP (mo hinh A/B, ca 4h, hon hop) |
@@ -68,6 +72,8 @@
 | [`thoi_gian_chay.json`](thoi_gian_chay.json) | report | Thoi gian chay va he so so lan lap tung giai doan |
 | [`toi_uu_rang_buoc_bo_ve.csv`](toi_uu_rang_buoc_bo_ve.csv) | optimize / M2 | Toi uu voi rang buoc ti le bo ve, SL o nguong 2/3/5 phut |
 | [`toi_uu_theo_ca.csv`](toi_uu_theo_ca.csv) | optimize / M6 | Moi lich phu theo ca da thu (gio cong, phuong an ca, SL, can duoi gio te nhat) |
+| [`toi_uu_theo_ca_linh_hoat.csv`](toi_uu_theo_ca_linh_hoat.csv) | optimize / M6 | Nhu toi_uu_theo_ca.csv voi nghi trua linh hoat 9h-16h |
+| [`toi_uu_theo_ca_linh_hoat_top.csv`](toi_uu_theo_ca_linh_hoat_top.csv) | optimize / M6 | Top-5 lich kha thi, nghi trua linh hoat 9h-16h |
 | [`toi_uu_theo_ca_top.csv`](toi_uu_theo_ca_top.csv) | optimize / M6 | Top-5 lich kha thi o gio cong nho nhat: seed danh gia, bien dong ngay, nhu cau +10% |
 | [`toi_uu_xac_suat_ngay.csv`](toi_uu_xac_suat_ngay.csv) | optimize / M7 | Lich nho nhat theo muc P(SL ngay >= 90%) co bien dong ngay, quay-gio va theo ca, 14 ngay thuc te |
 
@@ -79,4 +85,7 @@
 - [`hinh/fig_c_pooling.png`](hinh/fig_c_pooling.png)
 - [`hinh/fig_c_welch.png`](hinh/fig_c_welch.png)
 - [`hinh/fig_kien_nhan_vs_quay_gio.png`](hinh/fig_kien_nhan_vs_quay_gio.png)
+- [`hinh/fig_m6_gio_cong.png`](hinh/fig_m6_gio_cong.png)
+- [`hinh/fig_m7_muc_tin_cay.png`](hinh/fig_m7_muc_tin_cay.png)
+- [`hinh/fig_m8_tang_quay.png`](hinh/fig_m8_tang_quay.png)
 - [`hinh/fig_pareto_bo_ve.png`](hinh/fig_pareto_bo_ve.png)

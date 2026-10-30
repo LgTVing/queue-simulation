@@ -2,7 +2,19 @@
 
 ## v5.0 — Đóng băng `results/final_v5/` (2026-10-30, `docs/KE_HOACH_V5.md`)
 
-**Kết luận mới:** tối thiểu **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (M6). Đạt SLA ở ≥ 95% số ngày cần 52 giờ công (M7). Có 1 người dự phòng: Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút (M8). Mọi số của V4 giữ nguyên.
+**Kết luận mới:** tối thiểu **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (M6). Đạt SLA ở ≥ 95% số ngày cần 52 giờ công (M7). Có 1 người dự phòng: Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút (M8). Kết luận vững khi đổi kiên nhẫn sang Weibull (S12), λ theo nửa giờ (S15) hay nghỉ trưa linh hoạt 9h–16h (M6). Mọi số của V4 giữ nguyên.
+
+### S12–S15, M6 nghỉ trưa linh hoạt, M8 ngày 10, hình M6–M8 (2026-10-30)
+- `Model` thêm `patience`, `sub_rates`, `service_by_hour` (mặc định `None`, kết quả và chuỗi số ngẫu nhiên không đổi; test giá trị tương đương mặc định cho DataFrame giống hệt).
+- **S12:** `a_data.fit_patience_weibull` (MLE có kiểm duyệt): $k = 0.855$, $\lambda = 12.04$, AIC 3337.8 so với 3356.5 của mũ, $LR = 20.7$ ($p = 5.3 \times 10^{-6}$). Tối ưu lại với kiên nhẫn Weibull vẫn ra Lịch 45 → `kien_nhan_weibull_fit.csv`, `kien_nhan_weibull.csv`.
+- **S13:** dự báo sớm fit trên 10 ngày train: $\hat V = 90.9 + 4.20 N$, $r_{train} = 0.907$, RMSE test 63.9; vẫn bỏ lỡ 2/2 ngày hụt. `du_bao_som_hoi_quy.csv` đổi cột (`r_train`, `p_train`, `rmse_train`, `rmse_test`, `so_ngay_bo_lo`), `danh_gia_chinh_sach_du_bao_14ngay.csv` đổi `V_du_bao`.
+- **S14:** cột `P_thuc_te_moi_gio_boot_low95/high95` (cluster bootstrap 200 kịch bản, B = 2000) trong `chi_so_ky_vong_dieu_kien.csv`, `do_nhay_cv_ngay.csv`; Lịch 45 [25.4%, 32.3%] so với Wilson [27.8%, 30.1%]. Các cột cũ giữ nguyên.
+- **S15:** `a_data.half_hour_rates` (Binomial + Holm): chỉ 8h–9h khác rõ (0.87 → 1.11 khách/phút). Mô phỏng λ nửa giờ ở 8h–10h: tổng quầy-giờ tối ưu vẫn 45 → `lambda_nua_gio.csv`, `khung_30_phut.csv`.
+- **M6 nghỉ trưa 9h–16h:** 231 độ phủ ở 48 giờ công (99 khả thi), 44 giờ công vẫn không khả thi → `toi_uu_theo_ca_linh_hoat*.csv`. Sửa đếm số ca 8h/4h (`h_staffing.shift_counts`).
+- **M8 ngày 10:** phục vụ ×1.29 ở 14h–17h; giờ tệ nhất Lịch 48 0.8193, Lịch 45 + mở thêm quầy 0.8748: không chính sách nào đạt. `chinh_sach_tang_quay.csv` thêm 4 cột, cột cũ giữ nguyên.
+- Hình `fig_m6_gio_cong.png`, `fig_m7_muc_tin_cay.png`, `fig_m8_tang_quay.png`.
+- `doi_chieu_v4_v5.csv` thêm dòng S12–S15, M6 biến thể, ngày 10. Checker thêm `check_forecast`, `check_weibull`, `check_half_hour`, cột ngày 10, bootstrap ở mục 1 và 4.2, bảng biến thể 7.9 (1.502 giá trị, 0 lệch). Pipeline 15.1 phút. `pytest -q` 84 pass.
+- Tài liệu: `tong_hop.md` (mục 1, 2.5, 4.2, 4.4, 7.9, 7.11, 7.12–7.13 mới, 8–10), báo cáo (4.3, 9.3, 9.5, 9.7, 9.8 mới, 10.3–10.4), slide (4, 13, Q&A 9), README §15.5, `TONG_HOP_SO_LIEU_CHI_TIET.md`.
 
 ### R4 — Đóng băng V5 (2026-10-30)
 - `common.RESULTS_VERSION = "final_v5"`; `python main.py --stage all --reps-scale 1.0` chạy 17.2 phút (máy đang tải việc khác; lần chạy thử khi máy rảnh 9.9 phút). `diff -rq results/final_v4 results/final_v5`: mọi CSV và hình của V4 giống từng byte; khác ở `MO_TA.md`, `thoi_gian_chay.json`, `params.json` (ngày chốt), `lich_khuyen_nghi.json` (thêm khóa `toi_uu_theo_ca`), 4 tệp mới của M6–M8 và `doi_chieu_v3_v4.csv` → `doi_chieu_v4_v5.csv`.

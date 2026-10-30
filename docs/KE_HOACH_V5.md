@@ -26,14 +26,15 @@
 | R4 | `results(R4)` | `results/final_v5/` đóng băng. `diff -rq` với `final_v4`: mọi CSV và hình V4 giống từng byte; chỉ khác `MO_TA.md`, `thoi_gian_chay.json`, ngày chốt `params.json`, khóa `toi_uu_theo_ca`, 4 tệp M6–M8 và `doi_chieu_v3_v4.csv` → `doi_chieu_v4_v5.csv`. `g_report.metrics(R)` đọc V4 và V5 bằng cùng một hàm; 17 chỉ số V4 chênh 0. `pytest -q` 66/66 (549 s). | Pipeline 17.2 phút ở lần đóng băng (máy đang tải việc khác; lần chạy thử khi máy rảnh 9.9 phút). Chính sách M8 khuyến nghị chọn bằng quy tắc `f_scenarios.recommended_surge`, không gõ cứng. |
 | D4 | `docs(D4)` | `tong_hop.md` (mục 1, 6, 7.9–7.11, 8, 9, 10), báo cáo (6.3, 9.5–9.7, 10), slide (8, 10, 12–14, Q&A 7–8), README §13, §15.5, `TONG_HOP_SO_LIEU_CHI_TIET.md`, CHANGELOG v5.0; tài liệu phụ trỏ sang `final_v5`. Checker thêm `check_shift_staffing`, `check_p_day`, `check_surge`: 1.249 giá trị, 0 lệch; test âm cho 4 mục. | Khuyến nghị chính đổi từ Lịch 45 sang Lịch 48 (48 giờ công). Hạn chế 6, 7 trong `tong_hop.md` mục 10 vẫn giữ vì chưa làm S13, S14. |
 
-**Kết luận V5 (đã đưa vào tài liệu):** cần **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48; nếu có người dự phòng, Lịch 45 + quy tắc mở thêm quầy bền hơn với ít quầy-giờ mở hơn. Muốn ≥ 95% số ngày đạt SLA cần 52 giờ công.
+| S12–S15, M6b, M8b | `feat(model)`, `feat(S13, S14)`, `feat(S12)`, `feat(S15)`, `feat(M8)`, `feat(M6)`, `feat(M6-M8)`, `results+docs` | S12: Weibull $k = 0.855$, AIC tốt hơn mũ 18.7, lịch tối ưu vẫn 45. S13: fit train, RMSE test 63.9, vẫn bỏ lỡ 2/2 ngày hụt. S14: CI bootstrap rộng gấp khoảng 3 lần Wilson. S15: chỉ 8h–9h khác rõ, tổng quầy-giờ vẫn 45. M6 nghỉ trưa 9h–16h: vẫn 48 giờ công. M8 ngày 10: không chính sách nào giữ giờ tệ nhất ≥ 90%. Ba hình M6–M8. Checker 1.502 giá trị; `pytest -q` 84/84. | M6b (nghỉ trưa linh hoạt) là phần còn thiếu của kế hoạch M6; M8b (ngày 10) dùng `Model.service_by_hour`. Pipeline 15.1 phút (vượt mục tiêu 10 phút do thêm S12, S15, M6b). |
+
+**Kết luận V5 (đã đưa vào tài liệu):** cần **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48; nếu có người dự phòng, Lịch 45 + quy tắc mở thêm quầy bền hơn với ít quầy-giờ mở hơn. Muốn ≥ 95% số ngày đạt SLA cần 52 giờ công. Kết luận vững với kiên nhẫn Weibull, λ nửa giờ và nghỉ trưa linh hoạt.
 
 ### Chưa làm
 
 | Mã | Việc | Ghi chú |
 |---|---|---|
 | T3 | Kiểm chứng CI trên GitHub | **Làm tiếp theo** (cần người có quyền push). Push nhánh `feat/v5`, xem tab Actions ([mục 9.3](#93-t3--kiểm-chứng-ci)) |
-| S12–S15 | Thống kê bổ sung (tùy chọn) | [Mục 9.4](#94-s12s15--thống-kê-bổ-sung-tùy-chọn) |
 | D5, D6 | Dashboard demo, slide thật, tập dượt | [Mục 9.5](#95-d5-d6--trình-bày) |
 
 ---
@@ -327,7 +328,7 @@ Thứ tự:
 - [x] M7, M8: có bảng so sánh và khuyến nghị vận hành (`toi_uu_xac_suat_ngay.csv`, `chinh_sach_tang_quay.csv`).
 - [x] `results/final_v5/` đóng băng, có `doi_chieu_v4_v5.csv`, `MO_TA.md`, `pytest_log.txt`.
 - [x] Tài liệu cập nhật; `CHANGELOG.md` có mục v5.0.
-- [x] Hạn chế trong `tong_hop.md` mục 10 cập nhật (thêm 10, 11 cho M8; viết lại 5 theo M6; 6, 7 giữ vì chưa làm S13, S14).
+- [x] Hạn chế trong `tong_hop.md` mục 10 cập nhật (xóa hạn chế Wilson nhờ S14, viết lại dự báo sớm theo S13, kiên nhẫn theo S12, ca làm việc theo M6b, ngày 10 theo M8b).
 
 ---
 

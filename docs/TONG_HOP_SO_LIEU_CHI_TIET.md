@@ -33,7 +33,7 @@ Dự án đã hoàn thành trọn vẹn lộ trình 3 tuần từ nghiên cứu 
 | **Tuần 2** | Mô hình hóa giải tích, xây dựng SimPy và kiểm chứng ba tầng | - Xây dựng mô hình giải tích `b_theory.py` (M/M/c, Allen-Cunneen, Erlang-A ma trận hấp thụ Markov, SIPP).<br>- Tạo file Excel tính toán tự động `excel/erlang.xlsx` (5 sheets, không lỗi `#NAME?`).<br>- Xây dựng công cụ mô phỏng SimPy `c_sim.py` (Blocker động, Priority VIP, Khách bỏ về, CRN).<br>- Kiểm chứng ba tầng (Tầng 1 M/M/c, Tầng 2 Erlang-A, Tầng 3 Allen-Cunneen).<br>- Khảo sát khởi động Welch (`fig_c_welch.png`) và lợi ích gộp hàng (`fig_c_pooling.png`). | **Hoàn thành 100%** |
 | **Tuần 3** | Sửa tồn đọng, tối ưu hóa lịch quầy, thí nghiệm mở rộng, đóng băng số liệu, viết báo cáo & slide | - Sửa triệt để lỗi hiệu suất $\rho$ (đạt $0.7517 \pm 0.0047$ khớp định luật Little).<br>- Bổ sung Kiểm tra A (M/G/1 Pollaczek-Khinchine exact $14.625$p) và Kiểm tra B (M/G/6 60 reps).<br>- Tối ưu hóa lịch quầy 2 pha hội tụ tại lịch `[4, 5, 6, 5, 5, 5, 5, 5, 4]` (44 quầy-giờ).<br>- Đánh giá 5 chính sách với 300 lần lặp độc lập (`seed_base=50000`).<br>- Phân tích độ nhạy T6, hàm chi phí kịch bản $k$, bài toán ca làm việc MILP, độ bất định 50 bộ bootstrap, kiểm tra ngoài mẫu trên 4 ngày test.<br>- Đóng băng số liệu tại `results/final_v1/` gồm 10 bảng CSV/MD và 8 biểu đồ đồ họa.<br>- Hoàn tất báo cáo tổng kết (`docs/bao_cao_tong_ket.md`) và slide thuyết trình (`docs/slide_thuyet_trinh.md`). | **Hoàn thành 100%** |
 | **V4 (2026-10-29)** | Sửa động cơ mô phỏng, hợp nhất pipeline, củng cố mô hình, đóng băng lại | - F1–F3: xả hàng giữ số quầy giờ cuối, NHPP đúng ranh giới giờ, hiệu suất theo thời gian bận.<br>- M1–M5: kịch bản kiên nhẫn, ràng buộc bỏ về, phục vụ thực nghiệm làm mô hình chính, điều tra 15h–16h, ổn định giờ tệ nhất.<br>- Một lệnh `python main.py --stage all` (33.3 phút) sinh `results/final_v4/`; lịch tối ưu đổi thành `[4, 5, 6, 5, 5, 5, 5, 5, 5]` (45 quầy-giờ).<br>- 35/35 test pass; `tools/check_consistency.py` đối chiếu 1.052 giá trị trong `tong_hop.md`. | **Hoàn thành** |
-| **V5 (2026-10-30)** | Chạy song song, tối ưu theo giờ công, xác suất đạt SLA ngày, tăng quầy theo hàng chờ | - P1–P2: chạy song song các lần lặp, `rep_stats` bằng NumPy; pipeline 33.3 → 17.2 phút, số V4 giữ nguyên từng byte.<br>- M6: tối thiểu **48 giờ công**, 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]`.<br>- M7: đạt SLA ở ≥ 90% số ngày cần 48 giờ công, ≥ 95% cần 52.<br>- M8: Lịch 45 + mở thêm 1 quầy khi > 2 người chờ liên tục 5 phút (TB 46.17 quầy-giờ mở, 97.3% số ngày đạt SLA).<br>- T2–T3: checker đối chiếu cả báo cáo, slide, README; CI GitHub Actions. 66 test pass. | **Hoàn thành** |
+| **V5 (2026-10-30)** | Chạy song song, tối ưu theo giờ công, xác suất đạt SLA ngày, tăng quầy theo hàng chờ | - P1–P2: chạy song song các lần lặp, `rep_stats` bằng NumPy; pipeline 33.3 → 15.1 phút (gồm M6–M8, S12–S15), số V4 giữ nguyên từng byte.<br>- M6: tối thiểu **48 giờ công**, 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]`.<br>- M7: đạt SLA ở ≥ 90% số ngày cần 48 giờ công, ≥ 95% cần 52.<br>- M8: Lịch 45 + mở thêm 1 quầy khi > 2 người chờ liên tục 5 phút (TB 46.17 quầy-giờ mở, 97.3% số ngày đạt SLA).<br>- T2–T3: checker đối chiếu cả báo cáo, slide, README; CI GitHub Actions.<br>- S12–S15: kiên nhẫn Weibull, dự báo sớm fit trên train, cluster bootstrap, λ nửa giờ; không đổi kết luận 48 giờ công. 84 test pass. | **Hoàn thành** |
 
 ### 1.2 Phân công Trách nhiệm và Sản phẩm Bàn giao Cụ thể
 - **Thành viên A (Nguyễn Văn A - Dữ liệu & Thống kê):**
@@ -260,7 +260,7 @@ Tham số tập train (10 ngày): $E[S] = 2.9236$ phút, $\theta = 0.1087$/phút
 
 ## PHẦN 3: SỐ LIỆU KIỂM CHỨNG VÀ THỰC NGHIỆM BẰNG CODE (V5)
 
-Toàn bộ số liệu mô phỏng được sinh bằng một lệnh `python main.py --stage all` và đóng băng tại `results/final_v5/` (danh mục tệp và nguồn của từng tệp: `results/final_v5/MO_TA.md`). V5 giữ nguyên mọi số của V4 và thêm M6–M8. Bảng số chi tiết **chỉ được duy trì ở một nơi** là [`tong_hop.md`](../tong_hop.md), và được `tools/check_consistency.py` đối chiếu tự động với CSV (1.249 giá trị, 0 lệch tại ngày 2026-10-30). Phần này chỉ tóm tắt và trỏ tới mục tương ứng.
+Toàn bộ số liệu mô phỏng được sinh bằng một lệnh `python main.py --stage all` và đóng băng tại `results/final_v5/` (danh mục tệp và nguồn của từng tệp: `results/final_v5/MO_TA.md`). V5 giữ nguyên mọi số của V4 và thêm M6–M8. Bảng số chi tiết **chỉ được duy trì ở một nơi** là [`tong_hop.md`](../tong_hop.md), và được `tools/check_consistency.py` đối chiếu tự động với CSV (1.502 giá trị, 0 lệch tại ngày 2026-10-30). Phần này chỉ tóm tắt và trỏ tới mục tương ứng.
 
 | Nội dung | Kết quả chính | Tệp nguồn | Mục trong `tong_hop.md` |
 |---|---|---|:---:|
@@ -283,8 +283,12 @@ Toàn bộ số liệu mô phỏng được sinh bằng một lệnh `python mai
 | Tối ưu theo giờ công ca (M6) | 44 giờ công: không khả thi; 48 giờ công: 33/94 lịch khả thi, tốt nhất Lịch 48 (4 ca 8h + 4 ca 4h) | `toi_uu_theo_ca.csv`, `toi_uu_theo_ca_top.csv` | 7.9 |
 | Xác suất đạt SLA ngày (M7) | ≥ 90% số ngày: 48 giờ công; ≥ 95%: 52 giờ công | `toi_uu_xac_suat_ngay.csv` | 7.10 |
 | Tăng quầy theo hàng chờ (M8) | Lịch 45 + mở thêm khi > 2 người chờ 5 phút: 46.17 quầy-giờ TB, $P(SL_{\text{ngày}} \ge 90\%)$ 97.3% (Lịch 48: 94.0%) | `chinh_sach_tang_quay.csv` | 7.11 |
+| Kiên nhẫn Weibull (S12) | $k = 0.855$, AIC thấp hơn mũ 18.7; lịch tối ưu vẫn 45 quầy-giờ | `kien_nhan_weibull*.csv` | 7.12 |
+| λ theo nửa giờ (S15) | Chỉ 8h–9h khác rõ giữa hai nửa giờ; tổng quầy-giờ tối ưu vẫn 45 | `lambda_nua_gio.csv`, `khung_30_phut.csv` | 7.13 |
+| Dự báo sớm fit trên train (S13) | RMSE ngoài mẫu 63.9 khách; vẫn bỏ lỡ 2/2 ngày hụt | `du_bao_som_hoi_quy.csv` | 4.4 |
+| Cluster bootstrap (S14) | P(thực tế mọi giờ) Lịch 45: [25.4%, 32.3%], rộng gấp khoảng 3 lần Wilson | `chi_so_ky_vong_dieu_kien.csv` | 4.2 |
 | Đối chiếu V4 → V5 | 17 chỉ số V4 không đổi; giờ công tối thiểu 48 (M6) | `doi_chieu_v4_v5.csv` | 8 |
-| Kiểm thử tự động | 66 test pass trong 549 giây (9.2 phút, gồm smoke test toàn pipeline) | `pytest_log.txt` | 9 |
+| Kiểm thử tự động | 84 test pass trong 557 giây (9.3 phút, gồm smoke test toàn pipeline) | `pytest_log.txt` | 9 |
 
 ---
 

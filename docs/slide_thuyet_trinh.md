@@ -56,6 +56,7 @@
   - Gamma có AIC tốt nhất nhưng cả 4 phân phối (Gamma, Weibull, Exponential, Lognormal) đều bị KS bootstrap bác bỏ. Gamma có $cs^2 = 0.91$, đánh giá thấp độ biến động.
   - **Mô hình chính:** lấy mẫu trực tiếp từ dữ liệu train.
   - Kiên nhẫn: $\hat\theta = 521 / 4.793,6 = 0.1087$ phút$^{-1}$ (trung bình 9.2 phút), MLE có kiểm duyệt.
+  - Weibull có kiểm duyệt khớp tốt hơn mũ ($k = 0.855$, AIC thấp hơn 18.7), nhưng tối ưu lại vẫn ra cùng lịch 45 quầy-giờ (S12).
 - **Thời lượng:** 1:00 | **Người trình bày:** Thành viên A
 - **Lời thoại:**
   > *"Chọn Gamma theo AIC sẽ làm thời gian phục vụ đều hơn thực tế. Vì vậy chúng em lấy mẫu trực tiếp, và Gamma chỉ dùng để kiểm tra độ nhạy."*
@@ -181,7 +182,8 @@
 - **Nội dung:**
   - 7/9 giờ có SL thực tế nằm trong khoảng dự báo 95%.
   - 15h–16h thực tế chỉ 76.5%, nhưng **do riêng ngày 10**: SL 31.5%, thời gian phục vụ cao hơn 29%, tải 6.14 Erlang, trong khi chỉ khoảng 4 người phục vụ. Ba ngày còn lại đạt 93–98%.
-  - Bài học: cần cơ chế tăng cường quầy trong ngày khi hàng chờ tăng bất thường (M8, slide 12). Dự báo sớm lúc 10h ($r = 0.84$) không bắt được cả hai ngày hụt.
+  - Bài học: cần cơ chế tăng cường quầy trong ngày khi hàng chờ tăng bất thường (M8, slide 12). Dự báo sớm lúc 10h (fit trên train, sai số ngoài mẫu 64 khách) không bắt được cả hai ngày hụt.
+  - Mô phỏng lại kiểu ngày 10 (phục vụ chậm 29% ở 14h–17h): không lịch nào giữ được giờ tệ nhất ≥ 90%; mở thêm quầy giảm thiệt hại (0.82 → 0.87).
 - **Thời lượng:** 1:00 | **Người trình bày:** Thành viên A
 
 ---
@@ -212,7 +214,7 @@
    *Trả lời:* Không. Đã kiểm 9 phép bớt và 117 cấu hình lân cận đều vi phạm, nên đây là tối thiểu cục bộ theo tiêu chí mô phỏng.
 
 4. **Làm sao biết mô phỏng đúng?**
-   *Trả lời:* So với nghiệm chính xác M/M/c, Erlang-A và M/G/1 Pollaczek–Khinchine, lý thuyết đều nằm trong CI95. 66 kiểm thử tự động pass; `tools/check_consistency.py` đối chiếu 1.249 con số trong `tong_hop.md` với CSV.
+   *Trả lời:* So với nghiệm chính xác M/M/c, Erlang-A và M/G/1 Pollaczek–Khinchine, lý thuyết đều nằm trong CI95. 84 kiểm thử tự động pass; `tools/check_consistency.py` đối chiếu 1.502 con số trong `tong_hop.md` với CSV.
 
 5. **Vì sao số liệu khác bản trước (44 q-h)?**
    *Trả lời:* V4 sửa ba lỗi động cơ (xả hàng sau 17h, dòng đến tại ranh giới giờ, hiệu suất theo giờ) và đổi sang phục vụ thực nghiệm. Tách riêng: sửa xả hàng chỉ đổi SL giờ cuối 0.9706 → 0.9704; nguyên nhân chính là phân phối phục vụ (tối ưu với Gamma vẫn ra 44).
@@ -225,3 +227,6 @@
 
 8. **Chính sách mở thêm quầy theo hàng chờ cần những gì?**
    *Trả lời:* Một nhân viên dự phòng (làm việc khác khi chưa cần), một quầy trống, và người theo dõi hàng chờ (hoặc màn hình bốc số). Quy tắc: hơn 2 người chờ liên tục 5 phút thì mở thêm 1 quầy, giữ ít nhất 30 phút, đóng khi hết hàng chờ. Quầy dự phòng mở trung bình 1.17 giờ/ngày (danh định) đến 1.43 giờ/ngày (14 ngày thực tế); chi phí người dự phòng không nằm trong quầy-giờ mở.
+
+9. **Các giả định (kiên nhẫn mũ, λ cố định trong giờ) có làm sai kết luận không?**
+   *Trả lời:* Đã kiểm tra cả hai. Kiên nhẫn Weibull khớp dữ liệu tốt hơn nhưng lịch tối ưu vẫn 45 quầy-giờ. λ theo nửa giờ chỉ khác rõ ở 8h–9h và cũng không đổi tổng quầy-giờ. Nghỉ trưa linh hoạt 9h–16h không giảm được giờ công dưới 48.
