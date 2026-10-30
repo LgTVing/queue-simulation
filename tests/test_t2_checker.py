@@ -34,7 +34,8 @@ def test_report_numbers_detect_error(fname, old, new):
     assert errors and all(e.startswith(fname) for e in errors)
 
 
-V5_CHECKS = (cc.check_shift_staffing, cc.check_p_day, cc.check_surge)
+V5_CHECKS = (cc.check_shift_staffing, cc.check_p_day, cc.check_surge, cc.check_forecast, cc.check_weibull,
+             cc.check_half_hour, cc.check_cv_sensitivity, cc.check_decision_table)
 
 
 def _v5_errors(md: str):
@@ -47,13 +48,22 @@ def _v5_errors(md: str):
 @pytest.mark.skipif(not os.path.exists(os.path.join(cc.RESULTS, "chinh_sach_tang_quay.csv")),
                     reason="chua co ket qua M6-M8")
 @pytest.mark.parametrize("old, new, prefix", [
-    ("| 0.9579 ± 0.0017 | 0.9327 (15h-16h)", "| 0.9579 ± 0.0017 | 0.9337 (15h-16h)", "7.9"),
+    ("| 1 | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | 4 ca 8h + 4 ca 4h | 0.9579 ± 0.0017 | 0.9327",
+     "| 1 | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | 4 ca 8h + 4 ca 4h | 0.9579 ± 0.0017 | 0.9337", "7.9"),
+    ("(Lịch 48) | 4 ca 8h + 4 ca 4h | 0.9579", "(Lịch 48) | 4 ca 8h + 4 ca 4h | 0.9589", "7.9 linh hoat"),
     ("95.3% [92.3%, 97.2%]", "95.3% [92.3%, 97.9%]", "7.10"),
     ("| 46.17 | 0.9549 |", "| 46.17 | 0.9559 |", "7.11"),
+    ("| 0.9193 | 0.9128 | 0.8748 |", "| 0.9193 | 0.9128 | 0.8848 |", "7.11"),
     ("| **Lịch 48 cố định** | 48.00 | 94.0%", "| **Lịch 48 cố định** | 48.00 | 95.0%", "1 M8"),
+    ("**Trên 4 ngày test: RMSE $63.9$ khách.**", "**Trên 4 ngày test: RMSE $53.9$ khách.**", "4.4"),
+    ("| -1666.9 | **3337.8** |", "| -1666.9 | **3327.8** |", "7.12"),
+    ("| 8h-9h | 0.8667 | 1.1133 |", "| 8h-9h | 0.8667 | 1.1233 |", "7.13"),
+    ("| 0.9068 (16h-17h) | 0.9398 | 0.9241 |", "| 0.9068 (16h-17h) | 0.9398 | 0.9341 |", "7.13"),
+    ("**29.0% [27.8%, 30.1%]**<br>bootstrap [25.4%, 32.3%]", "**29.0% [27.8%, 30.1%]**<br>bootstrap [25.4%, 33.3%]", "4.2"),
+    (r"45.2\%]$)<br>bootstrap [40.0%, 47.5%]", r"45.2\%]$)<br>bootstrap [41.0%, 47.5%]", "1 boot"),
 ])
 def test_v5_sections_detect_error(old, new, prefix):
-    """D4: tong_hop.md muc 7.9-7.11 va bang M8 o muc 1 khop CSV; sua mot so thi bao loi dung muc."""
+    """D4: tong_hop.md muc 1, 4.2, 4.4, 7.9-7.13 khop CSV; sua mot so thi bao dung mot loi o dung muc."""
     md = open(os.path.join(BASE_DIR, "tong_hop.md"), encoding="utf-8").read()
     assert _v5_errors(md) == []
     assert md.count(old) == 1

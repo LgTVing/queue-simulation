@@ -200,6 +200,50 @@ def _v5_rows() -> List[tuple]:
                  _get(l48, "gio_te_nhat_low_nhu cau +10%"), float(rec["gio_te_nhat_low_nhu cau +10%"]), ref),
                 ("So ngay quan sat dat SLA (/14), Lich 45 + tang quay", None, float(rec["so_ngay_dat_14"]), why),
             ]
+            if "gio_te_nhat_low_ngay 10" in m8:
+                rows.append(("SL gio te nhat (can duoi CI95) ngay 10: Lich 48 co dinh -> Lich 45 + tang quay",
+                             _get(l48, "gio_te_nhat_low_ngay 10"), float(rec["gio_te_nhat_low_ngay 10"]),
+                             "M8 kich ban ngay 10 (E[S] x1.29 o 14h-17h, Model.service_by_hour); cot V4 = Lich 48 co dinh"))
+    flex = _read(os.path.join(R, "toi_uu_theo_ca_linh_hoat_top.csv"))
+    if flex is not None and len(flex):
+        rows += [("Gio cong toi thieu/ngay, nghi trua linh hoat 9h-16h (M6)", None, float(flex.iloc[0]["gio_cong"]), "M6 bien the"),
+                 ("Lich theo ca tot nhat, nghi trua 9h-16h (M6)", None, flex.iloc[0]["phu_quay"], "M6 bien the")]
+    return rows + _stat_rows(R)
+
+
+def _stat_rows(R: str) -> List[tuple]:
+    """S12-S15: chi so thong ke bo sung; cot V4 la cach lam cu neu co."""
+    rows = []
+    f4 = _read(os.path.join(PREV_RESULTS_DIR, "du_bao_som_hoi_quy.csv"))
+    f5 = _read(os.path.join(R, "du_bao_som_hoi_quy.csv"))
+    if f5 is not None and "rmse_test" in f5:
+        a, b = (f4.iloc[0] if f4 is not None else None), f5.iloc[0]
+        why = "S13: V4 fit tren 14 ngay (RMSE trong mau); V5 fit tren 10 ngay train, RMSE tren 4 ngay test"
+        rows += [("Du bao som: he so goc", _get(a, "slope"), float(b["slope"]), why),
+                 ("Du bao som: he so tu do", _get(a, "intercept"), float(b["intercept"]), why),
+                 ("Du bao som: r", _get(a, "r"), float(b["r_train"]), why),
+                 ("Du bao som: RMSE (khach/ngay)", _get(a, "rmse"), float(b["rmse_test"]), why),
+                 ("Du bao som: so ngay hut SLA bi bo lo (/2)", None, float(b["so_ngay_bo_lo"]), "S13")]
+    ce = _read(os.path.join(R, "chi_so_ky_vong_dieu_kien.csv"))
+    if ce is not None and "P_thuc_te_moi_gio_boot_low95" in ce:
+        r = _row(ce, "chinh_sach", "Toi uu")
+        rows += [("P(thuc te moi gio >= 90%) Lich 45: do rong CI95 (Wilson -> cluster bootstrap)",
+                  _get(r, "P_thuc_te_moi_gio_high95") - _get(r, "P_thuc_te_moi_gio_low95"),
+                  _get(r, "P_thuc_te_moi_gio_boot_high95") - _get(r, "P_thuc_te_moi_gio_boot_low95"),
+                  "S14: Wilson coi 6.000 ngay-lan lap doc lap; bootstrap resample 200 kich ban")]
+    fit = _read(os.path.join(R, "kien_nhan_weibull_fit.csv"))
+    w = _read(os.path.join(R, "kien_nhan_weibull.csv"))
+    if fit is not None and w is not None:
+        fr = fit.iloc[0]
+        opt_w = _row(w[w["kien_nhan"] == "Weibull"], "chinh_sach", "Toi uu Weibull")
+        rows += [("Kien nhan Weibull: shape (mu = 1)", 1.0, float(fr["shape"]), "S12"),
+                 ("Kien nhan TB (phut): mu -> Weibull", float(fr["mean_patience_exp"]), float(fr["mean_patience_weibull"]), "S12"),
+                 ("AIC kien nhan: mu -> Weibull", float(fr["aic_exp"]), float(fr["aic_weibull"]), "S12"),
+                 ("Tong quay-gio lich toi uu: kien nhan mu -> Weibull", None, _get(opt_w, "quay_gio"), "S12")]
+    h30 = _read(os.path.join(R, "khung_30_phut.csv"))
+    if h30 is not None:
+        opt30 = _row(h30[h30["mo_hinh_den"] == "Nua gio 8h-10h"], "chinh_sach", "Toi uu nua gio")
+        rows.append(("Tong quay-gio lich toi uu: lambda theo gio -> nua gio 8h-10h", None, _get(opt30, "quay_gio"), "S15"))
     return rows
 
 def build_doi_chieu() -> pd.DataFrame:

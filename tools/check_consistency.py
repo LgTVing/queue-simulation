@@ -96,6 +96,8 @@ def check_numeric_consistency():
         "cluster_bootstrap_params.csv", "so_sanh_chinh_sach.csv", "do_nhay_kien_nhan.csv",
         "toi_uu_rang_buoc_bo_ve.csv", "gio_te_nhat.csv", "doi_chieu_v4_v5.csv", "params.json", "pytest_log.txt",
         "toi_uu_theo_ca.csv", "toi_uu_theo_ca_top.csv", "toi_uu_xac_suat_ngay.csv", "chinh_sach_tang_quay.csv",
+        "toi_uu_theo_ca_linh_hoat.csv", "toi_uu_theo_ca_linh_hoat_top.csv", "kien_nhan_weibull_fit.csv",
+        "kien_nhan_weibull.csv", "lambda_nua_gio.csv", "khung_30_phut.csv",
     ]
     missing = [f for f in required if not os.path.exists(os.path.join(RESULTS, f))]
     if missing:
@@ -110,7 +112,8 @@ def check_numeric_consistency():
                   check_distribution_fits, check_verification, check_policy_table, check_cv_sensitivity,
                   check_fourteen_days, check_out_of_sample, check_sensitivity, check_service_dist,
                   check_cost_table, check_phase3, check_patience, check_abandon_constraint,
-                  check_shift_staffing, check_p_day, check_surge):
+                  check_shift_staffing, check_p_day, check_surge, check_forecast, check_weibull,
+                  check_half_hour):
         try:
             check(checker)
         except (KeyError, ValueError, IndexError) as e:
@@ -283,6 +286,9 @@ def check_decision_table(ck: TableChecker):
                 ck.expect(f"1 {key} ({name})", cells[col], r[c] * 100, idx)
             if key == "min_h":
                 ck.expect(f"1 so gio E_h<90 ({name})", cells[col], r["so_gio_Eh_duoi_90_TB"], 5)
+            if key == "thực tế mọi giờ":  # S14: so thu 4-5 = khoang cluster bootstrap
+                ck.expect(f"1 boot low ({name})", cells[col], r["P_thuc_te_moi_gio_boot_low95"] * 100, 4)
+                ck.expect(f"1 boot high ({name})", cells[col], r["P_thuc_te_moi_gio_boot_high95"] * 100, 5)
 
 
 def check_distribution_fits(ck: TableChecker):
@@ -347,7 +353,8 @@ def check_cv_sensitivity(ck: TableChecker):
     cols = [("P_SL_ky_vong_ngay_ge90", "P_SL_ky_vong_ngay_low95", "P_SL_ky_vong_ngay_high95"),
             ("P_min_h_Eh_ge90", "P_min_h_Eh_low95", "P_min_h_Eh_high95"),
             ("so_gio_Eh_duoi_90_TB",),
-            ("P_thuc_te_moi_gio_ge90", "P_thuc_te_moi_gio_low95", "P_thuc_te_moi_gio_high95"),
+            ("P_thuc_te_moi_gio_ge90", "P_thuc_te_moi_gio_low95", "P_thuc_te_moi_gio_high95",
+             "P_thuc_te_moi_gio_boot_low95", "P_thuc_te_moi_gio_boot_high95"),
             ("P_thang_20ngay_moi_gio_ge90", "P_thang_20ngay_low95", "P_thang_20ngay_high95")]
     policy = None
     for cells in ck.rows("### 4.2")[1:]:
@@ -530,27 +537,43 @@ def _check_lich(ck: TableChecker, lab: str, cell: str, lich: str):
         ck.errors.append(f"{lab}: lich tai lieu {cell} khac CSV {lich}")
 
 
+FLEX_MARK = "Biến thể nghỉ trưa linh hoạt"
+
+
+def _rows_of(text: str):
+    return [[c.strip() for c in line.strip().strip("|").split("|")] for line in text.splitlines()
+            if line.startswith("|") and not re.match(r"^\|[\s:|-]+\|$", line)]
+
+
 def check_shift_staffing(ck: TableChecker):
-    """7.9 (M6): so lich thu theo gio cong va top-5 da xac nhan."""
-    t = _csv("toi_uu_theo_ca.csv")
-    top = _csv("toi_uu_theo_ca_top.csv")
-    rows = ck.rows("### 7.9")
+    """7.9 (M6): so lich thu theo gio cong va top-5 da xac nhan, nghi trua 11h-14h va 9h-16h."""
+    sec = ck.section("### 7.9")
+    if FLEX_MARK not in sec:
+        ck.errors.append("7.9: thieu bien the nghi trua linh hoat")
+        return
+    std, flex = sec.split(FLEX_MARK, 1)
+    _check_staffing_tables(ck, _rows_of(std), _csv("toi_uu_theo_ca.csv"), _csv("toi_uu_theo_ca_top.csv"), "7.9")
+    _check_staffing_tables(ck, _rows_of(flex), _csv("toi_uu_theo_ca_linh_hoat.csv"),
+                           _csv("toi_uu_theo_ca_linh_hoat_top.csv"), "7.9 linh hoat")
+
+
+def _check_staffing_tables(ck: TableChecker, rows, t: pd.DataFrame, top: pd.DataFrame, tag: str):
     by_w = [c for c in rows if c[0].isdigit() and len(c) == 4]
     groups = list(t.groupby("gio_cong"))
     if len(by_w) != len(groups):
-        ck.errors.append(f"7.9: tai lieu co {len(by_w)} muc gio cong, toi_uu_theo_ca.csv co {len(groups)}")
+        ck.errors.append(f"{tag}: tai lieu co {len(by_w)} muc gio cong, CSV co {len(groups)}")
     for (w, g), cells in zip(groups, by_w):
-        lab = f"7.9 W={w}"
+        lab = f"{tag} W={w}"
         ck.expect(lab, cells[0], w)
         ck.expect(lab + " so lich", cells[1], len(g))
         ck.expect(lab + " kha thi", cells[2], (g["kha_thi"] == "Y").sum())
         ck.expect(lab + " low max", cells[3], g["sl_gio_te_nhat_low"].max())
     top_rows = [c for c in rows if len(c) == 9 and c[0].isdigit()]
     if len(top_rows) != len(top):
-        ck.errors.append(f"7.9: tai lieu co {len(top_rows)} dong top, toi_uu_theo_ca_top.csv co {len(top)}")
+        ck.errors.append(f"{tag}: tai lieu co {len(top_rows)} dong top, CSV co {len(top)}")
     for (_, r), cells in zip(top.iterrows(), top_rows):
-        lab = f"7.9 top {cells[0]}"
-        _check_lich(ck, lab, cells[1], r["phu_quay"])
+        lab = f"{tag} top {cells[0]}"
+        _check_lich(ck, lab, cells[1].split("(")[0], r["phu_quay"])
         tr = t[t["phu_quay"] == r["phu_quay"]].iloc[0]
         ck.expect(lab + " ca 8h", cells[2], tr["n_ca_8h"], 0)
         ck.expect(lab + " ca 4h", cells[2], tr["n_ca_4h"], 2)
@@ -588,7 +611,7 @@ def check_surge(ck: TableChecker):
         ck.errors.append(f"7.11: tai lieu co {len(rows)} dong, chinh_sach_tang_quay.csv co {len(m)}")
     cols = ["quay_gio_TB_danh dinh", "SL_danh dinh", "gio_te_nhat_low_danh dinh", "bo_ve_danh dinh",
             "P_SL_ngay_ge90_bien_dong", "gio_te_nhat_low_nhu cau +10%", "gio_te_nhat_low_E[S] +10%",
-            "so_ngay_dat_14", "quay_gio_TB_14_ngay"]
+            "gio_te_nhat_low_ngay 10", "so_ngay_dat_14", "quay_gio_TB_14_ngay"]
     pct = {"bo_ve_danh dinh", "P_SL_ngay_ge90_bien_dong"}
     for (_, r), cells in zip(m.iterrows(), rows):
         lab = f"7.11 {r['chinh_sach']}"
@@ -616,6 +639,94 @@ def check_surge(ck: TableChecker):
         ck.expect(lab + " P", cells[2], r["P_SL_ngay_ge90_bien_dong"] * 100)
         ck.expect(lab + " +10%", cells[3], r["gio_te_nhat_low_nhu cau +10%"])
         ck.expect(lab + " 14 ngay", cells[4], r["so_ngay_dat_14"])
+
+
+def check_forecast(ck: TableChecker):
+    """4.4 (S13): he so du bao som fit tren train, RMSE, du bao cac ngay noi bat, quay-gio TB."""
+    f = _csv("du_bao_som_hoi_quy.csv").iloc[0]
+    c = _csv("danh_gia_chinh_sach_du_bao_14ngay.csv").set_index("ngay")
+    sec = ck.section("### 4.4")
+    eq = re.search(r"\\hat\{V\} = ([\d.]+) \+ ([\d.]+) \\cdot", sec)
+    ck.n_checked += 2
+    if not eq:
+        ck.errors.append("4.4: khong tim thay phuong trinh du bao")
+        return
+    ck.expect("4.4 intercept", eq.group(1), f["intercept"])
+    ck.expect("4.4 slope", eq.group(2), f["slope"])
+    for label, pat, val in (("r train", r"r = ([\d.]+)", f["r_train"]),
+                            ("RMSE train", r"RMSE \$([\d.]+)\$ khách", f["rmse_train"]),
+                            ("RMSE test", r"RMSE \$([\d.]+)\$ khách\.\*\*", f["rmse_test"]),
+                            ("qh TB", r"\*\*([\d.]+) quầy-giờ/ngày\*\*", f["qh_tb"])):
+        m = re.search(pat, sec)
+        if not m:
+            ck.n_checked += 1
+            ck.errors.append(f"4.4 {label}: khong tim thay")
+        else:
+            ck.expect(f"4.4 {label}", m.group(1), val)
+    for d in (2, 7, 13):
+        m = re.search(rf"ngày {d}\b.{{0,40}}?\\hat\{{V\}} = ([\d.]+)\$", sec)
+        if not m:
+            ck.n_checked += 1
+            ck.errors.append(f"4.4 ngay {d}: khong tim thay du bao")
+        else:
+            ck.expect(f"4.4 V_du_bao ngay {d}", m.group(1), c.loc[d, "V_du_bao"])
+
+
+def check_weibull(ck: TableChecker):
+    """7.12 (S12): bang fit mu/Weibull va bang lich duoi hai mo hinh kien nhan."""
+    fit = _csv("kien_nhan_weibull_fit.csv").iloc[0]
+    w = _csv("kien_nhan_weibull.csv")
+    rows = ck.rows("### 7.12")
+    mu, wb = ck.row("### 7.12", "Mũ"), ck.row("### 7.12", "**Weibull**")
+    ck.expect("7.12 theta", mu[1], fit["theta_exp"])
+    ck.expect("7.12 mean exp", mu[2], fit["mean_patience_exp"])
+    ck.expect("7.12 ll exp", mu[3], fit["loglik_exp"])
+    ck.expect("7.12 aic exp", mu[4], fit["aic_exp"])
+    ck.expect("7.12 shape", wb[1], fit["shape"], 0)
+    ck.expect("7.12 scale", wb[1], fit["scale"], 1)
+    ck.expect("7.12 mean weibull", wb[2], fit["mean_patience_weibull"])
+    ck.expect("7.12 ll weibull", wb[3], fit["loglik_weibull"])
+    ck.expect("7.12 aic weibull", wb[4], fit["aic_weibull"])
+    pol = [c for c in rows if len(c) == 8 and c[2].startswith("`")]
+    if len(pol) != len(w):
+        ck.errors.append(f"7.12: tai lieu co {len(pol)} dong lich, kien_nhan_weibull.csv co {len(w)}")
+    for (_, r), cells in zip(w.iterrows(), pol):
+        lab = f"7.12 {r['kien_nhan']} {r['chinh_sach']}"
+        _check_lich(ck, lab, cells[2], r["lich_quay"])
+        ck.expect(lab + " q-h", cells[3], r["quay_gio"])
+        ck.expect(lab + " SL", cells[4], r["sl_toan_ngay"])
+        ck.expect(lab + " SL hw", cells[4], r["sl_ci_half"], 1)
+        ck.expect(lab + " low", cells[5], r["sl_gio_te_nhat_low"])
+        ck.expect(lab + " p_ab", cells[6], r["ti_le_bo_ve"] * 100)
+        ck.expect(lab + " wq", cells[7], r["wq_phut"])
+
+
+def check_half_hour(ck: TableChecker):
+    """7.13 (S15): lambda nua gio va bang lich duoi hai mo hinh den."""
+    rates = _csv("lambda_nua_gio.csv")
+    k = _csv("khung_30_phut.csv")
+    rows = ck.rows("### 7.13")
+    rr = [c for c in rows if len(c) == 7 and c[0].endswith("h") and "-" in c[0]]
+    if len(rr) != len(rates):
+        ck.errors.append(f"7.13: tai lieu co {len(rr)} dong lambda, lambda_nua_gio.csv co {len(rates)}")
+    for (_, r), cells in zip(rates.iterrows(), rr):
+        lab = f"7.13 {r['khung_gio']}"
+        for i, col in enumerate(("lambda_nua_dau", "lambda_nua_sau", "ti_so_sau_dau", "p_value", "p_holm"), 1):
+            ck.expect(f"{lab} {col}", cells[i], r[col])
+        ck.n_checked += 1
+        if (cells[6] == "Có") != (r["khac_biet_co_y_nghia"] == "Co"):
+            ck.errors.append(f"{lab}: ket luan khac biet khac CSV")
+    pol = [c for c in rows if len(c) == 8 and c[2].startswith("`")]
+    if len(pol) != len(k):
+        ck.errors.append(f"7.13: tai lieu co {len(pol)} dong lich, khung_30_phut.csv co {len(k)}")
+    for (_, r), cells in zip(k.iterrows(), pol):
+        lab = f"7.13 {r['mo_hinh_den']} {r['chinh_sach']}"
+        _check_lich(ck, lab, cells[2], r["lich_quay"])
+        ck.expect(lab + " q-h", cells[3], r["quay_gio"])
+        ck.expect(lab + " SL", cells[4], r["sl_toan_ngay"])
+        ck.expect(lab + " low", cells[5], r["sl_gio_te_nhat_low"])
+        ck.expect(lab + " 8h", cells[6], r["sl_8h_9h_low"])
+        ck.expect(lab + " 9h", cells[7], r["sl_9h_10h_low"])
 
 
 # =============================================================================
