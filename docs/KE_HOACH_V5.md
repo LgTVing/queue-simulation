@@ -2,7 +2,38 @@
 
 **Ngày lập:** 2026-10-29  
 **Điểm xuất phát:** commit `6a1083d` trên nhánh `feat/v4`. V4 đã đóng băng tại `results/final_v4/` và mọi tài liệu đã đồng bộ. Kế hoạch V4 (`docs/KE_HOACH_CAI_TIEN.md`) đã hoàn tất.  
-**Mục đích:** củng cố kết luận chính ("bao nhiêu quầy, tổ chức ca thế nào") và rút thời gian chạy pipeline từ 33 phút xuống dưới 10 phút. Không làm thay đổi kết quả V4 khi chưa chủ đích.
+**Mục đích:** củng cố kết luận chính ("bao nhiêu quầy, tổ chức ca thế nào") và rút thời gian chạy pipeline từ 33 phút xuống dưới 10 phút. Không làm thay đổi kết quả V4 khi chưa chủ đích.  
+**Cập nhật trạng thái:** 2026-10-30, nhánh `feat/v5`, commit cuối `87f94aa`.
+
+---
+
+## Trạng thái (cập nhật 2026-10-30)
+
+### Đã làm
+
+| Mã | Commit | Kết quả chính | Khác kế hoạch / lưu ý |
+|---|---|---|---|
+| P1 | `6978fcb` | Chạy song song bằng `c_sim.map_sim`; bộ sinh phục vụ đổi sang class pickle được. Pipeline 33.3 → 5.5–6.5 phút; CSV và hình giống từng byte với `final_v4`. | Mặc định `min(CPU − 1, 8)` tiến trình (19 tiến trình làm hết RAM, pool hỏng); pool hỏng thì tự chạy lại tuần tự. |
+| P2 | `17a9f6d` | `rep_stats` dùng NumPy: 0.82 → 0.06 s/60 lần lặp; đo A/B cùng điều kiện máy pipeline 9.0 → 6.55 phút; vẫn giống từng byte. | Thời gian tuyệt đối dao động theo tải máy (5.5–9 phút cho cùng code). |
+| T2 | `8d97391` | `check_report_numbers()` đối chiếu 132 số trong báo cáo, slide, README; test âm. | – |
+| T3 | `62436fb` | `.github/workflows/ci.yml` (pytest `not slow` + checker). | **Chưa kiểm chứng**: cần push lên GitHub. |
+| M6 | `6c7927d` | `h_staffing.optimize_shift_staffing`. Thăm dò đầy đủ 3.180 lịch phủ: ≤ 44 giờ công không lịch nào khả thi → **tối thiểu 48 giờ công**; tốt nhất trong 48 giờ công là Lịch 48 `[4,6,6,6,5,5,6,5,5]` (4 ca 8h + 4 ca 4h), trội ở mọi chỉ số. | Pipeline dùng `slack=0` (95 lịch) vì ở W = 48 không lịch nào thiếu quầy so với SIPP lại khả thi; cận trên W = giờ công phủ lịch tối ưu quầy-giờ. |
+| M7 | `66db6d1` | `toi_uu_xac_suat_ngay.csv`: đạt SLA ở ≥ 90% số ngày cần **48 giờ công**, ≥ 95% cần **52 giờ công**. | Ở 48 giờ công, lịch M7 `[4,5,6,6,5,5,6,6,5]` (P 95.0%) và Lịch 48 (94.7%) không khác biệt có ý nghĩa. Có sàng lọc 100 lần lặp và cache để giai đoạn `optimize` còn ~6–10 phút. |
+| M8 | `87f94aa` | `surge_policy` trong `c_sim.simulate`; `chinh_sach_tang_quay.csv`. Lịch 45 + mở thêm 1 quầy khi > 2 người chờ liên tục 5 phút: TB 46.2 quầy-giờ mở, P(SL ngày ≥ 90%) 97.3% (Lịch 48: 94.0%), nhu cầu +10% 0.919 (0.903), 14/14 ngày. | Ngưỡng 4–10 người / 10 phút trong kế hoạch gần như không kích hoạt; lưới cuối là ngưỡng 1–3, cửa sổ 3–5 phút. Kịch bản "ngày 10" (E[S] tăng chỉ 14h–17h) thay bằng E[S] +10% cả ngày vì `Model` chưa hỗ trợ phục vụ theo giờ. Cần 1 người dự phòng (chi phí không nằm trong quầy-giờ mở). |
+
+**Kiểm chứng chung:** lần chạy đầy đủ cuối (`--reps-scale 1.0`, 9.9 phút) cho mọi CSV và hình của V4 giống từng byte; chỉ thêm 5 tệp mới (`toi_uu_theo_ca.csv`, `toi_uu_theo_ca_top.csv`, `toi_uu_xac_suat_ngay.csv`, `chinh_sach_tang_quay.csv`, khóa `toi_uu_theo_ca` trong `lich_khuyen_nghi.json`) và ngày chốt trong `params.json`. `pytest -q` 59/59 (4–7 phút do smoke test chạy M6–M8); checker sạch.
+
+**Kết luận mới (chưa đưa vào tài liệu):** cần **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48; nếu có người dự phòng, Lịch 45 + quy tắc mở thêm quầy bền hơn với ít quầy-giờ mở hơn. Muốn ≥ 95% số ngày đạt SLA cần 52 giờ công.
+
+### Chưa làm
+
+| Mã | Việc | Ghi chú |
+|---|---|---|
+| R4 | Đóng băng `results/final_v5/`, sinh `doi_chieu_v4_v5.csv` | **Làm tiếp theo.** Chi tiết ở [mục 9.1](#91-r4--đóng-băng-final_v5) |
+| D4 | Cập nhật `tong_hop.md`, báo cáo, slide, README, `TONG_HOP_SO_LIEU_CHI_TIET.md` | Sau R4. Chi tiết ở [mục 9.2](#92-d4--cập-nhật-tài-liệu) |
+| T3 | Kiểm chứng CI trên GitHub | Push nhánh `feat/v5`, xem tab Actions ([mục 9.3](#93-t3--kiểm-chứng-ci)) |
+| S12–S15 | Thống kê bổ sung (tùy chọn) | [Mục 9.4](#94-s12s15--thống-kê-bổ-sung-tùy-chọn) |
+| D5, D6 | Dashboard demo, slide thật, tập dượt | [Mục 9.5](#95-d5-d6--trình-bày) |
 
 ---
 
@@ -17,6 +48,7 @@
 6. [Giai đoạn 5 — Trình bày và bảo vệ](#6-giai-đoạn-5--trình-bày-và-bảo-vệ)
 7. [Checklist rà soát mỗi PR](#7-checklist-rà-soát-mỗi-pr)
 8. [Checklist bàn giao V5](#8-checklist-bàn-giao-v5)
+9. [Hướng dẫn các bước còn lại](#9-hướng-dẫn-các-bước-còn-lại)
 
 ---
 
@@ -288,10 +320,72 @@ Thứ tự:
 
 ## 8. Checklist bàn giao V5
 
-- [ ] P1: pipeline đầy đủ ≤ 10 phút, CSV V4 tái lập giống hệt khi tắt tính năng mới.
-- [ ] T2: checker đối chiếu cả `tong_hop.md`, báo cáo, slide, README.
-- [ ] M6: có số giờ công tối thiểu và phương án ca cụ thể.
-- [ ] M7, M8 (nếu làm): có bảng so sánh và khuyến nghị vận hành.
+- [x] P1: pipeline đầy đủ ≤ 10 phút (9.9 phút có M6–M8), CSV V4 tái lập giống hệt khi tắt tính năng mới.
+- [x] T2: checker đối chiếu cả `tong_hop.md`, báo cáo, slide, README.
+- [x] M6: có số giờ công tối thiểu (48) và phương án ca cụ thể (4 ca 8h + 4 ca 4h).
+- [x] M7, M8: có bảng so sánh và khuyến nghị vận hành (`toi_uu_xac_suat_ngay.csv`, `chinh_sach_tang_quay.csv`).
 - [ ] `results/final_v5/` đóng băng, có `doi_chieu_v4_v5.csv`, `MO_TA.md`, `pytest_log.txt`.
 - [ ] Tài liệu cập nhật; `CHANGELOG.md` có mục v5.0.
 - [ ] Hạn chế trong `tong_hop.md` mục 10 cập nhật (xóa mục đã giải quyết: 6 nếu S14, 7 nếu S13).
+
+---
+
+## 9. Hướng dẫn các bước còn lại
+
+Viết cho người làm tiếp. Trạng thái xuất phát: nhánh `feat/v5`, commit `87f94aa`, `results/final_v4/` vẫn là bản đóng băng hiện hành, mọi tài liệu còn mang số V4.
+
+### 9.1 R4 — Đóng băng `final_v5`
+
+1. **Bản đối chiếu V4 → V5.** Hiện `g_report.py` sinh `doi_chieu_v3_v4.csv` từ `PREV_RESULTS_DIR = results/final_v3` (`g_report.py:25`, `v3_reference()` dòng 96, `build_doi_chieu()` dòng 132). Cần:
+   - đổi `PREV_RESULTS_DIR` sang `results/final_v4`, viết `v4_reference()` đọc trực tiếp CSV V4 (`so_sanh_chinh_sach.csv`, `theo_14_ngay_tong_hop.csv`, `lich_khuyen_nghi.json`…) thay cho các khóa V3;
+   - đổi tên tệp đầu ra thành `doi_chieu_v4_v5.csv` (`g_report.py:74`, `:245`), sửa `main.py:10` (docstring), `tests/test_v4_pipeline.py:70` và danh sách `required` trong `tools/check_consistency.py:97`;
+   - thêm các dòng mới: giờ công tối thiểu (M6), lịch theo mức P (M7), chính sách tăng quầy (M8). Các chỉ số V4 cũ phải **không đổi** (đã kiểm chứng giống từng byte), nên cột nguyên nhân chủ yếu là "mới ở V5".
+2. **Đổi phiên bản:** `common.py:17` `RESULTS_VERSION = "final_v5"`. Thêm 4 tệp mới vào `required` của checker.
+3. **Chạy:** `python main.py --stage all --reps-scale 1.0` (~10 phút; máy bận có thể tới 15 phút). Nếu thấy cảnh báo "process pool hong" thì giảm `QS_WORKERS` (vd 4).
+4. **Kiểm tra:** `diff -rq results/final_v4 results/final_v5` chỉ được khác ở `MO_TA.md`, `thoi_gian_chay.json`, `params.json` (ngày chốt), `lich_khuyen_nghi.json` (thêm khóa `toi_uu_theo_ca`) và tệp mới/đổi tên. Khác ở CSV nào khác là lỗi, phải tìm nguyên nhân trước khi đi tiếp.
+5. **Log test:** `pytest -q > results/final_v5/pytest_log.txt` (4–7 phút).
+6. Commit `results(R4): đóng băng V5`. Giữ nguyên `results/final_v4/` làm mốc.
+
+### 9.2 D4 — Cập nhật tài liệu
+
+Làm theo thứ tự; sau mỗi tệp chạy `python tools/check_consistency.py`.
+
+1. **`tong_hop.md`** (nguồn số duy nhất):
+   - Mục 1 (bảng quyết định): thêm dòng "Giờ công tối thiểu" = 48 (M6) và cột/khối "Lịch 45 + tăng quầy" (M8); câu kết luận một dòng đổi thành "tối thiểu 48 giờ công/ngày, 4 ca 8h + 4 ca 4h theo Lịch 48".
+   - Thêm mục mới: 7.9 Tối ưu theo ca (M6, từ `toi_uu_theo_ca_top.csv` + số lịch thử theo giờ công từ `toi_uu_theo_ca.csv`), 7.10 Xác suất đạt SLA ngày (M7, `toi_uu_xac_suat_ngay.csv`), 7.11 Tăng quầy theo hàng chờ (M8, `chinh_sach_tang_quay.csv`).
+   - Mục 8: thay bảng V3 → V4 bằng V4 → V5 (`doi_chieu_v4_v5.csv`).
+   - Mục 9: số test (59), thời gian pipeline (~10 phút), mô tả song song (`QS_WORKERS`).
+   - Mục 10 (hạn chế): thêm "M8 cần 1 người dự phòng, chi phí không tính trong quầy-giờ mở", "kịch bản ngày 10 chưa mô phỏng được vì phục vụ không đổi theo giờ".
+   - Đường dẫn `results/final_v4/` → `results/final_v5/` (trừ chỗ nói về V4).
+2. **Checker:** thêm hàm kiểm tra cho 3 mục mới vào `check_numeric_consistency()` (theo mẫu `check_patience`, `check_abandon_constraint`), và cập nhật `_expected_report_strings()` nếu báo cáo/slide thêm bảng mới.
+3. **`docs/bao_cao_tong_ket.md`:** mục 6.3 (ca làm việc) và 9 (tối ưu) thêm M6; mục 9.3–9.4 thêm M7, M8; mục 10.1 câu 1 và 3, mục 10.2 khuyến nghị đổi theo kết luận mới; tiêu đề "Phiên bản số liệu" → V5.
+4. **`docs/slide_thuyet_trinh.md`:** slide 8 (tối ưu) thêm M6; slide 10–12 thêm M7, M8; slide 14 kết luận mới; phụ lục Q&A thêm câu "vì sao 48 giờ công mà không phải 45 quầy-giờ" và "chính sách tăng quầy cần gì".
+5. **`README.md` §15**, **`docs/TONG_HOP_SO_LIEU_CHI_TIET.md` phần 3–5**: cập nhật tóm tắt và đường dẫn.
+6. **`CHANGELOG.md`:** đổi tiêu đề "v5 (đang phát triển)" thành "v5.0" kèm ngày đóng băng.
+7. Commit `docs(D4): cập nhật tài liệu theo V5`.
+
+### 9.3 T3 — Kiểm chứng CI
+
+`git push -u origin feat/v5`, mở tab Actions trên GitHub. Nếu lỗi cài đặt do phiên bản ghim trong `requirements.txt` chưa có trên PyPI cho Linux, ghi lại lỗi và nới phiên bản trong workflow (không sửa `requirements.txt` của bản đóng băng). Smoke test đánh dấu `slow` không chạy trên CI.
+
+### 9.4 S12–S15 — Thống kê bổ sung (tùy chọn)
+
+Làm **sau R4/D4** nếu còn thời gian; mỗi việc làm thay đổi kết quả nên cần chạy lại pipeline và cập nhật tài liệu liên quan.
+
+- **S12 (kiên nhẫn Weibull):** thêm `Model.patience` là bộ sinh class (như `_ExpService` trong `common.py`), mặc định mũ để giữ V5; dòng cần đổi `c_sim.py` (`patience = rng.exponential(...)` trong `arrival_generator`). Fit Weibull có kiểm duyệt trên train bằng `scipy.optimize.minimize` (log-likelihood: khách bỏ về đóng góp mật độ, khách được phục vụ đóng góp hàm sống tại `wait`).
+- **S13 (dự báo fit trên train):** số đã tính tay ở `tong_hop.md` mục 4.4 ($\hat V = 90.9 + 4.20 N$, RMSE test 63.9); sửa `e_robustness.volume_threshold`.
+- **S14 (cluster bootstrap):** trong `e_robustness.conditional_expectation`, resample 200 kịch bản (giữ 30 lần lặp bên trong) để lấy CI cho cột "thực tế mọi giờ".
+- **S15 (khung 30 phút):** cần `Model.rates` và `counter_blocker_process` hỗ trợ độ dài khung khác nhau; cùng thay đổi này cũng mở đường cho kịch bản "ngày 10" của M8 (phục vụ theo giờ).
+
+### 9.5 D5, D6 — Trình bày
+
+- **D5:** trang HTML tĩnh tính SIPP Erlang-A (port từ `b_theory.erlang_a`, `sipp_schedule`); kiểm tra khớp `bang_sipp.csv` đến 3 chữ số.
+- **D6:** chuyển `docs/slide_thuyet_trinh.md` (sau D4) thành bộ slide; tập dượt theo phụ lục Q&A.
+
+### 9.6 Lưu ý kỹ thuật cho người làm tiếp
+
+- **RAM:** mỗi tiến trình con ~145 MB; máy 16 GB còn trống ~3 GB thì giữ `QS_WORKERS` ≤ 8.
+- **Đo thời gian:** đừng chạy pytest/benchmark song song với pipeline khi đo; số tuyệt đối dao động 5.5–9 phút cho cùng code.
+- **Log khi chạy song song:** ghi log bằng `>>` (append) và `PYTHONUNBUFFERED=1`, nếu không traceback của tiến trình con bị ghi đè.
+- **Smoke test** (`tests/test_v4_pipeline.py::test_pipeline_smoke`, `--reps-scale 0.02`) mất ~3–4 phút vì M6–M8 phải duyệt nhiều lịch khi số lần lặp nhỏ.
+- **Seed đã dùng:** chọn lịch 1000, đánh giá 50000, M7 chọn 3000 (sàng lọc 503000), M6 độ bền 81000/131000, M8 400000–1.300.000. Thí nghiệm mới nên dùng dải khác.
