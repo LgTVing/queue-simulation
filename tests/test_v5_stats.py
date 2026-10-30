@@ -3,6 +3,7 @@ tests/test_v5_stats.py: Kiem thu thong ke bo sung V5:
 1. S13: hoi quy du bao som fit chi tren 10 ngay train (so tinh tay trong ke hoach V5)
 2. S14: CI cluster bootstrap rong hon Wilson khi cac lan lap trong cung kich ban tuong quan
 3. S12: MLE kien nhan Weibull co kiem duyet khoi phuc tham so; so tren tap train
+4. S15: lambda nua gio nhat quan voi lambda gio; chi 8h-9h khac biet co y nghia
 """
 
 import numpy as np
@@ -49,3 +50,13 @@ def test_weibull_patience_train():
     fit = a_data.fit_patience_weibull(tr)
     assert abs(fit["theta_exp"] - 0.1087) < 1e-4
     assert 0.8 < fit["shape"] < 0.9 and fit["lr_pvalue"] < 0.001
+
+
+def test_half_hour_rates():
+    """S15: trung binh hai nua = lambda ca gio; 8h-9h nua sau dong hon co y nghia sau Holm."""
+    df = pd.read_csv(DATA_CLEAN)
+    tr, _ = a_data.split_train_test(df)
+    r = a_data.half_hour_rates(tr)
+    assert np.allclose((r["lambda_nua_dau"] + r["lambda_nua_sau"]) / 2, r["lambda_ca_gio"])
+    assert abs(r.loc[0, "lambda_nua_dau"] - 0.8667) < 1e-3 and abs(r.loc[0, "lambda_nua_sau"] - 1.1133) < 1e-3
+    assert list(r["khac_biet_co_y_nghia"]) == ["Co"] + ["Khong"] * 8

@@ -442,6 +442,28 @@ def service_fit_details(svc: np.ndarray, B: int = 300, seed: int = 42) -> pd.Dat
                  "cs2_mo_hinh": float(np.var(svc, ddof=1) / np.mean(svc) ** 2)})
     return pd.DataFrame(rows)
 
+def half_hour_rates(df: pd.DataFrame, hour_len: float = 60.0) -> pd.DataFrame:
+    """
+    S15: lambda (khach/phut) cua hai nua moi khung gio tren tap df; kiem dinh hai nua bang nhau
+    (dieu kien tren tong so khach cua gio, so khach nua dau ~ Binomial(n, 0.5)), Holm-Bonferroni qua 9 gio.
+    """
+    from stats_utils import holm_bonferroni
+    n_days = df["day"].nunique()
+    rows = []
+    for h in range(common.HOURS):
+        t = df.loc[df["hour"] == h, "t"].to_numpy()
+        n1 = int(np.sum(t < h * hour_len + hour_len / 2))
+        n2 = len(t) - n1
+        rows.append({"gio": h, "khung_gio": common.H_LABELS[h], "lambda_nua_dau": n1 / (n_days * hour_len / 2),
+                     "lambda_nua_sau": n2 / (n_days * hour_len / 2), "lambda_ca_gio": len(t) / (n_days * hour_len),
+                     "ti_so_sau_dau": n2 / n1 if n1 else np.nan,
+                     "p_value": float(stats.binomtest(n1, n1 + n2, 0.5).pvalue) if n1 + n2 else np.nan})
+    out = pd.DataFrame(rows)
+    adj, rej = holm_bonferroni(out["p_value"].to_numpy())
+    out["p_holm"] = adj
+    out["khac_biet_co_y_nghia"] = np.where(rej, "Co", "Khong")
+    return out
+
 def fit_patience_weibull(df: pd.DataFrame, eps: float = 1.0 / 60) -> Dict:
     """
     S12: MLE kien nhan Weibull S(t) = exp(-(t/scale)^shape) voi kiem duyet phai:

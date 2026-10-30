@@ -14,6 +14,7 @@ V5:
 - M8 surge_policies(): mo them quay khi hang cho dai -> chinh_sach_tang_quay.csv;
   recommended_surge() chon chinh sach khuyen nghi
 - S12 patience_weibull_scenario(): kien nhan Weibull -> kien_nhan_weibull_fit.csv, kien_nhan_weibull.csv
+- S15 half_hour_scenario(): lambda nua gio 8h-10h -> lambda_nua_gio.csv, khung_30_phut.csv
 """
 
 import dataclasses
@@ -158,6 +159,33 @@ def patience_weibull_scenario(ctx: Dict, sch: Dict[str, List[int]]):
     return pd.DataFrame([fit]), pd.DataFrame(rows)
 
 
+S15_HOURS = (0, 1)  # 8h-9h, 9h-10h theo ke hoach V5
+
+
+def half_hour_scenario(ctx: Dict, sch: Dict[str, List[int]]):
+    """
+    S15: lambda theo nua gio o 8h-10h (Model.sub_rates, lich quay van theo gio). Danh gia Lich 45,
+    Lich 48 duoi mo hinh theo gio va theo nua gio (seed danh gia, 300 lan lap) va toi uu lai lich.
+    Tra (bang lambda nua gio 9 khung, bang chinh sach).
+    """
+    rates = a_data.half_hour_rates(ctx["df_train"])
+    model = ctx["model"]
+    sub = [[float(rates.loc[h, "lambda_nua_dau"]), float(rates.loc[h, "lambda_nua_sau"])] if h in S15_HOURS else None
+           for h in range(HOURS)]
+    model_30 = dataclasses.replace(model, sub_rates=sub)
+    sched_30 = dx.optimize(model_30)["schedule"]
+    print(f"  • S15 lambda nua gio 8h-10h: lich toi uu {sched_30} = {sum(sched_30)} q-h")
+    rows = []
+    for m_name, m in (("Theo gio", model), ("Nua gio 8h-10h", model_30)):
+        for p_name, sched in {"Lich 45": sch["toi_uu"], "Lich 48": sch["ben_vung"], "Toi uu nua gio": sched_30}.items():
+            res = dx.evaluate(m, sched)
+            row = sim.summary_row(p_name, sched, res)
+            row.update({"mo_hinh_den": m_name, "sl_8h_9h_low": res["hourly"][0]["sl_ci95_low"],
+                        "sl_9h_10h_low": res["hourly"][1]["sl_ci95_low"]})
+            rows.append(row)
+    return rates, pd.DataFrame(rows)
+
+
 def worst_hour_stability(model: Model, policies: Dict[str, List[int]], target_hw: float = 0.003,
                          R_cap: int = 3000, block: int = 60, B: int = 1000, seed: int = 100000):
     """
@@ -218,6 +246,10 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     fit, pol_w = patience_weibull_scenario(ctx, sch)
     _save(fit, "kien_nhan_weibull_fit.csv")
     _save(pol_w, "kien_nhan_weibull.csv")
+    print("[S15] Lambda theo nua gio 8h-10h...")
+    rates30, pol30 = half_hour_scenario(ctx, sch)
+    _save(rates30, "lambda_nua_gio.csv")
+    _save(pol30, "khung_30_phut.csv")
     print("[M6] Toi uu theo gio cong ca (nghi trua 11h-14h)...")
     # slack=0: lan tham do slack=1 (3.180 lich phu, gio cong 36-48) khong co lich kha thi nao
     # co gio thieu quay so voi SIPP Erlang-A (tot nhat 0.8867), xem docs/KE_HOACH_V5.md M6.
