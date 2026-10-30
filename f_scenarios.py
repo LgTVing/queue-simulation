@@ -336,13 +336,15 @@ def _eval_surge(model: Model, sched: List[int], surge, n: int, seed: int, day_cv
 
 # Luoi tham so: lan quet tham do (nguong 4-10, cua so 10 phut) gan nhu khong kich hoat (khach bo ve
 # lam hang ngan lai); luoi duoi day la vung co tac dung (quet nguong 1-3, cua so 3/5, 1-2 quay).
+NGAY10_SVC_FACTOR, NGAY10_FROM_HOUR = 1.29, 6
 SURGE_GRID = [(1, 5, 1), (2, 5, 1), (3, 5, 1), (3, 5, 2), (2, 3, 1)]
 
 
 def surge_policies(ctx: Dict, sch: Dict[str, List[int]], grid=SURGE_GRID, R: int = 300, R14: int = 40) -> pd.DataFrame:
     """
     M8: so sanh Lich 45 + mo them quay khi hang cho dai voi Lich 45 va Lich 48 co dinh.
-    Kich ban: danh dinh, bien dong ngay (CV train), nhu cau +10%, E[S] +10%, 14 ngay thuc te.
+    Kich ban: danh dinh, bien dong ngay (CV train), nhu cau +10%, E[S] +10%, ngay 10 (E[S] x1.29
+    o 14h-17h, Model.service_by_hour), 14 ngay thuc te.
     Quay-gio TB = quay-gio lich + phut-quay du phong / 60.
     """
     model, cv = ctx["model"], ctx["params"]["day_cv"]
@@ -354,7 +356,10 @@ def surge_policies(ctx: Dict, sch: Dict[str, List[int]], grid=SURGE_GRID, R: int
     scen = {"danh dinh": (model, 0.0), "bien dong ngay": (model, cv),
             "nhu cau +10%": (dx.scale_demand(model, 1.1), 0.0),
             "E[S] +10%": (dataclasses.replace(model, service=empirical_service(ctx["svc_train"] * 1.1),
-                                              mean_svc=model.mean_svc * 1.1), 0.0)}
+                                              mean_svc=model.mean_svc * 1.1), 0.0),
+            # Ngay 10 (M4): thoi gian phuc vu cao hon 29% o 14h-17h, cac gio khac nhu train
+            "ngay 10": (dataclasses.replace(model, service_by_hour=[None] * NGAY10_FROM_HOUR + [empirical_service(
+                ctx["svc_train"] * NGAY10_SVC_FACTOR)] * (HOURS - NGAY10_FROM_HOUR)), 0.0)}
     rows = []
     for name, sched, surge in pols:
         row = {"chinh_sach": name, "lich_quay": str(sched), "quay_gio_lich": sum(sched),
