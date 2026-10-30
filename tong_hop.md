@@ -1,9 +1,9 @@
-# BẢNG TỔNG HỢP SỐ LIỆU CUỐI CÙNG VÀ ĐÁNH GIÁ TOÀN DIỆN DỰ ÁN (PHIÊN BẢN V4)
+# BẢNG TỔNG HỢP SỐ LIỆU CUỐI CÙNG VÀ ĐÁNH GIÁ TOÀN DIỆN DỰ ÁN (PHIÊN BẢN V5)
 
 **Dự án:** Mô phỏng hàng đợi và xác định số quầy phục vụ tối ưu cho quầy giao dịch ngân hàng  
-**Thời điểm tổng hợp:** 2026-10-29 (V4: sửa động cơ mô phỏng F1–F3, phục vụ thực nghiệm M3, kịch bản kiên nhẫn M1, ràng buộc bỏ về M2, điều tra 15h–16h M4, ổn định giờ tệ nhất M5; đóng băng tại `results/final_v4/`)  
+**Thời điểm tổng hợp:** 2026-10-30 (V5: tối ưu trực tiếp theo giờ công ca M6, chọn lịch theo xác suất đạt SLA ngày M7, mở thêm quầy theo hàng chờ M8, chạy song song P1–P2; đóng băng tại `results/final_v5/`. Mọi chỉ số của V4 giữ nguyên từng byte, xem mục 8)  
 **Bộ dữ liệu:** Anonymous Bank Call Center (Technion SEE Center), 14 ngày làm việc, $9.836$ giao dịch  
-**Lệnh tái lập:** `python main.py --stage all --reps-scale 1.0` (33.3 phút; seed chọn lịch `1000`, seed đánh giá `50000`)
+**Lệnh tái lập:** `python main.py --stage all --reps-scale 1.0` (17.2 phút với 8 tiến trình song song ở lần chạy đóng băng khi máy đang tải việc khác, 9.9 phút ở lần chạy thử khi máy rảnh; seed chọn lịch `1000`, seed đánh giá `50000`)
 
 ---
 
@@ -16,7 +16,7 @@
 5. [ĐÁNH GIÁ NGOÀI MẪU VỚI KHOẢNG DỰ BÁO 95% (PI95) VÀ HOLM-BONFERRONI (S6, M4)](#5-đánh-giá-ngoài-mẫu-với-khoảng-dự-báo-95-pi95-và-holm-bonferroni-s6-m4)
 6. [TỐI ƯU HÓA LỊCH CA LÀM VIỆC THỰC TẾ (MILP)](#6-tối-ưu-hóa-lịch-ca-làm-việc-thực-tế-milp)
 7. [PHÂN TÍCH ĐỘ NHẠY VÀ ĐÁNH ĐỔI KINH TẾ](#7-phân-tích-độ-nhạy-và-đánh-đổi-kinh-tế)
-8. [ĐỐI CHIẾU V3 → V4](#8-đối-chiếu-v3--v4)
+8. [ĐỐI CHIẾU V4 → V5](#8-đối-chiếu-v4--v5)
 9. [TỔNG KẾT KIỂM THỬ VÀ TRẠNG THÁI BÀN GIAO](#9-tổng-kết-kiểm-thử-và-trạng-thái-bàn-giao)
 10. [HẠN CHẾ CẦN NÊU KHI BÁO CÁO](#10-hạn-chế-cần-nêu-khi-báo-cáo)
 
@@ -24,11 +24,16 @@
 
 ## 1. BẢNG QUYẾT ĐỊNH QUẢN TRỊ TỔNG THỂ
 
-**Kết luận một dòng:** cần tối thiểu **45 quầy-giờ/ngày**, phân bổ `[4, 5, 6, 5, 5, 5, 5, 5, 5]` theo giờ 8h–17h, để $\ge 90\%$ khách chờ dưới 5 phút ở mọi giờ (cận dưới CI95); nếu khách quầy kiên nhẫn hơn khách tổng đài, con số tăng lên **46 quầy-giờ** (kiên nhẫn 15–60 phút) và tối đa **48 quầy-giờ** (không ai bỏ về).
+**Kết luận một dòng:** cần tối thiểu **48 giờ công nhân viên/ngày**, xếp **4 ca 8h + 4 ca 4h** (nghỉ trưa 11h–14h) để mở quầy theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]`, để $\ge 90\%$ khách chờ dưới 5 phút ở mọi giờ (cận dưới CI95). Không cách xếp ca nào dưới 48 giờ công đạt tiêu chí này (M6, mục 7.9).
 
-Số liệu trích từ `results/final_v4/` (300 lần lặp, seed đánh giá tách khỏi seed chọn lịch):
+- **Số quầy-giờ mở ít nhất** vẫn là **45** (`[4, 5, 6, 5, 5, 5, 5, 5, 5]`), nhưng Lịch 45 cũng tốn 48 giờ công vì không phủ đúng được bằng ca 8h/4h (mục 6). Cùng 48 giờ công, Lịch 48 cho SL cao hơn và bỏ về thấp hơn.
+- **Biến động giữa các ngày:** Lịch 48 đạt SLA ở khoảng 95% số ngày; muốn $\ge 95\%$ số ngày (cận dưới Wilson) cần **52 giờ công** (M7, mục 7.10).
+- **Nếu có 1 người dự phòng:** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút đạt SLA ở 97.3% số ngày với trung bình 46.17 quầy-giờ mở (M8, mục 7.11).
+- **Nếu khách quầy kiên nhẫn hơn khách tổng đài:** số quầy-giờ mở tăng lên 46 (kiên nhẫn 15–60 phút) và tối đa 48 (không ai bỏ về) (M1, mục 7.5).
 
-| Tiêu chí quản trị | Phương án Tối ưu Thường nhật (Khuyến nghị 1) | Phương án Dự phòng Bền vững (Khuyến nghị 2) | Mốc cơ sở: Hằng số 6 quầy |
+Số liệu trích từ `results/final_v5/` (300 lần lặp, seed đánh giá tách khỏi seed chọn lịch):
+
+| Tiêu chí quản trị | Lịch 45: ít quầy-giờ mở nhất | Lịch 48: khuyến nghị (ít giờ công nhất, M6) | Mốc cơ sở: Hằng số 6 quầy |
 |---|:---:|:---:|:---:|
 | **Lịch quầy chi tiết theo giờ (8h - 17h)** | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | `[6, 6, 6, 6, 6, 6, 6, 6, 6]` |
 | **Tổng số quầy-giờ mở** | **45 quầy-giờ/ngày** | **48 quầy-giờ/ngày** | **54 quầy-giờ/ngày** |
@@ -44,12 +49,20 @@ Số liệu trích từ `results/final_v4/` (300 lần lặp, seed đánh giá t
 | **Thời gian chờ trung bình $W_q$** | **$0.4628 \pm 0.0150$ phút (~27.8 giây)** | **$0.3432 \pm 0.0123$ phút (~20.6 giây)** | $0.2024 \pm 0.0091$ phút (~12.1 giây) |
 | **Tỉ lệ khách hàng bỏ về trung bình** | **$4.99\% \pm 0.16\%$** | **$3.70\% \pm 0.13\%$ (giảm 26% khách mất)** | $2.17\% \pm 0.10\%$ |
 | **Hiệu suất sử dụng quầy giao dịch $\rho$** | **$70.85\% \pm 0.39\%$** | **$67.33\% \pm 0.39\%$** | $60.77\% \pm 0.37\%$ |
-| **Phương án tổ chức ca (nghỉ trưa 11h–14h, ca 8h + 4h)** | **5 NV 8h + 2 NV 4h = 48 q-h công**<br>*(Không có cách phủ đúng 45 q-h; dư 3 q-h)* | **4 NV 8h + 4 NV 4h = 48 q-h công**<br>*(Phủ đúng 48 q-h)* | **6 NV 8h + 2 NV 4h = 56 q-h công**<br>*(Không phủ đúng được 54; dư 2 q-h)* |
+| **Phương án tổ chức ca (nghỉ trưa 11h–14h, ca 8h + 4h)** | **5 NV 8h + 2 NV 4h = 48 q-h công**<br>*(Không có cách phủ đúng 45 q-h; dư 3 q-h)* | **4 NV 8h + 4 NV 4h = 48 q-h công**<br>*(Phủ đúng 48 q-h; tốt nhất trong 33 lịch khả thi ở 48 giờ công, M6)* | **6 NV 8h + 2 NV 4h = 56 q-h công**<br>*(Không phủ đúng được 54; dư 2 q-h)* |
 | **Độ bền khi nhu cầu tăng +10%** | Giờ tệ nhất Low CI95 **$87.93\%$** (SL ngày $92.00\%$) | Giờ tệ nhất Low CI95 **$90.87\%$** (SL ngày $94.23\%$) | Giờ tệ nhất Low CI95 $92.67\%$ |
 | **Quy tắc kích hoạt vận hành** | Áp dụng khi $\hat{V} \le 803$ khách/ngày (dự báo sớm 8h–10h: $r=0.842, p=0.0002$) | Chuyển sang lúc 10h khi $\hat{V} > 803$ khách/ngày | Mốc đối chiếu |
 
 > [!IMPORTANT]
-> **Hệ quả của bảng ca làm việc:** với nghỉ trưa 11h–14h và ca 8h/4h, Lịch 45 và Lịch 48 **cùng tốn 48 quầy-giờ công**. Nếu chi phí là giờ công nhân viên chứ không phải giờ mở quầy, Lịch 48 (bền vững) có cùng chi phí nhân sự với Lịch 45 nhưng SL cao hơn và bỏ về thấp hơn. Lịch 45 chỉ tiết kiệm hơn khi giờ mở quầy có chi phí riêng (điện, hệ thống, quầy) hoặc khi có thể bố trí 3 quầy-giờ dư cho việc khác. Phương án ca cho Lịch 48 và mốc 54 giải bằng cùng hàm `b_shifts.solve_shift_scheduling` (pipeline hiện chỉ ghi `lich_theo_ca.csv` cho lịch tối ưu, xem mục 6).
+> **Vì sao khuyến nghị đổi từ Lịch 45 (V4) sang Lịch 48 (V5):** với nghỉ trưa 11h–14h và ca 8h/4h, Lịch 45 và Lịch 48 **cùng tốn 48 giờ công**. V4 tối ưu quầy-giờ mở trước rồi mới xếp ca; V5 (M6) tối ưu thẳng theo giờ công và xác nhận 48 là mức nhỏ nhất. Trong 33 lịch khả thi ở 48 giờ công, Lịch 48 đứng đầu ở cả SL, giờ tệ nhất, bỏ về và độ bền (mục 7.9). Lịch 45 chỉ đáng chọn khi giờ mở quầy có chi phí riêng (điện, hệ thống, quầy) hoặc khi 3 giờ công dư được dùng cho việc khác, chẳng hạn làm người dự phòng của chính sách M8.
+
+**Bổ sung V5: chính sách mở thêm quầy theo hàng chờ (M8).** Cùng bộ seed riêng của M8 (`results/final_v5/chinh_sach_tang_quay.csv`, 300 lần lặp mỗi kịch bản, 40 lần lặp mỗi ngày thực tế), nên SL của Lịch 45/48 cố định hơi khác bảng trên:
+
+| Phương án | Quầy-giờ mở TB (danh định) | $P(SL_{\text{ngày}} \ge 90\%)$, $CV_{\text{ngày}}$ 14% | Nhu cầu +10%: giờ tệ nhất Low CI95 | Ngày thực tế đạt (/14) | Nhân sự |
+|---|:---:|:---:|:---:|:---:|---|
+| Lịch 45 cố định | 45.00 | 80.3% | 0.8850 | 12 | 48 giờ công |
+| **Lịch 48 cố định** | 48.00 | 94.0% | 0.9029 | 14 | **48 giờ công** |
+| **Lịch 45 + mở thêm khi > 2 người chờ liên tục 5 phút, tối đa +1** | 46.17 | 97.3% | 0.9193 | 14 | 48 giờ công + 1 người dự phòng |
 
 ---
 
@@ -78,7 +91,7 @@ Dữ liệu được trích xuất từ phân hệ nghiệp vụ khách hàng c�
 
 ### 2.2 Thống kê 9 khung giờ & Khoảng tin cậy Student-t của $\lambda_h$ (S1)
 
-Do số khách thực tế theo ngày bị quá phân tán ở 8/9 giờ, công thức Poisson $1.96 \sqrt{\bar{N}/n}/60$ bị hẹp hơn thực tế $1.4 - 2.1$ lần. Khoảng tin cậy dùng phân phối Student-t với $df=13$ ($t_{0.975; 13} = 2.1604$), tại `results/final_v4/khoang_tin_cay_lambda.csv` và `kiem_dinh_poisson.csv`:
+Do số khách thực tế theo ngày bị quá phân tán ở 8/9 giờ, công thức Poisson $1.96 \sqrt{\bar{N}/n}/60$ bị hẹp hơn thực tế $1.4 - 2.1$ lần. Khoảng tin cậy dùng phân phối Student-t với $df=13$ ($t_{0.975; 13} = 2.1604$), tại `results/final_v5/khoang_tin_cay_lambda.csv` và `kiem_dinh_poisson.csv`:
 
 | Khung giờ | Giờ ID | $\bar{N}_h$ (khách/ngày) | Bán độ rộng Poisson | Bán độ rộng Student-t | Tỉ số t/Poisson | $\lambda_h$ (khách/phút) | CI95 Low $\lambda$ | CI95 High $\lambda$ | Chỉ số $D$ | $p$-value Poisson | Nhãn Poisson ($\alpha=0.05$) |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -92,13 +105,13 @@ Do số khách thực tế theo ngày bị quá phân tán ở 8/9 giờ, công 
 | **15h-16h** | 7 | 78.29 | 4.63 | **8.21** | 1.77 | 1.3048 | 1.1679 | 1.4417 | 33.61 | 0.0014 | Bác bỏ (mạnh) |
 | **16h-17h** | 8 | 63.93 | 4.19 | **6.60** | 1.58 | 1.0655 | 0.9554 | 1.1755 | 26.61 | 0.0141 | Bác bỏ (nhẹ) |
 
-> Bảng này tính trên cả 14 ngày (mô tả dữ liệu). Mô hình mô phỏng dùng $\lambda_h$ của **tập train 10 ngày** (bảng 2.4); CI Student-t của tập train ($df=9$) lưu trong `results/final_v4/params.json` (`rates_ci95`, kèm `rates_ci95_poisson` để so sánh).
+> Bảng này tính trên cả 14 ngày (mô tả dữ liệu). Mô hình mô phỏng dùng $\lambda_h$ của **tập train 10 ngày** (bảng 2.4); CI Student-t của tập train ($df=9$) lưu trong `results/final_v5/params.json` (`rates_ci95`, kèm `rates_ci95_poisson` để so sánh).
 
 ---
 
 ### 2.3 Hiện tượng Quá phân tán (Overdispersion)
 
-Kết quả phân tích quá phân tán toàn ngày (`results/final_v4/qua_phan_tan_ngay.csv`):
+Kết quả phân tích quá phân tán toàn ngày (`results/final_v5/qua_phan_tan_ngay.csv`):
 
 | Chỉ số thống kê quá phân tán | Giá trị thực nghiệm | Ghi chú so sánh lý thuyết |
 |---|:---:|---|
@@ -115,7 +128,7 @@ Kết quả phân tích quá phân tán toàn ngày (`results/final_v4/qua_phan_
 
 ### 2.4 Bảng tính giải tích Erlang C và Erlang-A SIPP
 
-Tính bằng `b_theory.py` (SIPP, $E[S] = 2.9236$ phút, $\theta = 0.1087$, tham số train), lưu tại `results/final_v4/bang_sipp.csv`. $SL$ Erlang C $= P(W_q \le 5)$ (không có bỏ về); $SL$ Erlang-A $= P(\text{được phục vụ và chờ} \le 5)$:
+Tính bằng `b_theory.py` (SIPP, $E[S] = 2.9236$ phút, $\theta = 0.1087$, tham số train), lưu tại `results/final_v5/bang_sipp.csv`. $SL$ Erlang C $= P(W_q \le 5)$ (không có bỏ về); $SL$ Erlang-A $= P(\text{được phục vụ và chờ} \le 5)$:
 
 | Khung giờ | $\lambda_{\text{train}}$ (khách/phút) | Nhu cầu tải $a_h$ (Erlang) | Số quầy Erlang C | $SL$ Erlang C | Số quầy Erlang-A | $SL$ Erlang-A | $p_{ab}$ Erlang-A | Lịch tối ưu mô phỏng |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -136,7 +149,7 @@ Tính bằng `b_theory.py` (SIPP, $E[S] = 2.9236$ phút, $\theta = 0.1087$, tham
 
 ### 2.5 Kiểm định độ phù hợp phân phối phục vụ và kiên nhẫn (S10)
 
-Chi tiết tại `results/final_v4/kiem_dinh_phan_phoi_chi_tiet.csv` và `results/final_v4/cluster_bootstrap_params.csv`:
+Chi tiết tại `results/final_v5/kiem_dinh_phan_phoi_chi_tiet.csv` và `results/final_v5/cluster_bootstrap_params.csv`:
 
 | Phân phối | Tham số ước lượng | Log-Likelihood | AIC | BIC | KS Stat | KS $p$-value (Bootstrap) | Đánh giá khoa học |
 |---|---|:---:|:---:|:---:|:---:|:---:|---|
@@ -147,7 +160,7 @@ Chi tiết tại `results/final_v4/kiem_dinh_phan_phoi_chi_tiet.csv` và `result
 
 - **Kết luận:** với $n = 6.346$ thời gian phục vụ (train), **cả 4 phân phối đều bị bác bỏ** bởi kiểm định KS bootstrap (thống kê KS quy đổi theo cỡ mẫu, mẫu mô phỏng 1.000).
 - **Lựa chọn mô hình V4 (M3):** mô phỏng chính lấy mẫu có hoàn lại trực tiếp từ 6.346 thời gian phục vụ train (giữ đúng $cs^2 = 1.20$). Gamma ($cs^2 = 0.91$) đánh giá thấp độ biến động nên chuyển sang phân tích độ nhạy (mục 7.2).
-- **Bảng sống sót Kaplan–Meier** (`results/final_v4/patience_km.csv`): đường KM giảm nhanh hơn đường mũ ở vùng chờ ngắn. Khách bỏ về sớm nhiều hơn giả định mũ, nên kiên nhẫn ~ Exponential($\theta$) chỉ là xấp xỉ; ảnh hưởng của kiên nhẫn được kiểm tra ở mục 7.5 (M1).
+- **Bảng sống sót Kaplan–Meier** (`results/final_v5/patience_km.csv`): đường KM giảm nhanh hơn đường mũ ở vùng chờ ngắn. Khách bỏ về sớm nhiều hơn giả định mũ, nên kiên nhẫn ~ Exponential($\theta$) chỉ là xấp xỉ; ảnh hưởng của kiên nhẫn được kiểm tra ở mục 7.5 (M1).
 - **Khoảng tin cậy Cluster Bootstrap theo ngày (xét tương quan trong ngày):**
   - Thời gian phục vụ trung bình $E[S]$: $[2.8589, 2.9929]$ phút (trung bình mẫu $2.9236$).
   - Tốc độ bỏ về $\theta$: $[0.0936, 0.1182]\text{ phút}^{-1}$ (trung bình mẫu $0.1087$).
@@ -158,7 +171,7 @@ Chi tiết tại `results/final_v4/kiem_dinh_phan_phoi_chi_tiet.csv` và `result
 
 ### 3.1 Kiểm chứng ba tầng và M/G/1 Pollaczek–Khinchine exact 40.000 phút (S8)
 
-Khoảng tin cậy dùng giá trị tới hạn Student-t ($df = n_{\text{reps}} - 1$). Chi tiết tại `results/final_v4/kiem_chung.csv`:
+Khoảng tin cậy dùng giá trị tới hạn Student-t ($df = n_{\text{reps}} - 1$). Chi tiết tại `results/final_v5/kiem_chung.csv`:
 
 | Tầng kiểm chứng | Chỉ số đánh giá | Giá trị Lý thuyết | Giá trị Mô phỏng | $n_{\text{reps}}$ | $t_{\text{crit}}$ | Khoảng tin cậy 95% | Sai lệch | Đạt? | Ghi chú kỹ thuật |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|
@@ -181,7 +194,7 @@ Tầng 3 so với công thức xấp xỉ Allen–Cunneen nên không gán "Đ�
 
 ### 3.2 Lịch sử Thuật toán Tối ưu hóa 2 Pha SimPy
 
-Lịch sử 11 bước tại `results/final_v4/lich_toi_uu.csv` (60 lần lặp/bước, seed chọn lịch `1000`; tiêu chí: cận dưới CI95 của SL mọi giờ $\ge 90\%$):
+Lịch sử 11 bước tại `results/final_v5/lich_toi_uu.csv` (60 lần lặp/bước, seed chọn lịch `1000`; tiêu chí: cận dưới CI95 của SL mọi giờ $\ge 90\%$):
 
 | Bước (`buoc`) | Pha (`pha`) | Cấu hình quầy thử nghiệm | Quầy-giờ | $SL$ Toàn ngày | Giờ tệ nhất | $SL$ Giờ tệ nhất (Low CI95) | Giờ vi phạm | Đạt SLA? |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -201,7 +214,7 @@ Lịch sử 11 bước tại `results/final_v4/lich_toi_uu.csv` (60 lần lặp/
 
 ### 3.3 Phân tích Bootstrap lồng nhau và Phân rã phương sai ANOVA (S5)
 
-Mô hình lồng nhau: $B = 50$ bộ tham số (resample ngày train; mẫu phục vụ resample trực tiếp, không fit lại Gamma) $\times R = 60$ lần lặp/bộ. Chi tiết tại `results/final_v4/phan_ra_phuong_sai.csv` và `bat_dinh_nested.csv`:
+Mô hình lồng nhau: $B = 50$ bộ tham số (resample ngày train; mẫu phục vụ resample trực tiếp, không fit lại Gamma) $\times R = 60$ lần lặp/bộ. Chi tiết tại `results/final_v5/phan_ra_phuong_sai.csv` và `bat_dinh_nested.csv`:
 
 | Chỉ số phân rã phương sai | Giá trị thực nghiệm | Khoảng tin cậy 95% | Diễn giải |
 |---|:---:|:---:|---|
@@ -221,7 +234,7 @@ Mô hình lồng nhau: $B = 50$ bộ tham số (resample ngày train; mẫu ph�
 
 ### 4.1 Đánh giá danh định (300 lần lặp, CI95)
 
-Dữ liệu tại `results/final_v4/so_sanh_chinh_sach.csv` (seed đánh giá `50000`, tách khỏi seed chọn lịch):
+Dữ liệu tại `results/final_v5/so_sanh_chinh_sach.csv` (seed đánh giá `50000`, tách khỏi seed chọn lịch):
 
 | Chính sách phục vụ | Lịch quầy theo giờ | Quầy-giờ | $SL$ Toàn ngày (CI95) | $SL$ Giờ tệ nhất (Low CI95) | $SL_{\text{vip}}$ | Tỉ lệ bỏ về $p_{ab}$ | Thời gian chờ $W_q$ (phút) | Hiệu suất quầy $\rho$ | Đạt SLA? |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -238,7 +251,7 @@ Dữ liệu tại `results/final_v4/so_sanh_chinh_sach.csv` (seed đánh giá `5
 
 ### 4.2 Chỉ số kỳ vọng có điều kiện và Độ nhạy $CV_{\text{ngày}}$ (S2, S3)
 
-Mô phỏng $K$ kịch bản ngày $\times R$ lần lặp để tính chỉ số kỳ vọng $E_h(m) = E[SL_h \mid m]$, tách rời nhiễu lấy mẫu (`results/final_v4/chi_so_ky_vong_dieu_kien.csv`, dòng chuẩn $K=200, R=30$, $CV = 14.0\%$ ước lượng trên train; `results/final_v4/do_nhay_cv_ngay.csv`, $K=100, R=20$):
+Mô phỏng $K$ kịch bản ngày $\times R$ lần lặp để tính chỉ số kỳ vọng $E_h(m) = E[SL_h \mid m]$, tách rời nhiễu lấy mẫu (`results/final_v5/chi_so_ky_vong_dieu_kien.csv`, dòng chuẩn $K=200, R=30$, $CV = 14.0\%$ ước lượng trên train; `results/final_v5/do_nhay_cv_ngay.csv`, $K=100, R=20$):
 
 | Chính sách | CV ngày | $P(E_{day} \ge 90\%)$ [Wilson 95%] | $P(\min_h E_h \ge 90\%)$ [Wilson 95%] | Số giờ $E_h < 90\%$ TB | $P(\text{thực tế mọi giờ} \ge 90\%)$ | $P(\text{gộp tháng 20 ngày} \ge 90\%)$ |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -266,7 +279,7 @@ Mô phỏng 300 lần lặp có hệ số nhân ngày ($CV = 14.0\%$, `so_sanh_c
 
 ### 4.3 Posterior Predictive Check mô hình nhu cầu ngày (S3)
 
-Kiểm tra qua 1.000 bộ 14 ngày mô phỏng từ mô hình $m_d \sim \text{Gamma}$ với $CV = 14.0\%$ (`results/final_v4/posterior_predictive_check.csv`):
+Kiểm tra qua 1.000 bộ 14 ngày mô phỏng từ mô hình $m_d \sim \text{Gamma}$ với $CV = 14.0\%$ (`results/final_v5/posterior_predictive_check.csv`):
 
 | Khung giờ | $D$ quan sát thực tế | $D$ kỳ vọng mô hình | CI 95% mô phỏng [$2.5\%, 97.5\%$] | Posterior Predictive $p$-value | Đánh giá mô hình |
 |:---:|:---:|:---:|:---:|:---:|---|
@@ -287,7 +300,7 @@ Với $CV = 14.0\%$ (train), $D$ kỳ vọng của mô hình lớn hơn giá tr�
 
 ### 4.4 Phân tích ngưỡng lưu lượng $V^*$ và Bộ dự báo sớm (S4)
 
-1. **Khảo sát ngưỡng lưu lượng** (`results/final_v4/nguong_luu_luong_chi_tiet.csv`, 40 lần lặp mỗi mức):  
+1. **Khảo sát ngưỡng lưu lượng** (`results/final_v5/nguong_luu_luong_chi_tiet.csv`, 40 lần lặp mỗi mức):  
    Lịch 45 giữ $SL_{\text{ngày}} \ge 90\%$ đến $V = 800$ khách/ngày (SL 0.9018) và hụt ở $V = 850$ (0.8703). Nội suy tuyến tính cho **$V^* = 803$ khách/ngày**. Lịch 48 vẫn đạt ở 850 (0.9045).
 2. **Bộ dự báo OLS sớm lúc 10h (từ số khách 8h–10h)** (`du_bao_som_hoi_quy.csv`):  
    $$\hat{V} = 189.6 + 3.49 \cdot (N_{8h-9h} + N_{9h-10h})$$  
@@ -301,7 +314,7 @@ Với $CV = 14.0\%$ (train), $D$ kỳ vọng của mô hình lớn hơn giá tr�
 
 ### 4.5 Đối chiếu 14 ngày thực tế phân định Train/Test (S7)
 
-Mô phỏng 40 lần lặp/ngày với $m_d = N_d / 686.7$, Student-t CI ($df=39$) tại `results/final_v4/theo_14_ngay.csv` và `theo_14_ngay_tong_hop.csv`:
+Mô phỏng 40 lần lặp/ngày với $m_d = N_d / 686.7$, Student-t CI ($df=39$) tại `results/final_v5/theo_14_ngay.csv` và `theo_14_ngay_tong_hop.csv`:
 
 | Ngày ID | Phân tập | Tổng khách | $SL$ Lịch 45 | CI 95% Lịch 45 | Đạt? | $SL$ Lịch 48 | CI 95% Lịch 48 | Đạt? | $SL$ Mốc 6 quầy | Đạt? |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -325,7 +338,7 @@ Mô phỏng 40 lần lặp/ngày với $m_d = N_d / 686.7$, Student-t CI ($df=39
 
 ## 5. ĐÁNH GIÁ NGOÀI MẪU VỚI KHOẢNG DỰ BÁO 95% (PI95) VÀ HOLM-BONFERRONI (S6, M4)
 
-So sánh mô phỏng Lịch 45 (1.000 bộ 4 ngày có biến động lưu lượng ngày) với quan sát thực tế tập Test (4 ngày, $2.969$ khách), tại `results/final_v4/ngoai_mau.csv`:
+So sánh mô phỏng Lịch 45 (1.000 bộ 4 ngày có biến động lưu lượng ngày) với quan sát thực tế tập Test (4 ngày, $2.969$ khách), tại `results/final_v5/ngoai_mau.csv`:
 
 | Khung giờ | Quầy | SL mô phỏng TB | PI95 Low | PI95 High | SL thực tế quan sát | Thực tế Wilson 95% | Trong PI95? | Holm $p_{\text{adj}}$ | Khác biệt có ý nghĩa? |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -349,7 +362,7 @@ So sánh mô phỏng Lịch 45 (1.000 bộ 4 ngày có biến động lưu lư�
 
 ## 6. TỐI ƯU HÓA LỊCH CA LÀM VIỆC THỰC TẾ (MILP)
 
-Bài toán quy hoạch nguyên trong `b_shifts.py` (solver HiGHS) cho yêu cầu Lịch 45 `[4, 5, 6, 5, 5, 5, 5, 5, 5]`, kết quả tại `results/final_v4/lich_theo_ca.csv`:
+Bài toán quy hoạch nguyên trong `b_shifts.py` (solver HiGHS) cho yêu cầu Lịch 45 `[4, 5, 6, 5, 5, 5, 5, 5, 5]`, kết quả tại `results/final_v5/lich_theo_ca.csv`:
 
 | Mô hình & Phương án ca | Mẫu phủ quầy theo giờ | Quầy-giờ làm việc | Giờ tại chỗ | Nhân sự | Dư so với 45 q-h |
 |---|:---:|:---:|:---:|:---:|:---:|
@@ -360,14 +373,14 @@ Bài toán quy hoạch nguyên trong `b_shifts.py` (solver HiGHS) cho yêu cầu
 | **Chỉ ca 4h** | `[4, 9, 9, 9, 5, 5, 5, 5, 5]` | 56 | 56 | 14 lượt ca 4h | +11 q-h (+24.4%) |
 | **Mô hình A: chỉ ca 8h liên tục** | `[4, 9, 9, 9, 9, 9, 9, 9, 5]` | 72 | 72 | 9 NV ca 8h | +27 q-h (+60.0%) |
 
-**Bổ sung** (cùng hàm `solve_shift_scheduling`, mô hình B nghỉ 11h–14h, hỗn hợp 8h + 4h; chưa nằm trong pipeline):
+**Bổ sung** (cùng hàm `solve_shift_scheduling`, mô hình B nghỉ 11h–14h, hỗn hợp 8h + 4h; phương án ca của Lịch 48 nằm trong `toi_uu_theo_ca.csv` của M6, mốc 54 tính riêng):
 
 | Yêu cầu | Mẫu phủ | Quầy-giờ làm việc | Giờ tại chỗ | Nhân sự | Dư |
 |---|:---:|:---:|:---:|:---:|:---:|
 | Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | phủ đúng | 48 | 52 | 8 NV (4 ca 8h + 4 ca 4h) | 0 |
 | Mốc 54 `[6, 6, 6, 6, 6, 6, 6, 6, 6]` | `[6, 6, 6, 6, 6, 6, 8, 6, 6]` | 56 | 62 | 8 NV (6 ca 8h + 2 ca 4h) | +2 |
 
-Lịch 45 thêm 1 quầy ở 16h–17h so với Lịch 44 của V3. Với ca 4h buổi chiều kết thúc lúc 17h và nghỉ trưa 11h–14h, mẫu `[..., 5, 5, 5, 5, 5]` không còn phủ đúng được (V3: Lịch 44 phủ đúng bằng 4 ca 8h + 3 ca 4h). Hệ quả: tính theo giờ công, Lịch 45 và Lịch 48 cùng chi phí 48 q-h (mục 1).
+Lịch 45 thêm 1 quầy ở 16h–17h so với Lịch 44 của V3. Với ca 4h buổi chiều kết thúc lúc 17h và nghỉ trưa 11h–14h, mẫu `[..., 5, 5, 5, 5, 5]` không còn phủ đúng được (V3: Lịch 44 phủ đúng bằng 4 ca 8h + 3 ca 4h). Hệ quả: tính theo giờ công, Lịch 45 và Lịch 48 cùng chi phí 48 q-h (mục 1). V5 (M6, mục 7.9) bỏ cách làm hai bước "tối ưu quầy-giờ rồi xếp ca" và tối ưu thẳng theo giờ công: 48 là mức nhỏ nhất.
 
 ---
 
@@ -375,7 +388,7 @@ Lịch 45 thêm 1 quầy ở 16h–17h so với Lịch 44 của V3. Với ca 4h 
 
 ### 7.1 Độ nhạy toàn diện hệ thống (Tải, Thời gian phục vụ, Kiên nhẫn)
 
-Mô phỏng với số ngẫu nhiên chung (CRN) tại `results/final_v4/do_nhay.csv`:
+Mô phỏng với số ngẫu nhiên chung (CRN) tại `results/final_v5/do_nhay.csv`:
 
 | Yếu tố biến động | Hệ số nhân | Lịch 45 $SL$ | Giờ tệ nhất (Low CI95) | Lịch 48 $SL$ | Giờ tệ nhất (Low CI95) | Mốc 6 quầy $SL$ |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -397,7 +410,7 @@ Lịch 45 chịu được nhu cầu tăng dưới 10%; Lịch 48 chịu được
 
 ### 7.2 Độ nhạy phân phối phục vụ kèm giờ tệ nhất (S9, M3)
 
-Mô phỏng Lịch 45 với 150 lần lặp, cùng bộ seed (CRN), hiệu số theo cặp so với mô hình chính (thực nghiệm), tại `results/final_v4/do_nhay_phan_phoi.csv`:
+Mô phỏng Lịch 45 với 150 lần lặp, cùng bộ seed (CRN), hiệu số theo cặp so với mô hình chính (thực nghiệm), tại `results/final_v5/do_nhay_phan_phoi.csv`:
 
 | Phân phối phục vụ | $SL$ Toàn ngày (CI95) | Giờ tệ nhất | $SL$ Giờ tệ nhất | Giờ tệ nhất Low CI95 | Hiệu số so với thực nghiệm | CI 95% Hiệu số | Khác biệt có ý nghĩa? |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -412,7 +425,7 @@ Mô phỏng Lịch 45 với 150 lần lặp, cùng bộ seed (CRN), hiệu số 
 
 ### 7.3 Đường cong đánh đổi Pareto và Hàm chi phí với truyền sai số (S11)
 
-Hàm chi phí $C(k) = \text{Quầy-giờ} + k \cdot N \cdot p_{ab}$ với $N = 686.7$ khách/ngày, CI truyền sai số từ $p_{ab}$ và hiệu số theo cặp $\Delta C = C_{45} - C_{48}$ (`results/final_v4/chi_phi.csv`; chạy riêng 150 lần lặp, seed 70000, nên $p_{ab}$ hơi khác bảng 4.1):
+Hàm chi phí $C(k) = \text{Quầy-giờ} + k \cdot N \cdot p_{ab}$ với $N = 686.7$ khách/ngày, CI truyền sai số từ $p_{ab}$ và hiệu số theo cặp $\Delta C = C_{45} - C_{48}$ (`results/final_v5/chi_phi.csv`; chạy riêng 150 lần lặp, seed 70000, nên $p_{ab}$ hơi khác bảng 4.1):
 
 | Hệ số $k$ | Chi phí Lịch 45 (CI95) | Chi phí Lịch 48 (CI95) | Chi phí Mốc 6 quầy (CI95) | Hiệu số $C_{45} - C_{48}$ | CI 95% Hiệu số | Có ý nghĩa? | Chính sách kinh tế nhất |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -428,7 +441,7 @@ Hàm chi phí $C(k) = \text{Quầy-giờ} + k \cdot N \cdot p_{ab}$ với $N = 6
 
 ### 7.4 Khảo sát Pha 3 vét cạn 117 cấu hình (C6)
 
-Để kiểm tra tính tối thiểu cục bộ của Lịch 45, 117 cấu hình lân cận được **mô phỏng bằng SimPy** (60 lần lặp, cùng tiêu chí cận dưới CI95 $\ge 90\%$ như pha 1–2) và ghi tại `results/final_v4/pha3.csv`:
+Để kiểm tra tính tối thiểu cục bộ của Lịch 45, 117 cấu hình lân cận được **mô phỏng bằng SimPy** (60 lần lặp, cùng tiêu chí cận dưới CI95 $\ge 90\%$ như pha 1–2) và ghi tại `results/final_v5/pha3.csv`:
 - **72 phép hoán đổi 1 quầy:** bớt 1 quầy ở giờ $i$, thêm vào giờ $j$ (tổng vẫn 45). Cận dưới giờ tệ nhất từ 0.7820 đến 0.8937; tất cả vi phạm.
 - **45 phép giảm 2 quầy** (tổng còn 43): 36 cặp giờ khác nhau và 9 trường hợp giảm 2 quầy cùng giờ. Cận dưới giờ tệ nhất từ 0.5749 đến 0.8848; tất cả vi phạm.
 - **Kết luận:** **0/117 cấu hình** lân cận khả thi. Cùng với 9 phép bớt 1 quầy ở pha 2 (mục 3.2), Lịch 45 là **tối thiểu cục bộ** theo tiêu chí mô phỏng. V3 kiểm tra pha 3 bằng công thức Erlang-A; V4 dùng mô phỏng nên kết luận nhất quán với tiêu chí chọn lịch. Đây chưa phải chứng minh tối ưu trên toàn bộ không gian lịch.
@@ -437,7 +450,7 @@ Hàm chi phí $C(k) = \text{Quầy-giờ} + k \cdot N \cdot p_{ab}$ với $N = 6
 
 ### 7.5 Kịch bản kiên nhẫn của khách quầy giao dịch (M1)
 
-Dữ liệu là tổng đài, khách quầy giao dịch có thể kiên nhẫn hơn. Chạy lại thuật toán tối ưu với kiên nhẫn trung bình từ 9.2 phút (ước lượng) đến vô cùng (`results/final_v4/do_nhay_kien_nhan.csv`, đánh giá 300 lần lặp):
+Dữ liệu là tổng đài, khách quầy giao dịch có thể kiên nhẫn hơn. Chạy lại thuật toán tối ưu với kiên nhẫn trung bình từ 9.2 phút (ước lượng) đến vô cùng (`results/final_v5/do_nhay_kien_nhan.csv`, đánh giá 300 lần lặp):
 
 | Kiên nhẫn TB | $\theta$ | Lịch tối ưu mô phỏng | Quầy-giờ | SIPP Erlang-A | $SL$ ngày | Giờ tệ nhất Low CI95 | $p_{ab}$ | $W_q$ (phút) |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -454,7 +467,7 @@ Khi khách kiên nhẫn hơn, ít người bỏ về nên hàng dài hơn và c�
 
 ### 7.6 Ràng buộc tỉ lệ bỏ về (M2)
 
-Thêm ràng buộc $p_{ab} \le$ ngưỡng vào thuật toán tối ưu (`results/final_v4/toi_uu_rang_buoc_bo_ve.csv`, 300 lần lặp):
+Thêm ràng buộc $p_{ab} \le$ ngưỡng vào thuật toán tối ưu (`results/final_v5/toi_uu_rang_buoc_bo_ve.csv`, 300 lần lặp):
 
 | Ràng buộc | Lịch tối ưu | Quầy-giờ | $SL$ ngày | Giờ tệ nhất Low CI95 | $p_{ab}$ | $W_q$ (phút) |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -486,39 +499,101 @@ V3 báo giờ tệ nhất của Lịch 44 đổi giữa 11h–12h (H3) và 16h�
 
 ---
 
-## 8. ĐỐI CHIẾU V3 → V4
+### 7.9 Tối ưu trực tiếp theo giờ công ca (M6)
 
-Tại `results/final_v4/doi_chieu_v3_v4.csv`:
+Câu hỏi quản lý là *ít giờ công nhân viên nhất* mà vẫn đạt SLA, không phải ít quầy-giờ mở nhất. `h_staffing.optimize_shift_staffing` liệt kê mọi cách xếp ca mô hình B (ca 8h nghỉ trưa 1 giờ trong 11h–14h, ca 4h) có độ phủ mỗi giờ $\ge$ SIPP Erlang-A `[4, 5, 6, 5, 5, 5, 5, 5, 4]`, theo giờ công tăng dần từ 44 đến 48 (giờ công phủ Lịch 45). Độ phủ được mô phỏng như một lịch quầy (quầy dư vẫn mở), 60 lần lặp, seed chọn lịch `1000`, cùng tiêu chí cận dưới CI95 mọi giờ $\ge 90\%$ (`results/final_v5/toi_uu_theo_ca.csv`):
 
-| Chỉ số | V3 | V4 | Chênh lệch | Nguyên nhân chính |
-|---|:---:|:---:|:---:|---|
-| Lịch tối ưu | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | +1 quầy ở 16h–17h | F1 + F2, M3, seed/R mới |
-| Tổng quầy-giờ lịch tối ưu | 44 | 45 | +1 | như trên |
-| Tổng quầy-giờ SIPP Erlang C / Erlang-A | 47 / 44 | 47 / 44 | 0 | Tham số không đổi |
-| SL toàn ngày lịch tối ưu | 0.9381 | 0.9423 | +0.0042 | Lịch thêm 1 quầy; M3 |
-| SL giờ tệ nhất (cận dưới CI95) | 0.9078 | 0.9236 | +0.0158 | 16h–17h thêm quầy; M5 |
-| Giờ tệ nhất | 16h–17h (H8) | 11h–12h (H3) | - | Không ổn định ở V3; ổn định ở V4 (mục 7.7) |
-| Tỉ lệ bỏ về lịch tối ưu | 5.35% | 4.99% | -0.36 điểm % | Lịch thêm quầy |
-| $W_q$ TB lịch tối ưu (phút) | 0.4908 | 0.4628 | -0.0280 | Lịch thêm quầy |
-| Hiệu suất $\rho$ lịch tối ưu | 72.15% | 70.85% | -1.30 điểm % | Lịch thêm quầy; F3 |
-| Lịch bền vững (+10%) | `[5, 6, 6, 6, 5, 5, 5, 5, 5]` | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | cùng 48 q-h | Phân bổ lại 8h → 14h |
-| SL toàn ngày lịch bền vững | 0.9582 | 0.9579 | -0.0003 | - |
-| $P(SL_{\text{ngày}} \ge 90\%)$ có biến động ngày | 85.0% | 85.7% | +0.7 điểm % | CV ngày ước lượng trên train (14.0%) |
-| Số ngày quan sát đạt SLA (/14) | 12 | 12 | 0 | - |
-| Ngưỡng lưu lượng $V^*$ | 700 | 803 | +103 | V4 nội suy theo SL ≥ 90%; V3 chọn mức trung bình |
-| Ca làm việc lịch tối ưu (nghỉ 11h–14h) | 4 ca 8h + 3 ca 4h, phủ đúng 44 | 5 ca 8h + 2 ca 4h, 48 q-h (dư 3) | +4 q-h công | Lịch 45 không phủ đúng được |
-| Pha 3 vét cạn | 0/117 (Erlang-A) | 0/117 (SimPy) | - | C6 dùng mô phỏng |
-| Độ nhạy phân phối: Gamma so với mốc | Bootstrap thấp hơn Gamma có ý nghĩa | Không khác biệt có ý nghĩa | - | Mốc so sánh đổi sang thực nghiệm (M3) |
+| Giờ công | Số lịch phủ đã thử | Số lịch khả thi | Cận dưới giờ tệ nhất cao nhất |
+|:---:|:---:|:---:|:---:|
+| 44 | 1 | 0 | 0.8893 |
+| 48 | 94 | 33 | 0.9273 |
 
-Tách riêng từng nguyên nhân trên cùng lịch và seed: F1 riêng lẻ đổi SL giờ cuối 0.9706 → 0.9704; M3 riêng lẻ đổi SL toàn ngày 0.9443 (Gamma) → 0.9423 (thực nghiệm).
+- Giờ công là bội của 4 (ca 4h và 8h), nên sau 44 là 48. Ở 44 giờ công chỉ có một độ phủ, đúng bằng SIPP Erlang-A (4 ca 8h + 3 ca 4h); giờ 16h–17h có cận dưới 0.8893 nên không khả thi.
+- Lần thăm dò rộng hơn (cho phép thiếu 1 quầy so với SIPP ở mỗi giờ: 3.180 độ phủ, 36–48 giờ công) cũng không có lịch khả thi nào dưới 48 giờ công. Pipeline vì vậy chỉ chạy không gian không thiếu quầy (95 lịch).
+
+Năm lịch khả thi có cận dưới giờ tệ nhất cao nhất được xác nhận bằng seed đánh giá `50000` (300 lần lặp), kèm $P(SL_{\text{ngày}} \ge 90\%)$ khi có biến động ngày ($CV$ 14.0%, 300 lần lặp) và giờ tệ nhất khi nhu cầu +10% (150 lần lặp) (`results/final_v5/toi_uu_theo_ca_top.csv`):
+
+| # | Lịch phủ | Phương án ca | $SL$ ngày (CI95) | Giờ tệ nhất Low CI95 | $p_{ab}$ | $W_q$ (phút) | $P(SL_{\text{ngày}} \ge 90\%)$ | Nhu cầu +10%: giờ tệ nhất Low CI95 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 1 | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | 4 ca 8h + 4 ca 4h | 0.9579 ± 0.0017 | 0.9327 (15h-16h) | 3.70% | 0.3432 | 94.7% | 0.9146 |
+| 2 | `[4, 6, 7, 6, 5, 5, 5, 5, 5]` | 4 ca 8h + 4 ca 4h | 0.9570 ± 0.0018 | 0.9276 (14h-15h) | 3.77% | 0.3512 | 93.3% | 0.8959 |
+| 3 | `[4, 6, 6, 5, 6, 5, 6, 5, 5]` | 4 ca 8h + 4 ca 4h | 0.9559 ± 0.0018 | 0.9246 (11h-12h) | 3.85% | 0.3570 | 91.0% | 0.8894 |
+| 4 | `[4, 6, 7, 5, 6, 5, 5, 5, 5]` | 4 ca 8h + 4 ca 4h | 0.9550 ± 0.0019 | 0.9249 (11h-12h) | 3.92% | 0.3649 | 90.3% | 0.8909 |
+| 5 | `[4, 6, 6, 5, 5, 5, 6, 6, 5]` | 4 ca 8h + 4 ca 4h | 0.9570 ± 0.0018 | 0.9236 (11h-12h) | 3.76% | 0.3512 | 93.7% | 0.8882 |
+
+**Kết luận M6:** tối thiểu **48 giờ công/ngày với 4 ca 8h + 4 ca 4h**. Lịch tốt nhất ở mức này chính là Lịch 48 (V4 chọn thủ công theo dự phòng nhu cầu +10%); nó đứng đầu ở cả 6 chỉ số trong bảng. Đây là tìm kiếm đầy đủ trong không gian ca mô hình B với độ phủ $\ge$ SIPP Erlang-A, không phải chứng minh tối ưu với mọi kiểu ca.
+
+---
+
+### 7.10 Chọn lịch theo xác suất đạt SLA ngày khi có biến động ngày (M7)
+
+Lịch ở các mục trên được chọn trong kịch bản danh định, độ bền chỉ kiểm tra sau. M7 đưa biến động ngày vào tiêu chí chọn: lịch khả thi khi (a) đạt tiêu chí danh định theo giờ và (b) cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$, ước lượng bằng 300 lần lặp có hệ số nhân ngày ($CV$ 14.0%, seed chọn `3000`), không nhỏ hơn mức $P$ tối thiểu. Tìm trong hai không gian: quầy-giờ (tham lam hai pha như thuật toán chính) và theo ca (khung M6). Lịch tìm được đánh giá lại bằng seed `50000` và 14 ngày thực tế (`results/final_v5/toi_uu_xac_suat_ngay.csv`):
+
+| Mức $P$ tối thiểu | Không gian tìm kiếm | Lịch nhỏ nhất | Quầy-giờ mở | Giờ công ca | $P(SL_{\text{ngày}} \ge 90\%)$ seed đánh giá (Wilson 95%) | Ngày thực tế đạt (/14) |
+|:---:|---|:---:|:---:|:---:|:---:|:---:|
+| 80% | quầy-giờ | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 45 | 48 | 85.7% [81.2%, 89.2%] | 12 |
+| 80% | theo ca | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 48 | 95.0% [91.9%, 96.9%] | 14 |
+| 90% | quầy-giờ | `[4, 6, 6, 6, 5, 5, 5, 6, 5]` | 48 | 52 | 95.3% [92.3%, 97.2%] | 14 |
+| 90% | theo ca | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 48 | 95.0% [91.9%, 96.9%] | 14 |
+| 95% | quầy-giờ | `[5, 6, 6, 6, 6, 5, 5, 6, 5]` | 50 | 52 | 98.0% [95.7%, 99.1%] | 14 |
+| 95% | theo ca | `[4, 6, 7, 7, 5, 6, 6, 6, 5]` | 52 | 52 | 99.3% [97.6%, 99.8%] | 14 |
+
+- **Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công.** Lịch M7 `[4, 5, 6, 6, 5, 5, 6, 6, 5]` (95.0%) và Lịch 48 (94.7%, mục 7.9) không khác biệt có ý nghĩa; Lịch 48 có giờ tệ nhất danh định tốt hơn rõ (cận dưới 0.9273 so với 0.9064 ở seed chọn lịch, `toi_uu_theo_ca.csv`) nên vẫn là khuyến nghị.
+- **Đạt SLA ở $\ge 95\%$ số ngày cần 52 giờ công** (thêm 1 ca 4h).
+- Trong không gian quầy-giờ, lịch tìm được thường không phủ đúng bằng ca: ở mức 90% lịch 48 quầy-giờ cần 52 giờ công. Chọn lịch theo quầy-giờ rồi mới xếp ca dễ tốn thêm giờ công; cần tìm thẳng trong không gian ca.
+- Mức 80% trong không gian theo ca bắt đầu tìm từ 48 giờ công vì 44 giờ công không đạt tiêu chí danh định (mục 7.9).
+
+---
+
+### 7.11 Mở thêm quầy trong ngày theo hàng chờ (M8)
+
+Dự báo sớm lúc 10h bỏ lỡ cả hai ngày hụt SLA (mục 4.4). M8 thử một quy tắc phản ứng trong ngày: `c_sim.simulate(..., surge_policy=...)` kiểm tra hàng chờ mỗi phút; nếu số khách đang chờ vượt ngưỡng liên tục trong cửa sổ cho trước thì mở thêm 1 quầy dự phòng (giữ ít nhất 30 phút, đóng khi hàng chờ về 0). Quầy-giờ mở TB = quầy-giờ lịch + phút quầy dự phòng / 60. Seed riêng `400000`–`1.300.000`; 300 lần lặp mỗi kịch bản, 40 lần lặp mỗi ngày thực tế (`results/final_v5/chinh_sach_tang_quay.csv`):
+
+| Chính sách | Quầy-giờ mở TB (danh định) | $SL$ ngày | Giờ tệ nhất Low CI95 | $p_{ab}$ | $P(SL_{\text{ngày}} \ge 90\%)$, $CV_{\text{ngày}}$ 14% | Nhu cầu +10%: giờ tệ nhất Low CI95 | $E[S]$ +10%: giờ tệ nhất Low CI95 | Ngày thực tế đạt (/14) | Quầy-giờ mở TB 14 ngày |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Lịch 45 cố định | 45.00 | 0.9429 | 0.9110 | 4.89% | 80.3% | 0.8850 | 0.8802 | 12 | 45.00 |
+| Lịch 48 cố định | 48.00 | 0.9592 | 0.9386 | 3.59% | 94.0% | 0.9029 | 0.9013 | 14 | 48.00 |
+| Lịch 45 + mở thêm khi > 1 người chờ liên tục 5 phút, tối đa +1 | 46.90 | 0.9597 | 0.9409 | 3.74% | 97.3% | 0.9265 | 0.9218 | 14 | 47.18 |
+| **Lịch 45 + mở thêm khi > 2 người chờ liên tục 5 phút, tối đa +1** | 46.17 | 0.9549 | 0.9337 | 4.10% | 97.3% | 0.9193 | 0.9128 | 14 | 46.43 |
+| Lịch 45 + mở thêm khi > 3 người chờ liên tục 5 phút, tối đa +1 | 45.69 | 0.9508 | 0.9268 | 4.38% | 93.0% | 0.9102 | 0.9032 | 14 | 45.94 |
+| Lịch 45 + mở thêm khi > 3 người chờ liên tục 5 phút, tối đa +2 | 45.82 | 0.9518 | 0.9297 | 4.32% | 96.0% | 0.9150 | 0.9068 | 14 | 46.19 |
+| Lịch 45 + mở thêm khi > 2 người chờ liên tục 3 phút, tối đa +1 | 47.01 | 0.9608 | 0.9422 | 3.65% | 97.3% | 0.9303 | 0.9246 | 14 | 47.25 |
+
+- **Quy tắc chọn** (`f_scenarios.recommended_surge`): ít người dự phòng nhất, rồi trong số đó $P(SL_{\text{ngày}} \ge 90\%)$ không thấp hơn Lịch 48 cố định và đạt 14/14 ngày, chọn quầy-giờ mở TB 14 ngày nhỏ nhất. Kết quả: **mở thêm 1 quầy khi có hơn 2 người chờ liên tục 5 phút**.
+- So với Lịch 48 cố định, chính sách này mở ít hơn 1.57 quầy-giờ mỗi ngày (46.43 so với 48.00 trên 14 ngày), đạt SLA ở nhiều ngày hơn khi có biến động ngày (97.3% so với 94.0%) và bền hơn khi nhu cầu hoặc thời gian phục vụ tăng 10%.
+- **Điều kiện:** cần 1 nhân viên dự phòng sẵn sàng mở quầy cả ngày. Chi phí người này không nằm trong quầy-giờ mở; nếu tính theo giờ công, chính sách tốn 48 giờ công cho Lịch 45 cộng thời gian của người dự phòng.
+- Ngưỡng 4–10 người trong cửa sổ 10 phút (kế hoạch ban đầu) gần như không kích hoạt vì khách bỏ về làm hàng chờ ngắn lại; lưới cuối cùng là ngưỡng 1–3 người, cửa sổ 3–5 phút.
+- Kịch bản $E[S]$ +10% áp cho cả ngày. Trường hợp ngày 10 (thời gian phục vụ chỉ tăng ở 14h–17h) chưa mô phỏng được vì mô hình dùng một phân phối phục vụ cho mọi giờ.
+
+---
+
+## 8. ĐỐI CHIẾU V4 → V5
+
+Tại `results/final_v5/doi_chieu_v4_v5.csv` (cột V4 đọc trực tiếp từ `results/final_v4/` bằng cùng hàm `g_report.metrics`). Bảng V3 → V4 giữ ở `results/final_v4/doi_chieu_v3_v4.csv`.
+
+**Chỉ số V4 không đổi.** P1 (chạy song song) và P2 (`rep_stats` bằng NumPy) cho mọi CSV và hình của V4 giống từng byte; M6–M8 chỉ thêm tệp mới. 17 chỉ số chính trong bảng đối chiếu (lịch tối ưu, SIPP, SL, giờ tệ nhất, bỏ về, $W_q$, $\rho$, lịch bền vững, biến động ngày, 14 ngày, xả hàng, Gamma) có chênh lệch bằng 0.
+
+**Chỉ số thay đổi hoặc mới ở V5:**
+
+| Chỉ số | V4 | V5 | Nguyên nhân |
+|---|:---:|:---:|---|
+| Giờ công tối thiểu/ngày (nghỉ trưa 11h–14h) | 48 | 48 | V4: xếp ca phủ Lịch 45 sau khi tối ưu quầy-giờ; V5: tối ưu thẳng theo giờ công (M6) và chứng minh không có lịch dưới 48 |
+| Lịch phủ theo ca | `[5, 5, 6, 5, 5, 5, 6, 6, 5]` | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | M6: cùng 48 giờ công, Lịch 48 tốt hơn ở mọi chỉ số |
+| Phương án ca | 5 ca 8h + 2 ca 4h | 4 ca 8h + 4 ca 4h | M6 |
+| Khuyến nghị chính | Lịch 45 (45 quầy-giờ) | Lịch 48 (48 giờ công) | Đổi thước đo chi phí từ quầy-giờ mở sang giờ công |
+| Giờ công để đạt SLA ở $\ge 90\%$ / $\ge 95\%$ số ngày | - | 48 / 52 | M7 |
+| Lịch 45 + mở thêm 1 quầy khi > 2 người chờ 5 phút: quầy-giờ mở TB 14 ngày | - | 46.43 (Lịch 48: 48.00) | M8 |
+| như trên: $P(SL_{\text{ngày}} \ge 90\%)$ có biến động ngày | - | 97.3% (Lịch 48: 94.0%) | M8 |
+| như trên: giờ tệ nhất Low CI95 khi nhu cầu +10% | - | 0.9193 (Lịch 48: 0.9029) | M8 |
+| Thời gian chạy pipeline | 33.3 phút | 17.2 phút (9.9 phút khi máy rảnh) | P1, P2 (thêm M6–M8 vẫn nhanh hơn) |
 
 ---
 
 ## 9. TỔNG KẾT KIỂM THỬ VÀ TRẠNG THÁI BÀN GIAO
 
-1. **Kiểm thử tự động:** **35/35 ca kiểm thử** trong `tests/` chạy thành công trong 64.5 giây (log tại `results/final_v4/pytest_log.txt`). V4 thêm 13 test (T1-a … T1-i), gồm số khách theo giờ của NHPP (F2), xả hàng giữ số quầy giờ cuối (F1), hiệu suất theo thời gian bận (F3).
-2. **Pipeline:** `python main.py --stage all` chạy 6 giai đoạn trong 33.3 phút (`thoi_gian_chay.json`); `results/final_v4/MO_TA.md` sinh tự động, liệt kê nguồn của từng tệp.
-3. **Kiểm tra nhất quán:** `tools/check_consistency.py` quét thuật ngữ không có căn cứ và đối chiếu số trong các bảng chính của tài liệu này (2.1, 2.2, 2.4, 2.5, 3.1, 4.1, 4.2, 4.5, 5, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6) với `data/clean/data_clean.csv` và CSV trong `results/final_v4/`.
+1. **Kiểm thử tự động:** **66 ca kiểm thử** trong `tests/` chạy thành công trong 549 giây (9.2 phút, gồm smoke test toàn pipeline) (log tại `results/final_v5/pytest_log.txt`). V5 thêm test cho chạy song song giống tuần tự (P1), checker số trong báo cáo/slide/README (T2), M6, chính sách tăng quầy (M8) và bảng đối chiếu V4 → V5 (R4). Smoke test toàn pipeline (`--reps-scale 0.02`) đánh dấu `slow`.
+2. **Pipeline:** `python main.py --stage all` chạy 6 giai đoạn trong 17.2 phút (`thoi_gian_chay.json`, máy đang tải việc khác; 9.9 phút khi máy rảnh; V4: 33.3 phút). Các lần lặp chạy song song (`c_sim.map_sim`), số tiến trình đặt bằng biến môi trường `QS_WORKERS` (mặc định `min(CPU − 1, 8)`; `QS_WORKERS=1` chạy tuần tự, cho kết quả giống hệt). `results/final_v5/MO_TA.md` sinh tự động, liệt kê nguồn của từng tệp.
+3. **Kiểm tra nhất quán:** `tools/check_consistency.py` quét thuật ngữ không có căn cứ, đối chiếu số trong các bảng chính của tài liệu này (2.1, 2.2, 2.4, 2.5, 3.1, 4.1, 4.2, 4.5, 5, 7.1–7.6, 7.9–7.11) với `data/clean/data_clean.csv` và CSV trong `results/final_v5/`, và đối chiếu số trong báo cáo, slide, README (T2). CI (`.github/workflows/ci.yml`) chạy test không `slow` và checker mỗi lần push.
 
 ---
 
@@ -528,8 +603,10 @@ Tách riêng từng nguyên nhân trên cùng lịch và seed: F1 riêng lẻ đ
 2. **Phân phối phục vụ:** cả 4 phân phối tham số đều bị KS bác bỏ; mô hình chính dùng phân phối thực nghiệm của train (M3), nên không ngoại suy được đuôi dài hơn dữ liệu đã thấy. Lognormal với cv + 20% làm giờ tệ nhất rơi dưới 90% (mục 7.2).
 3. **Kiên nhẫn:** đường Kaplan–Meier lệch khỏi giả định mũ ở vùng chờ ngắn (mục 2.5).
 4. **Tỉ lệ bỏ về sát 5%:** Lịch 45 đạt SL một phần nhờ khách bỏ về; giới hạn bỏ về 3% cần 51 q-h (mục 7.6).
-5. **Ca làm việc:** Lịch 45 không phủ đúng được bằng ca 8h/4h có nghỉ trưa 11h–14h; tính theo giờ công, nó tốn bằng Lịch 48 (mục 6).
+5. **Ca làm việc:** kết luận 48 giờ công dựa trên mô hình ca B (ca 8h nghỉ trưa trong 11h–14h, ca 4h). Kiểu ca khác (ca 6h, nghỉ trưa linh hoạt 9h–16h) có thể cho giờ công thấp hơn; M6 chưa chạy biến thể nghỉ trưa linh hoạt (mục 6, 7.9).
 6. **Khoảng Wilson cho xác suất "thực tế mọi giờ"** bỏ qua tương quan trong cùng kịch bản, nên quá hẹp (mục 4.2).
 7. **Dự báo sớm** fit trên cả 14 ngày; sai số ngoài mẫu 55–64 khách và bỏ lỡ cả hai ngày hụt SLA (mục 4.4).
 8. **Lựa chọn Lịch 45 phụ thuộc chi phí mất khách $k$:** với $k > 0.58$, Mốc 6 quầy rẻ hơn (mục 7.3).
 9. **Ngoài mẫu 15h–16h:** do một ngày (ngày 10) có nhu cầu cao gặp nhân sự hiệu dụng thấp; dữ liệu chỉ có hoạt động PS nên số phiên chồng lấn là cận dưới của số nhân viên (mục 5).
+10. **Chính sách tăng quầy (M8) cần 1 người dự phòng:** chi phí người này không tính trong quầy-giờ mở; quy tắc chỉ có lợi khi người dự phòng làm việc khác lúc không mở quầy (mục 7.11).
+11. **Thời gian phục vụ không đổi theo giờ:** kịch bản ngày 10 (thời gian phục vụ tăng ở 14h–17h) chưa mô phỏng được; M8 thay bằng $E[S]$ +10% cả ngày (mục 7.11).

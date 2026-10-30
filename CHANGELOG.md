@@ -1,6 +1,19 @@
 # NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG)
 
-## v5 (đang phát triển, `docs/KE_HOACH_V5.md`)
+## v5.0 — Đóng băng `results/final_v5/` (2026-10-30, `docs/KE_HOACH_V5.md`)
+
+**Kết luận mới:** tối thiểu **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (M6). Đạt SLA ở ≥ 95% số ngày cần 52 giờ công (M7). Có 1 người dự phòng: Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút (M8). Mọi số của V4 giữ nguyên.
+
+### R4 — Đóng băng V5 (2026-10-30)
+- `common.RESULTS_VERSION = "final_v5"`; `python main.py --stage all --reps-scale 1.0` chạy 17.2 phút (máy đang tải việc khác; lần chạy thử khi máy rảnh 9.9 phút). `diff -rq results/final_v4 results/final_v5`: mọi CSV và hình của V4 giống từng byte; khác ở `MO_TA.md`, `thoi_gian_chay.json`, `params.json` (ngày chốt), `lich_khuyen_nghi.json` (thêm khóa `toi_uu_theo_ca`), 4 tệp mới của M6–M8 và `doi_chieu_v3_v4.csv` → `doi_chieu_v4_v5.csv`.
+- `g_report.py`: `metrics(R)` đọc cùng bộ chỉ số từ một thư mục kết quả bất kỳ; `doi_chieu_v4_v5.csv` so 17 chỉ số V4 (đều chênh 0, dòng nào khác sẽ được gắn cờ "KHAC V4 NGOAI Y MUON") và thêm các dòng M6 (giờ công, lịch theo ca), M7 (lịch theo mức P), M8 (chính sách khuyến nghị so với Lịch 48 cố định).
+- `f_scenarios.recommended_surge`: chọn chính sách M8 theo quy tắc (ít người dự phòng nhất → P ≥ Lịch 48 và 14/14 ngày → quầy-giờ TB nhỏ nhất) thay cho gõ cứng.
+- `tools/check_consistency.py`: thêm 4 tệp M6–M8 vào danh sách bắt buộc. `tests/test_r4_report.py`: 3 test. `pytest -q`: 66 pass, log ở `results/final_v5/pytest_log.txt`.
+
+### D4 — Cập nhật tài liệu theo V5 (2026-10-30)
+- `tong_hop.md`: kết luận một dòng đổi sang 48 giờ công; bảng M8 ở mục 1; mục mới 7.9 (M6), 7.10 (M7), 7.11 (M8); mục 8 đối chiếu V4 → V5; mục 9, 10 cập nhật (thêm hạn chế 10, 11; hạn chế 5 viết lại theo M6).
+- Checker: `check_shift_staffing`, `check_p_day`, `check_surge` đối chiếu 7.9–7.11 và bảng M8 ở mục 1 (1.249 giá trị, 0 lệch).
+- `docs/bao_cao_tong_ket.md` (mục 6.3, 9.5–9.7 mới, 10), `docs/slide_thuyet_trinh.md` (slide 8, 10, 12–14, Q&A 7–8), README §13, §15.5, `docs/TONG_HOP_SO_LIEU_CHI_TIET.md` phần 1, 3–5; các tài liệu phụ trỏ sang `results/final_v5/`.
 
 ### P1 — Chạy song song các lần lặp mô phỏng (2026-10-29)
 - `common.py`: các bộ sinh thời gian phục vụ đổi từ `lambda` sang class có `__call__` (pickle được); thứ tự gọi `rng` giữ nguyên.

@@ -109,7 +109,8 @@ def check_numeric_consistency():
     for check in (check_decision_table, check_data_summary, check_lambda_table, check_erlang_table,
                   check_distribution_fits, check_verification, check_policy_table, check_cv_sensitivity,
                   check_fourteen_days, check_out_of_sample, check_sensitivity, check_service_dist,
-                  check_cost_table, check_phase3, check_patience, check_abandon_constraint):
+                  check_cost_table, check_phase3, check_patience, check_abandon_constraint,
+                  check_shift_staffing, check_p_day, check_surge):
         try:
             check(checker)
         except (KeyError, ValueError, IndexError) as e:
@@ -521,6 +522,100 @@ def check_abandon_constraint(ck: TableChecker):
         ck.expect(lab + " low", cells[4], r["sl_gio_te_nhat_low"])
         ck.expect(lab + " p_ab", cells[5], r["ti_le_bo_ve"] * 100)
         ck.expect(lab + " wq", cells[6], r["wq_phut"])
+
+
+def _check_lich(ck: TableChecker, lab: str, cell: str, lich: str):
+    ck.n_checked += 1
+    if cell.strip("`* ") != lich:
+        ck.errors.append(f"{lab}: lich tai lieu {cell} khac CSV {lich}")
+
+
+def check_shift_staffing(ck: TableChecker):
+    """7.9 (M6): so lich thu theo gio cong va top-5 da xac nhan."""
+    t = _csv("toi_uu_theo_ca.csv")
+    top = _csv("toi_uu_theo_ca_top.csv")
+    rows = ck.rows("### 7.9")
+    by_w = [c for c in rows if c[0].isdigit() and len(c) == 4]
+    groups = list(t.groupby("gio_cong"))
+    if len(by_w) != len(groups):
+        ck.errors.append(f"7.9: tai lieu co {len(by_w)} muc gio cong, toi_uu_theo_ca.csv co {len(groups)}")
+    for (w, g), cells in zip(groups, by_w):
+        lab = f"7.9 W={w}"
+        ck.expect(lab, cells[0], w)
+        ck.expect(lab + " so lich", cells[1], len(g))
+        ck.expect(lab + " kha thi", cells[2], (g["kha_thi"] == "Y").sum())
+        ck.expect(lab + " low max", cells[3], g["sl_gio_te_nhat_low"].max())
+    top_rows = [c for c in rows if len(c) == 9 and c[0].isdigit()]
+    if len(top_rows) != len(top):
+        ck.errors.append(f"7.9: tai lieu co {len(top_rows)} dong top, toi_uu_theo_ca_top.csv co {len(top)}")
+    for (_, r), cells in zip(top.iterrows(), top_rows):
+        lab = f"7.9 top {cells[0]}"
+        _check_lich(ck, lab, cells[1], r["phu_quay"])
+        tr = t[t["phu_quay"] == r["phu_quay"]].iloc[0]
+        ck.expect(lab + " ca 8h", cells[2], tr["n_ca_8h"], 0)
+        ck.expect(lab + " ca 4h", cells[2], tr["n_ca_4h"], 2)
+        ck.expect(lab + " SL", cells[3], r["sl_toan_ngay"])
+        ck.expect(lab + " SL hw", cells[3], r["sl_ci_half"], 1)
+        ck.expect(lab + " low", cells[4], r["sl_gio_te_nhat_low"])
+        ck.expect(lab + " p_ab", cells[5], r["ti_le_bo_ve"] * 100)
+        ck.expect(lab + " wq", cells[6], r["wq_phut"])
+        ck.expect(lab + " P ngay", cells[7], r["P_SL_ngay_ge90"] * 100)
+        ck.expect(lab + " +10%", cells[8], r["nhu_cau_110_gio_te_nhat_low"])
+
+
+def check_p_day(ck: TableChecker):
+    """7.10 (M7): lich nho nhat theo muc P(SL ngay >= 90%)."""
+    p = _csv("toi_uu_xac_suat_ngay.csv")
+    rows = ck.rows("### 7.10")[1:]
+    if len(rows) != len(p):
+        ck.errors.append(f"7.10: tai lieu co {len(rows)} dong, toi_uu_xac_suat_ngay.csv co {len(p)}")
+    for (_, r), cells in zip(p.iterrows(), rows):
+        lab = f"7.10 {r['min_p']} {r['khong_gian']}"
+        ck.expect(lab + " min_p", cells[0], r["min_p"] * 100)
+        _check_lich(ck, lab, cells[2], r["lich"])
+        ck.expect(lab + " quay_gio", cells[3], r["quay_gio"])
+        ck.expect(lab + " gio cong", cells[4], r["gio_cong_ca"])
+        for idx, c in enumerate(("P_ngay_danh_gia", "P_ngay_danh_gia_low95", "P_ngay_danh_gia_high95")):
+            ck.expect(lab + " " + c, cells[5], r[c] * 100, idx)
+        ck.expect(lab + " 14 ngay", cells[6], r["so_ngay_dat_14"])
+
+
+def check_surge(ck: TableChecker):
+    """7.11 (M8) va bang M8 o muc 1."""
+    m = _csv("chinh_sach_tang_quay.csv")
+    rows = ck.rows("### 7.11")[1:]
+    if len(rows) != len(m):
+        ck.errors.append(f"7.11: tai lieu co {len(rows)} dong, chinh_sach_tang_quay.csv co {len(m)}")
+    cols = ["quay_gio_TB_danh dinh", "SL_danh dinh", "gio_te_nhat_low_danh dinh", "bo_ve_danh dinh",
+            "P_SL_ngay_ge90_bien_dong", "gio_te_nhat_low_nhu cau +10%", "gio_te_nhat_low_E[S] +10%",
+            "so_ngay_dat_14", "quay_gio_TB_14_ngay"]
+    pct = {"bo_ve_danh dinh", "P_SL_ngay_ge90_bien_dong"}
+    for (_, r), cells in zip(m.iterrows(), rows):
+        lab = f"7.11 {r['chinh_sach']}"
+        if pd.notna(r["nguong_cho"]):
+            ck.expect(lab + " nguong", cells[0], r["nguong_cho"], 1)
+            ck.expect(lab + " cua so", cells[0], r["cua_so_phut"], 2)
+            ck.expect(lab + " toi da", cells[0], r["quay_du_phong_toi_da"], 3)
+        for i, c in enumerate(cols, 1):
+            ck.expect(f"{lab} {c}", cells[i], r[c] * (100 if c in pct else 1))
+    import f_scenarios
+    rec = f_scenarios.recommended_surge(m)
+    bold = [c[0] for c in rows if c[0].startswith("**")]
+    ck.n_checked += 1
+    if rec is None or len(bold) != 1 or f"> {int(rec['nguong_cho'])} người chờ liên tục {int(rec['cua_so_phut'])} phút" not in bold[0]:
+        ck.errors.append(f"7.11: dong in dam {bold} khong phai chinh sach khuyen nghi {None if rec is None else rec['chinh_sach']}")
+    # Bang M8 o muc 1: Lich 45/48 co dinh va chinh sach khuyen nghi
+    s1 = {"Lịch 45 cố định": m[m["chinh_sach"] == "Lich 45 co dinh"].iloc[0],
+          "Lịch 48 cố định": m[m["chinh_sach"] == "Lich 48 co dinh"].iloc[0]}
+    if rec is not None:
+        s1[f"Lịch 45 + mở thêm khi > {int(rec['nguong_cho'])} người"] = rec
+    for key, r in s1.items():
+        cells = ck.row("## 1.", key)
+        lab = f"1 M8 {key}"
+        ck.expect(lab + " q-h", cells[1], r["quay_gio_TB_danh dinh"])
+        ck.expect(lab + " P", cells[2], r["P_SL_ngay_ge90_bien_dong"] * 100)
+        ck.expect(lab + " +10%", cells[3], r["gio_te_nhat_low_nhu cau +10%"])
+        ck.expect(lab + " 14 ngay", cells[4], r["so_ngay_dat_14"])
 
 
 # =============================================================================

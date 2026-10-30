@@ -3,7 +3,7 @@
 **Ngày lập:** 2026-10-29  
 **Điểm xuất phát:** commit `6a1083d` trên nhánh `feat/v4`. V4 đã đóng băng tại `results/final_v4/` và mọi tài liệu đã đồng bộ. Kế hoạch V4 (`docs/KE_HOACH_CAI_TIEN.md`) đã hoàn tất.  
 **Mục đích:** củng cố kết luận chính ("bao nhiêu quầy, tổ chức ca thế nào") và rút thời gian chạy pipeline từ 33 phút xuống dưới 10 phút. Không làm thay đổi kết quả V4 khi chưa chủ đích.  
-**Cập nhật trạng thái:** 2026-10-30, nhánh `feat/v5`, commit cuối `87f94aa`.
+**Cập nhật trạng thái:** 2026-10-30, nhánh `feat/v5`; R4 và D4 đã xong (commit `results(R4): ...`, `docs(D4): ...`).
 
 ---
 
@@ -23,15 +23,16 @@
 
 **Kiểm chứng chung:** lần chạy đầy đủ cuối (`--reps-scale 1.0`, 9.9 phút) cho mọi CSV và hình của V4 giống từng byte; chỉ thêm 5 tệp mới (`toi_uu_theo_ca.csv`, `toi_uu_theo_ca_top.csv`, `toi_uu_xac_suat_ngay.csv`, `chinh_sach_tang_quay.csv`, khóa `toi_uu_theo_ca` trong `lich_khuyen_nghi.json`) và ngày chốt trong `params.json`. `pytest -q` 59/59 (4–7 phút do smoke test chạy M6–M8); checker sạch.
 
-**Kết luận mới (chưa đưa vào tài liệu):** cần **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48; nếu có người dự phòng, Lịch 45 + quy tắc mở thêm quầy bền hơn với ít quầy-giờ mở hơn. Muốn ≥ 95% số ngày đạt SLA cần 52 giờ công.
+| R4 | `results(R4)` | `results/final_v5/` đóng băng. `diff -rq` với `final_v4`: mọi CSV và hình V4 giống từng byte; chỉ khác `MO_TA.md`, `thoi_gian_chay.json`, ngày chốt `params.json`, khóa `toi_uu_theo_ca`, 4 tệp M6–M8 và `doi_chieu_v3_v4.csv` → `doi_chieu_v4_v5.csv`. `g_report.metrics(R)` đọc V4 và V5 bằng cùng một hàm; 17 chỉ số V4 chênh 0. `pytest -q` 66/66 (549 s). | Pipeline 17.2 phút ở lần đóng băng (máy đang tải việc khác; lần chạy thử khi máy rảnh 9.9 phút). Chính sách M8 khuyến nghị chọn bằng quy tắc `f_scenarios.recommended_surge`, không gõ cứng. |
+| D4 | `docs(D4)` | `tong_hop.md` (mục 1, 6, 7.9–7.11, 8, 9, 10), báo cáo (6.3, 9.5–9.7, 10), slide (8, 10, 12–14, Q&A 7–8), README §13, §15.5, `TONG_HOP_SO_LIEU_CHI_TIET.md`, CHANGELOG v5.0; tài liệu phụ trỏ sang `final_v5`. Checker thêm `check_shift_staffing`, `check_p_day`, `check_surge`: 1.249 giá trị, 0 lệch; test âm cho 4 mục. | Khuyến nghị chính đổi từ Lịch 45 sang Lịch 48 (48 giờ công). Hạn chế 6, 7 trong `tong_hop.md` mục 10 vẫn giữ vì chưa làm S13, S14. |
+
+**Kết luận V5 (đã đưa vào tài liệu):** cần **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48; nếu có người dự phòng, Lịch 45 + quy tắc mở thêm quầy bền hơn với ít quầy-giờ mở hơn. Muốn ≥ 95% số ngày đạt SLA cần 52 giờ công.
 
 ### Chưa làm
 
 | Mã | Việc | Ghi chú |
 |---|---|---|
-| R4 | Đóng băng `results/final_v5/`, sinh `doi_chieu_v4_v5.csv` | **Làm tiếp theo.** Chi tiết ở [mục 9.1](#91-r4--đóng-băng-final_v5) |
-| D4 | Cập nhật `tong_hop.md`, báo cáo, slide, README, `TONG_HOP_SO_LIEU_CHI_TIET.md` | Sau R4. Chi tiết ở [mục 9.2](#92-d4--cập-nhật-tài-liệu) |
-| T3 | Kiểm chứng CI trên GitHub | Push nhánh `feat/v5`, xem tab Actions ([mục 9.3](#93-t3--kiểm-chứng-ci)) |
+| T3 | Kiểm chứng CI trên GitHub | **Làm tiếp theo** (cần người có quyền push). Push nhánh `feat/v5`, xem tab Actions ([mục 9.3](#93-t3--kiểm-chứng-ci)) |
 | S12–S15 | Thống kê bổ sung (tùy chọn) | [Mục 9.4](#94-s12s15--thống-kê-bổ-sung-tùy-chọn) |
 | D5, D6 | Dashboard demo, slide thật, tập dượt | [Mục 9.5](#95-d5-d6--trình-bày) |
 
@@ -324,9 +325,9 @@ Thứ tự:
 - [x] T2: checker đối chiếu cả `tong_hop.md`, báo cáo, slide, README.
 - [x] M6: có số giờ công tối thiểu (48) và phương án ca cụ thể (4 ca 8h + 4 ca 4h).
 - [x] M7, M8: có bảng so sánh và khuyến nghị vận hành (`toi_uu_xac_suat_ngay.csv`, `chinh_sach_tang_quay.csv`).
-- [ ] `results/final_v5/` đóng băng, có `doi_chieu_v4_v5.csv`, `MO_TA.md`, `pytest_log.txt`.
-- [ ] Tài liệu cập nhật; `CHANGELOG.md` có mục v5.0.
-- [ ] Hạn chế trong `tong_hop.md` mục 10 cập nhật (xóa mục đã giải quyết: 6 nếu S14, 7 nếu S13).
+- [x] `results/final_v5/` đóng băng, có `doi_chieu_v4_v5.csv`, `MO_TA.md`, `pytest_log.txt`.
+- [x] Tài liệu cập nhật; `CHANGELOG.md` có mục v5.0.
+- [x] Hạn chế trong `tong_hop.md` mục 10 cập nhật (thêm 10, 11 cho M8; viết lại 5 theo M6; 6, 7 giữ vì chưa làm S13, S14).
 
 ---
 

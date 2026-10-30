@@ -2,7 +2,7 @@
 
 **Đề tài:** Mô phỏng Hàng đợi và Xác định Số Quầy Phục vụ Tối ưu cho Chi nhánh Ngân hàng  
 **Thời lượng trình bày:** 20 phút (15 phút thuyết trình + 5 phút Q&A)  
-**Số liệu:** V4, `results/final_v4/` (2026-10-29). Mọi con số dưới đây có nguồn trong [`tong_hop.md`](../tong_hop.md).  
+**Số liệu:** V5, `results/final_v5/` (2026-10-30). Mọi con số dưới đây có nguồn trong [`tong_hop.md`](../tong_hop.md).  
 **Nhóm sinh viên thực hiện:**  
 - **Thành viên A:** Dữ liệu, ước lượng tham số, kiểm định phân phối, ngoài mẫu  
 - **Thành viên B:** Lý thuyết (Erlang C, Erlang-A, SIPP), ca làm việc (MILP), chi phí  
@@ -37,7 +37,7 @@
 
 ### SLIDE 3: Dữ Liệu Thực Tế
 - **Thông điệp chính:** Nhu cầu biến động theo giờ và giữa các ngày
-- **Hình:** [`fig_a_fit.png`](../results/final_v4/hinh/fig_a_fit.png)
+- **Hình:** [`fig_a_fit.png`](../results/final_v5/hinh/fig_a_fit.png)
 - **Nội dung:**
   - Anonymous Bank (Technion SEE Center), nghiệp vụ `PS`, 8h–17h, 14 ngày, **9.836 khách**. Train 10 ngày (6.867), test 4 ngày (2.969).
   - Đỉnh 10h–11h: $\lambda = 1.535$ khách/phút (train). 8/9 giờ bác bỏ Poisson giữa các ngày.
@@ -99,7 +99,7 @@
 | M/G/6, cv 1.5 (Allen–Cunneen, xấp xỉ) | 1.370 | 1.182 ± 0.072 | −13.8% |
 
 - Gộp hàng: 1 hàng chung 96.5% so với 6 hàng riêng 50.7%.
-- **Hình:** [`fig_c_pooling.png`](../results/final_v4/hinh/fig_c_pooling.png)
+- **Hình:** [`fig_c_pooling.png`](../results/final_v5/hinh/fig_c_pooling.png)
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên C
 - **Lời thoại:**
   > *"Với các mô hình có nghiệm chính xác, lý thuyết luôn nằm trong khoảng tin cậy. Sai lệch lớn chỉ xuất hiện khi so với công thức xấp xỉ Allen–Cunneen, nên chúng em không dùng công thức đó để chọn số quầy."*
@@ -113,7 +113,10 @@
   - Bớt 1 quầy ở bất kỳ giờ nào (9 phép) đều vi phạm; 117 cấu hình lân cận (hoán đổi, giảm 2 quầy) đều vi phạm.
   - → **Tối thiểu cục bộ** theo tiêu chí mô phỏng (chưa phải tối ưu toàn không gian).
   - Lý do cần hơn Erlang-A 1 quầy: phục vụ thực tế biến động hơn mũ ($cs^2 = 1.20$). Tối ưu lại với Gamma vẫn ra 44.
+  - **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. 44 giờ công: không khả thi; 48 giờ công: 33/94 cách khả thi, tốt nhất là **Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]`, 4 ca 8h + 4 ca 4h**. → **Tối thiểu 48 giờ công/ngày.**
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên C
+- **Lời thoại:**
+  > *"45 là số quầy-giờ mở ít nhất. Nhưng câu hỏi của quản lý là bao nhiêu giờ công nhân viên. Tối ưu thẳng theo giờ công cho đáp số 48, và cách xếp tốt nhất ở mức đó chính là Lịch 48."*
 
 ---
 
@@ -137,19 +140,20 @@
 
 ### SLIDE 10: Lịch 45 Mỏng Đến Đâu?
 - **Thông điệp chính:** Lịch 45 đủ cho ngày bình thường nhưng không chịu được ngày đông
-- **Hình:** [`fig_c_do_nhay.png`](../results/final_v4/hinh/fig_c_do_nhay.png)
+- **Hình:** [`fig_c_do_nhay.png`](../results/final_v5/hinh/fig_c_do_nhay.png)
 - **Nội dung:**
   - 14 ngày thực tế: Lịch 45 đạt **12/14** (hụt ngày 2 và ngày 7, hai ngày đông nhất); Lịch 48 đạt 14/14.
   - Có biến động ngày: $P(SL_{\text{ngày}} \ge 90\%)$ = 85.7% (Lịch 45) và 95.0% (Lịch 48).
   - Nhu cầu +10%: giờ tệ nhất Lịch 45 còn **87.9%**, Lịch 48 còn **90.9%**.
   - Lịch 45 đạt SL đến khoảng **803 khách/ngày** (trung bình train là 687).
+  - **Chọn lịch theo xác suất đạt SLA ngày (M7):** đạt SLA ở $\ge 90\%$ số ngày cần **48 giờ công**; $\ge 95\%$ số ngày cần **52 giờ công**.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên C
 
 ---
 
 ### SLIDE 11: Nếu Khách Quầy Kiên Nhẫn Hơn Khách Tổng Đài?
 - **Thông điệp chính:** Con số thực tế nằm trong khoảng 45–48 q-h
-- **Hình:** [`fig_kien_nhan_vs_quay_gio.png`](../results/final_v4/hinh/fig_kien_nhan_vs_quay_gio.png), [`fig_pareto_bo_ve.png`](../results/final_v4/hinh/fig_pareto_bo_ve.png)
+- **Hình:** [`fig_kien_nhan_vs_quay_gio.png`](../results/final_v5/hinh/fig_kien_nhan_vs_quay_gio.png), [`fig_pareto_bo_ve.png`](../results/final_v5/hinh/fig_pareto_bo_ve.png)
 - **Nội dung:**
   - Kiên nhẫn 9.2 phút (ước lượng): 45 q-h; 15–60 phút: **46 q-h**; không ai bỏ về: **48 q-h**.
   - Lịch 45 có 4.99% khách bỏ về, sát 5%. Giới hạn bỏ về ≤ 3% cần 51 q-h; ≤ 2% cần 55 q-h.
@@ -161,10 +165,11 @@
 
 ### SLIDE 12: Ca Làm Việc và Chi Phí
 - **Thông điệp chính:** Tính theo giờ công, Lịch 45 và Lịch 48 tốn như nhau
-- **Hình:** [`fig_b_ca_lam.png`](../results/final_v4/hinh/fig_b_ca_lam.png)
+- **Hình:** [`fig_b_ca_lam.png`](../results/final_v5/hinh/fig_b_ca_lam.png)
 - **Nội dung:**
   - Ca 8h (nghỉ trưa 11h–14h) + ca 4h: Lịch 45 **không phủ đúng được**, cần 5 ca 8h + 2 ca 4h = **48 q-h công** (dư 3). Lịch 48 phủ đúng bằng 4 ca 8h + 4 ca 4h = **48 q-h công**.
   - Chi phí $C = \text{quầy-giờ} + k \cdot N \cdot p_{ab}$: Lịch 45 rẻ nhất khi $k < 0.33$; Lịch 48 khi $0.33 < k < 0.58$; 6 quầy cố định khi $k > 0.58$.
+  - **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi có hơn 2 người chờ liên tục 5 phút: trung bình **46.17 quầy-giờ** mở, đạt SLA ở **97.3%** số ngày (Lịch 48 cố định: 94.0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên B
 - **Lời thoại:**
   > *"Nếu chi phí chính là lương nhân viên, Lịch 48 có cùng chi phí với Lịch 45 nhưng bền hơn và ít khách bỏ về hơn."*
@@ -176,21 +181,22 @@
 - **Nội dung:**
   - 7/9 giờ có SL thực tế nằm trong khoảng dự báo 95%.
   - 15h–16h thực tế chỉ 76.5%, nhưng **do riêng ngày 10**: SL 31.5%, thời gian phục vụ cao hơn 29%, tải 6.14 Erlang, trong khi chỉ khoảng 4 người phục vụ. Ba ngày còn lại đạt 93–98%.
-  - Bài học: cần cơ chế tăng cường quầy trong ngày khi hàng chờ tăng bất thường. Dự báo sớm lúc 10h ($r = 0.84$) không bắt được cả hai ngày hụt.
+  - Bài học: cần cơ chế tăng cường quầy trong ngày khi hàng chờ tăng bất thường (M8, slide 12). Dự báo sớm lúc 10h ($r = 0.84$) không bắt được cả hai ngày hụt.
 - **Thời lượng:** 1:00 | **Người trình bày:** Thành viên A
 
 ---
 
 ### SLIDE 14: Kết Luận và Khuyến Nghị
-- **Thông điệp chính:** 45 quầy-giờ là mức tối thiểu; 48 quầy-giờ là lựa chọn an toàn với cùng giờ công
+- **Thông điệp chính:** Tối thiểu 48 giờ công/ngày, xếp 4 ca 8h + 4 ca 4h theo Lịch 48
 - **Nội dung:**
-  1. **Tối thiểu:** `[4, 5, 6, 5, 5, 5, 5, 5, 5]` = 45 q-h, SL 94.2%, giờ tệ nhất 92.4%, tiết kiệm 9 q-h/ngày (16.7%) so với 6 quầy cố định.
-  2. **Khuyến nghị vận hành:** `[4, 6, 6, 6, 5, 5, 6, 5, 5]` = 48 q-h, phủ đúng bằng 4 ca 8h + 4 ca 4h, đạt 14/14 ngày thực tế, chịu được nhu cầu +10%.
-  3. **Giữ một hàng chung** (bốc số) và có quầy dự phòng trong ngày.
-  4. **Hạn chế:** dữ liệu tổng đài; kiên nhẫn quầy cần đo thực tế (45–48 q-h tùy kiên nhẫn); kết luận chi phí phụ thuộc $k$.
+  1. **Khuyến nghị:** `[4, 6, 6, 6, 5, 5, 6, 5, 5]` = 48 giờ công (mức tối thiểu, M6), phủ đúng bằng 4 ca 8h + 4 ca 4h, SL 95.8%, giờ tệ nhất 93.3%, đạt 14/14 ngày thực tế, chịu được nhu cầu +10%.
+  2. **Ít quầy-giờ mở nhất:** `[4, 5, 6, 5, 5, 5, 5, 5, 5]` = 45 q-h, SL 94.2%, giờ tệ nhất 92.4%, tiết kiệm 9 q-h/ngày (16.7%) so với 6 quầy cố định, nhưng cũng tốn 48 giờ công.
+  3. **Có người dự phòng:** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút (M8). Cần đạt SLA ở $\ge 95\%$ số ngày: 52 giờ công (M7).
+  4. **Giữ một hàng chung** (bốc số).
+  5. **Hạn chế:** dữ liệu tổng đài; kiên nhẫn quầy cần đo thực tế (45–48 q-h tùy kiên nhẫn); kết luận chi phí phụ thuộc $k$; chỉ xét ca 8h/4h nghỉ trưa 11h–14h.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên C
 - **Lời thoại:**
-  > *"Câu trả lời ngắn: cần ít nhất 45 quầy-giờ mỗi ngày. Nhưng vì xếp ca thực tế cũng tốn 48 giờ công, chúng em khuyến nghị dùng Lịch 48 để có thêm độ bền mà không tăng chi phí nhân sự. Xin cảm ơn thầy cô."*
+  > *"Câu trả lời ngắn: cần ít nhất 48 giờ công nhân viên mỗi ngày, xếp 4 ca 8h và 4 ca 4h theo Lịch 48. Lịch 45 mở ít quầy hơn nhưng vẫn tốn 48 giờ công, nên Lịch 48 bền hơn mà không tăng chi phí nhân sự. Xin cảm ơn thầy cô."*
 
 ---
 
@@ -206,10 +212,16 @@
    *Trả lời:* Không. Đã kiểm 9 phép bớt và 117 cấu hình lân cận đều vi phạm, nên đây là tối thiểu cục bộ theo tiêu chí mô phỏng.
 
 4. **Làm sao biết mô phỏng đúng?**
-   *Trả lời:* So với nghiệm chính xác M/M/c, Erlang-A và M/G/1 Pollaczek–Khinchine, lý thuyết đều nằm trong CI95. 35 kiểm thử tự động pass; `tools/check_consistency.py` đối chiếu 1.052 con số trong báo cáo với CSV.
+   *Trả lời:* So với nghiệm chính xác M/M/c, Erlang-A và M/G/1 Pollaczek–Khinchine, lý thuyết đều nằm trong CI95. 66 kiểm thử tự động pass; `tools/check_consistency.py` đối chiếu 1.249 con số trong `tong_hop.md` với CSV.
 
 5. **Vì sao số liệu khác bản trước (44 q-h)?**
    *Trả lời:* V4 sửa ba lỗi động cơ (xả hàng sau 17h, dòng đến tại ranh giới giờ, hiệu suất theo giờ) và đổi sang phục vụ thực nghiệm. Tách riêng: sửa xả hàng chỉ đổi SL giờ cuối 0.9706 → 0.9704; nguyên nhân chính là phân phối phục vụ (tối ưu với Gamma vẫn ra 44).
 
 6. **Bất định tham số ảnh hưởng thế nào?**
    *Trả lời:* 94% phương sai kết quả đến từ bất định tham số, không phải nhiễu mô phỏng. Qua 50 bộ tham số bootstrap, Lịch 45 đạt SL ngày ≥ 90% ở 50/50 bộ và giờ tệ nhất ≥ 90% ở 45/50 bộ.
+
+7. **Vì sao kết luận là 48 giờ công mà không phải 45 quầy-giờ?**
+   *Trả lời:* Chi phí chính là lương nhân viên, tính theo giờ công. Với ca 8h (nghỉ trưa 11h–14h) và ca 4h, Lịch 45 không phủ đúng được nên vẫn tốn 48 giờ công. Tối ưu thẳng theo giờ công (M6) cho thấy không cách xếp ca nào dưới 48 giờ công đạt SLA; ở 48 giờ công, Lịch 48 tốt nhất trong 33 cách khả thi.
+
+8. **Chính sách mở thêm quầy theo hàng chờ cần những gì?**
+   *Trả lời:* Một nhân viên dự phòng (làm việc khác khi chưa cần), một quầy trống, và người theo dõi hàng chờ (hoặc màn hình bốc số). Quy tắc: hơn 2 người chờ liên tục 5 phút thì mở thêm 1 quầy, giữ ít nhất 30 phút, đóng khi hết hàng chờ. Quầy dự phòng mở trung bình 1.17 giờ/ngày (danh định) đến 1.43 giờ/ngày (14 ngày thực tế); chi phí người dự phòng không nằm trong quầy-giờ mở.

@@ -10,10 +10,10 @@
 ```bash
 pip install -r requirements-dev.txt          # thư viện đã ghim phiên bản (Python 3.12)
 pytest -q                                    # kiểm thử tự động
-python main.py --stage all                   # chạy toàn bộ pipeline, ghi vào results/final_v4/
+python main.py --stage all                   # chạy toàn bộ pipeline, ghi vào results/final_v5/
 ```
 
-Các lần lặp mô phỏng chạy song song trên `min(số CPU − 1, 8)` tiến trình (mỗi tiến trình khoảng 145 MB RAM); đặt biến môi trường `QS_WORKERS=1` để chạy tuần tự, hoặc số khác để đổi số tiến trình. Kết quả không phụ thuộc số tiến trình. Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v4/MO_TA.md`.
+Các lần lặp mô phỏng chạy song song trên `min(số CPU − 1, 8)` tiến trình (mỗi tiến trình khoảng 145 MB RAM); đặt biến môi trường `QS_WORKERS=1` để chạy tuần tự, hoặc số khác để đổi số tiến trình. Kết quả không phụ thuộc số tiến trình. Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v5/MO_TA.md`.
 
 ---
 
@@ -33,7 +33,7 @@ Các lần lặp mô phỏng chạy song song trên `min(số CPU − 1, 8)` ti�
 12. [Giai đoạn 8: Báo cáo và thuyết trình](#12-giai-đoạn-8-báo-cáo-và-thuyết-trình)
 13. [Cấu trúc mã nguồn và cách chạy](#13-cấu-trúc-mã-nguồn-và-cách-chạy)
 14. [Chuyển từ dữ liệu giả lập sang dữ liệu thật](#14-chuyển-từ-dữ-liệu-giả-lập-sang-dữ-liệu-thật)
-15. [Kết quả chính (V4, dữ liệu thật)](#15-kết-quả-chính-v4-dữ-liệu-thật)
+15. [Kết quả chính (V5, dữ liệu thật)](#15-kết-quả-chính-v5-dữ-liệu-thật)
 16. [Kế hoạch 3 tuần và phân công](#16-kế-hoạch-3-tuần-và-phân-công)
 17. [Rủi ro và cách xử lý](#17-rủi-ro-và-cách-xử-lý)
 18. [Câu hỏi phản biện thường gặp](#18-câu-hỏi-phản-biện-thường-gặp)
@@ -470,12 +470,13 @@ queue-simulation/
 ├── chay_kiem_chung.py     # [C] kiểm chứng 3 tầng + M/G/1 P-K + M/G/6, Welch, pooling
 ├── d_experiments.py       # ngữ cảnh chung; giai đoạn theory/optimize (tối ưu, so sánh chính sách, xếp ca)
 ├── e_robustness.py        # giai đoạn robust: độ nhạy, S2–S9, S11
-├── f_scenarios.py         # M1 kiên nhẫn, M2 ràng buộc bỏ về, M3 phục vụ thực nghiệm, M5 giờ tệ nhất
-├── g_report.py            # giai đoạn report: doi_chieu_v3_v4.csv, MO_TA.md
+├── f_scenarios.py         # M1 kiên nhẫn, M2 ràng buộc bỏ về, M3 phục vụ thực nghiệm, M5 giờ tệ nhất, M7, M8 tăng quầy theo hàng chờ
+├── h_staffing.py          # M6 tối ưu theo giờ công ca, M7 chọn lịch theo xác suất đạt SLA ngày
+├── g_report.py            # giai đoạn report: doi_chieu_v4_v5.csv, MO_TA.md
 ├── main.py                # điều phối: python main.py --stage ... --reps-scale ...
 ├── data/  docs/  excel/  tests/
 ├── tools/                 # check_consistency.py, build_tables.py, update_tong_hop_chi_tiet.py; archive/ = script V2/V3 cũ
-└── results/final_v4/      # kết quả hiện hành; final_v3/ mốc đối chiếu; archive/ = final_v1, final_v2
+└── results/final_v5/      # kết quả hiện hành; final_v4/, final_v3/ mốc đối chiếu; archive/ = final_v1, final_v2
 ```
 
 ### 13.1 Cài đặt và chạy
@@ -490,16 +491,16 @@ python main.py --stage all      # hoặc --stage data|theory|verify|optimize|rob
 
 ### 13.2 Giai đoạn và tệp kết quả
 
-| Giai đoạn | Hàm | Tệp chính trong `results/final_v4/` |
+| Giai đoạn | Hàm | Tệp chính trong `results/final_v5/` |
 |---|---|---|
 | `data` | `a_data.estimate_all`, `lambda_ci_table`, `poisson_overdispersion`, `service_fit_details`, `patience_km`, `cluster_bootstrap_params`, `investigate_hour`, `estimate_concurrency` | `params.json`, `khoang_tin_cay_lambda.csv`, `kiem_dinh_poisson.csv`, `kiem_dinh_phan_phoi_chi_tiet.csv`, `dieu_tra_15h_16h.csv`, `nhan_vien_uoc_luong*.csv` |
 | `theory` | `d_experiments.run_theory` | `bang_sipp.csv`, `lich_khuyen_nghi.json` |
 | `verify` | `chay_kiem_chung.run_all_verification` | `kiem_chung.csv`, `kiem_chung_pooling.csv` |
-| `optimize` | `d_experiments.run_optimize`, `f_scenarios.run_scenarios_optimize` | `lich_toi_uu.csv`, `pha3.csv`, `so_sanh_chinh_sach*.csv`, `lich_theo_ca.csv`, `doi_chieu_xa_hang.csv`, `do_nhay_kien_nhan.csv`, `toi_uu_rang_buoc_bo_ve.csv`, `m3_dich_vu_thuc_nghiem.csv` |
-| `robust` | `e_robustness.run_robust`, `f_scenarios.run_scenarios_robust` | `do_nhay.csv`, `chi_so_ky_vong_dieu_kien.csv`, `ngoai_mau.csv`, `theo_14_ngay.csv`, `chi_phi.csv`, `gio_te_nhat.csv`, … |
-| `report` | `g_report.run_report` | `doi_chieu_v3_v4.csv`, `MO_TA.md` |
+| `optimize` | `d_experiments.run_optimize`, `f_scenarios.run_scenarios_optimize` | `lich_toi_uu.csv`, `pha3.csv`, `so_sanh_chinh_sach*.csv`, `lich_theo_ca.csv`, `doi_chieu_xa_hang.csv`, `do_nhay_kien_nhan.csv`, `toi_uu_rang_buoc_bo_ve.csv`, `m3_dich_vu_thuc_nghiem.csv`, `toi_uu_theo_ca*.csv` (M6), `toi_uu_xac_suat_ngay.csv` (M7) |
+| `robust` | `e_robustness.run_robust`, `f_scenarios.run_scenarios_robust` | `do_nhay.csv`, `chi_so_ky_vong_dieu_kien.csv`, `ngoai_mau.csv`, `theo_14_ngay.csv`, `chi_phi.csv`, `gio_te_nhat.csv`, `chinh_sach_tang_quay.csv` (M8), … |
+| `report` | `g_report.run_report` | `doi_chieu_v4_v5.csv`, `MO_TA.md` |
 
-Danh mục đầy đủ kèm mô tả từng tệp nằm trong `results/final_v4/MO_TA.md` (sinh tự động).
+Danh mục đầy đủ kèm mô tả từng tệp nằm trong `results/final_v5/MO_TA.md` (sinh tự động).
 
 ---
 
@@ -516,9 +517,9 @@ Muốn chạy với một bộ dữ liệu khác (ví dụ log máy lấy số t
 
 ---
 
-## 15. Kết quả chính (V4, dữ liệu thật)
+## 15. Kết quả chính (V5, dữ liệu thật)
 
-Số liệu từ `results/final_v4/` (Anonymous Bank, 14 ngày, 9.836 khách; tham số ước lượng trên 10 ngày train). Bảng đầy đủ và nguồn từng con số: [`tong_hop.md`](tong_hop.md); báo cáo: [`docs/bao_cao_tong_ket.md`](docs/bao_cao_tong_ket.md).
+Số liệu từ `results/final_v5/` (Anonymous Bank, 14 ngày, 9.836 khách; tham số ước lượng trên 10 ngày train). Bảng đầy đủ và nguồn từng con số: [`tong_hop.md`](tong_hop.md); báo cáo: [`docs/bao_cao_tong_ket.md`](docs/bao_cao_tong_ket.md).
 
 ### 15.1 Tham số (train)
 
@@ -548,6 +549,13 @@ Số liệu từ `results/final_v4/` (Anonymous Bank, 14 ngày, 9.836 khách; th
 - Lịch 45 đạt SLA 12/14 ngày thực tế và không chịu được nhu cầu +10% (giờ tệ nhất 0,879); Lịch 48 đạt 14/14 và chịu được +10% (0,909).
 - Xếp ca 8h/4h với nghỉ trưa 11h–14h: Lịch 45 cần 48 giờ công (không phủ đúng được), Lịch 48 phủ đúng 48 giờ công. Vì cùng giờ công, khuyến nghị vận hành là Lịch 48.
 - Nếu khách quầy kiên nhẫn hơn khách tổng đài, số quầy-giờ tối thiểu là 46–48.
+
+### 15.5 Bổ sung V5: giờ công, xác suất đạt SLA ngày, tăng quầy theo hàng chờ
+
+- **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. Ở 44 giờ công không cách nào đạt SLA; ở 48 giờ công có 33/94 cách đạt, tốt nhất là Lịch 48 (4 ca 8h + 4 ca 4h). **Kết luận: tối thiểu 48 giờ công/ngày, xếp theo Lịch 48.**
+- **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công; ≥ 95% số ngày cần 52 giờ công.
+- **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút: trung bình 46,17 quầy-giờ mở, đạt SLA ở 97,3% số ngày (Lịch 48 cố định: 94,0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.
+- Mọi số của V4 giữ nguyên; đối chiếu ở `results/final_v5/doi_chieu_v4_v5.csv`.
 
 ---
 
@@ -626,7 +634,7 @@ Cả nhóm cùng làm: mục 1, 2, 10 của báo cáo, slide 1, 2, 14, `main.py`
 
 ## 19. Hướng mở rộng
 
-- Ràng buộc ca làm (ví dụ ca tối thiểu 4 giờ) thay cho đổi quầy tùy ý từng giờ.
+- Kiểu ca khác (nghỉ trưa linh hoạt 9h–16h, ca 6h) cho tối ưu theo giờ công (M6 hiện chỉ xét ca 8h/4h nghỉ trưa 11h–14h).
 - Hàm chi phí: chi phí quầy cộng chi phí khách bỏ về, tìm điểm cân bằng.
 - Lịch bền vững: chọn lịch vẫn đạt SLA khi nhu cầu tăng một mức cho trước.
 - Quầy có kỹ năng khác nhau (một số quầy chuyên giao dịch phức tạp).

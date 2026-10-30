@@ -1,7 +1,7 @@
 # Báo cáo Đánh giá Ngoài mẫu trên Tập Kiểm tra (Out-of-Sample Validation)
 
 **Người phụ trách:** Thành viên A  
-**Ngày cập nhật:** 29/10/2026 (số liệu V4, `results/final_v4/`)  
+**Ngày cập nhật:** 30/10/2026 (số liệu V4, giữ nguyên ở V5; `results/final_v5/`)  
 **Dự án:** Mô phỏng hàng đợi và xác định số quầy phục vụ tối ưu  
 
 ---
@@ -19,7 +19,7 @@ Tập Test có lưu lượng khách bình quân cao hơn tập Train (+8.1% toà
 
 ---
 
-## 2. Phương pháp (V4, `results/final_v4/ngoai_mau.csv`)
+## 2. Phương pháp (V4, `results/final_v5/ngoai_mau.csv`)
 
 | Thuộc tính | Giá trị |
 |---|---|
@@ -66,7 +66,7 @@ Kiểm định KS 2 mẫu thời gian phục vụ train ($n = 6.346$) và test (
 
 ## 5. Điều tra bất thường 15h–16h (V4, nhiệm vụ M4)
 
-> Nguồn số liệu: `results/final_v4/dieu_tra_15h_16h.csv`, `nhan_vien_uoc_luong.csv`, `nhan_vien_uoc_luong_theo_gio.csv` (giai đoạn `data`, chỉ phụ thuộc dữ liệu, không phụ thuộc số lần lặp mô phỏng). Mục này kiểm tra bằng số liệu các giả thuyết về bất thường 15h–16h (nhân sự thiếu, tích lũy hàng chờ, tỉ lệ VIP cao).
+> Nguồn số liệu: `results/final_v5/dieu_tra_15h_16h.csv`, `nhan_vien_uoc_luong.csv`, `nhan_vien_uoc_luong_theo_gio.csv` (giai đoạn `data`, chỉ phụ thuộc dữ liệu, không phụ thuộc số lần lặp mô phỏng). Mục này kiểm tra bằng số liệu các giả thuyết về bất thường 15h–16h (nhân sự thiếu, tích lũy hàng chờ, tỉ lệ VIP cao).
 
 ### 5.1 Tham số khung 15h–16h: train so với từng ngày test
 

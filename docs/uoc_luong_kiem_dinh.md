@@ -1,7 +1,7 @@
 # Báo cáo Ước lượng và Kiểm định Phân phối Thống kê (cập nhật theo V4)
 
 **Người phụ trách:** Thành viên A  
-**Ngày cập nhật:** 29/10/2026 (tham số chính thức: `results/final_v4/params.json`)  
+**Ngày cập nhật:** 29/10/2026 (tham số chính thức: `results/final_v5/params.json`)  
 **Dự án:** Mô phỏng hàng đợi và xác định số quầy phục vụ tối ưu  
 
 ---

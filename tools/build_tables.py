@@ -1,5 +1,5 @@
 """
-tools/build_tables.py: Doc cac tep CSV trong common.RESULTS_DIR (results/final_v4/) va tao cac bang Markdown chuan.
+tools/build_tables.py: Doc cac tep CSV trong common.RESULTS_DIR (results/final_v5/) va tao cac bang Markdown chuan.
 Cac tai lieu bao cao se su dung cac bang nay de dam bao tinh dong bo tuyet doi.
 """
 

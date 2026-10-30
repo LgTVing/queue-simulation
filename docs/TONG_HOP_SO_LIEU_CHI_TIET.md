@@ -1,7 +1,7 @@
 # BẢNG TỔNG HỢP TOÀN BỘ TIẾN TRÌNH, SỐ LIỆU TÍNH TOÁN EXCEL VÀ KIỂM CHỨNG CODE PYTHON / SIMPY
 
 **Dự án:** Mô phỏng hàng đợi và xác định số quầy phục vụ tối ưu cho chi nhánh ngân hàng  
-**Thời điểm tổng hợp:** Tháng 10/2026; Phần 3–5 cập nhật theo V4 ngày 2026-10-29 (`results/final_v4/`). Phần 1–2 là lịch sử 3 tuần và số liệu Excel, không phụ thuộc mô phỏng.  
+**Thời điểm tổng hợp:** Tháng 10/2026; Phần 3–5 cập nhật theo V5 ngày 2026-10-30 (`results/final_v5/`). Phần 1–2 là lịch sử 3 tuần và số liệu Excel, không phụ thuộc mô phỏng.  
 **Nhóm sinh viên thực hiện:**  
 - **Thành viên A:** Xử lý dữ liệu thực tế, Ước lượng tham số, Kiểm định phân phối, Độ bất định tham số & Ngoài mẫu  
 - **Thành viên B:** Cơ sở giải tích (Erlang C, Erlang-A, SIPP), Xây dựng Workbook Excel, Bài toán Ca làm việc (MILP) & Phân tích Chi phí  
@@ -33,11 +33,12 @@ Dự án đã hoàn thành trọn vẹn lộ trình 3 tuần từ nghiên cứu 
 | **Tuần 2** | Mô hình hóa giải tích, xây dựng SimPy và kiểm chứng ba tầng | - Xây dựng mô hình giải tích `b_theory.py` (M/M/c, Allen-Cunneen, Erlang-A ma trận hấp thụ Markov, SIPP).<br>- Tạo file Excel tính toán tự động `excel/erlang.xlsx` (5 sheets, không lỗi `#NAME?`).<br>- Xây dựng công cụ mô phỏng SimPy `c_sim.py` (Blocker động, Priority VIP, Khách bỏ về, CRN).<br>- Kiểm chứng ba tầng (Tầng 1 M/M/c, Tầng 2 Erlang-A, Tầng 3 Allen-Cunneen).<br>- Khảo sát khởi động Welch (`fig_c_welch.png`) và lợi ích gộp hàng (`fig_c_pooling.png`). | **Hoàn thành 100%** |
 | **Tuần 3** | Sửa tồn đọng, tối ưu hóa lịch quầy, thí nghiệm mở rộng, đóng băng số liệu, viết báo cáo & slide | - Sửa triệt để lỗi hiệu suất $\rho$ (đạt $0.7517 \pm 0.0047$ khớp định luật Little).<br>- Bổ sung Kiểm tra A (M/G/1 Pollaczek-Khinchine exact $14.625$p) và Kiểm tra B (M/G/6 60 reps).<br>- Tối ưu hóa lịch quầy 2 pha hội tụ tại lịch `[4, 5, 6, 5, 5, 5, 5, 5, 4]` (44 quầy-giờ).<br>- Đánh giá 5 chính sách với 300 lần lặp độc lập (`seed_base=50000`).<br>- Phân tích độ nhạy T6, hàm chi phí kịch bản $k$, bài toán ca làm việc MILP, độ bất định 50 bộ bootstrap, kiểm tra ngoài mẫu trên 4 ngày test.<br>- Đóng băng số liệu tại `results/final_v1/` gồm 10 bảng CSV/MD và 8 biểu đồ đồ họa.<br>- Hoàn tất báo cáo tổng kết (`docs/bao_cao_tong_ket.md`) và slide thuyết trình (`docs/slide_thuyet_trinh.md`). | **Hoàn thành 100%** |
 | **V4 (2026-10-29)** | Sửa động cơ mô phỏng, hợp nhất pipeline, củng cố mô hình, đóng băng lại | - F1–F3: xả hàng giữ số quầy giờ cuối, NHPP đúng ranh giới giờ, hiệu suất theo thời gian bận.<br>- M1–M5: kịch bản kiên nhẫn, ràng buộc bỏ về, phục vụ thực nghiệm làm mô hình chính, điều tra 15h–16h, ổn định giờ tệ nhất.<br>- Một lệnh `python main.py --stage all` (33.3 phút) sinh `results/final_v4/`; lịch tối ưu đổi thành `[4, 5, 6, 5, 5, 5, 5, 5, 5]` (45 quầy-giờ).<br>- 35/35 test pass; `tools/check_consistency.py` đối chiếu 1.052 giá trị trong `tong_hop.md`. | **Hoàn thành** |
+| **V5 (2026-10-30)** | Chạy song song, tối ưu theo giờ công, xác suất đạt SLA ngày, tăng quầy theo hàng chờ | - P1–P2: chạy song song các lần lặp, `rep_stats` bằng NumPy; pipeline 33.3 → 17.2 phút, số V4 giữ nguyên từng byte.<br>- M6: tối thiểu **48 giờ công**, 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]`.<br>- M7: đạt SLA ở ≥ 90% số ngày cần 48 giờ công, ≥ 95% cần 52.<br>- M8: Lịch 45 + mở thêm 1 quầy khi > 2 người chờ liên tục 5 phút (TB 46.17 quầy-giờ mở, 97.3% số ngày đạt SLA).<br>- T2–T3: checker đối chiếu cả báo cáo, slide, README; CI GitHub Actions. 66 test pass. | **Hoàn thành** |
 
 ### 1.2 Phân công Trách nhiệm và Sản phẩm Bàn giao Cụ thể
 - **Thành viên A (Nguyễn Văn A - Dữ liệu & Thống kê):**
   - Quản lý tệp dữ liệu sạch `data/clean/data_clean.csv` ($9.836$ bản ghi).
-  - Ước lượng các tham số $\lambda_h$, $E[S]$, $\theta$, $p_{vip}$ trên tập Train 10 ngày ($6.867$ bản ghi) và xuất `docs/params.json` (hiện là bản v4.0, trùng `results/final_v4/params.json`).
+  - Ước lượng các tham số $\lambda_h$, $E[S]$, $\theta$, $p_{vip}$ trên tập Train 10 ngày ($6.867$ bản ghi) và xuất `docs/params.json` (hiện là bản v4.0, trùng `results/final_v5/params.json`; tham số không đổi ở V5).
   - Kiểm định phân phối Poisson theo giờ và so sánh AIC thời gian phục vụ (Gamma tốt nhất).
   - Thực hiện Thí nghiệm E4 (Độ bất định tham số 50 bộ bootstrap) $\implies$ [`fig_a_bat_dinh.png`](../results/archive/final_v1/hinh/fig_a_bat_dinh.png).
   - Thực hiện Thí nghiệm E5 (Độ nhạy phân phối phục vụ) và E6 (Kiểm tra ngoài mẫu trên tập Test 4 ngày) $\implies$ [`fig_a_ngoai_mau.png`](../results/archive/final_v1/hinh/fig_a_ngoai_mau.png).
@@ -238,7 +239,7 @@ Tính toán thời gian chờ $W_q(M/G/c) \approx \frac{1+cs^2}{2} W_q(M/M/c)$ v
 | 14 | 0.00008 phút | 0.00006 phút | 0.00009 phút | 0.00010 phút | $+10.0\%$ |
 
 #### Sheet 5: `Quyet_dinh` (Định biên SIPP Erlang C và Erlang-A, 9 khung giờ)
-Tham số tập train (10 ngày): $E[S] = 2.9236$ phút, $\theta = 0.1087$/phút; SLA: $P(\text{phục vụ và chờ} \le 5\text{p}) \ge 90\%$. Số liệu trùng `results/final_v4/bang_sipp.csv`:
+Tham số tập train (10 ngày): $E[S] = 2.9236$ phút, $\theta = 0.1087$/phút; SLA: $P(\text{phục vụ và chờ} \le 5\text{p}) \ge 90\%$. Số liệu trùng `results/final_v5/bang_sipp.csv`:
 
 | Khung giờ | $\lambda_h$ train | Quầy Erlang C | SL Erlang C | Quầy Erlang-A | SL Erlang-A | $p_{ab}$ Erlang-A | $\rho$ Erlang-A |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -257,11 +258,11 @@ Tham số tập train (10 ngày): $E[S] = 2.9236$ phút, $\theta = 0.1087$/phút
 
 ---
 
-## PHẦN 3: SỐ LIỆU KIỂM CHỨNG VÀ THỰC NGHIỆM BẰNG CODE (V4)
+## PHẦN 3: SỐ LIỆU KIỂM CHỨNG VÀ THỰC NGHIỆM BẰNG CODE (V5)
 
-Từ V4, toàn bộ số liệu mô phỏng được sinh bằng một lệnh `python main.py --stage all` và đóng băng tại `results/final_v4/` (danh mục tệp và nguồn của từng tệp: `results/final_v4/MO_TA.md`). Bảng số chi tiết **chỉ được duy trì ở một nơi** là [`tong_hop.md`](../tong_hop.md), và được `tools/check_consistency.py` đối chiếu tự động với CSV (1.052 giá trị, 0 lệch tại ngày 2026-10-29). Phần này chỉ tóm tắt và trỏ tới mục tương ứng.
+Toàn bộ số liệu mô phỏng được sinh bằng một lệnh `python main.py --stage all` và đóng băng tại `results/final_v5/` (danh mục tệp và nguồn của từng tệp: `results/final_v5/MO_TA.md`). V5 giữ nguyên mọi số của V4 và thêm M6–M8. Bảng số chi tiết **chỉ được duy trì ở một nơi** là [`tong_hop.md`](../tong_hop.md), và được `tools/check_consistency.py` đối chiếu tự động với CSV (1.249 giá trị, 0 lệch tại ngày 2026-10-30). Phần này chỉ tóm tắt và trỏ tới mục tương ứng.
 
-| Nội dung | Kết quả V4 chính | Tệp nguồn | Mục trong `tong_hop.md` |
+| Nội dung | Kết quả chính | Tệp nguồn | Mục trong `tong_hop.md` |
 |---|---|---|:---:|
 | Kiểm chứng ba tầng + M/G/1 P-K exact | Tầng 1–2 khớp lý thuyết; Kiểm tra A: $W_q$ 14.2179 so với 14.625 (CI95 [13.59, 14.85]) | `kiem_chung.csv` | 3.1 |
 | Tối ưu 2 pha SimPy | Khởi tạo Erlang-A 44 q-h vi phạm ở 16h–17h; thêm 1 quầy → **45 q-h** `[4, 5, 6, 5, 5, 5, 5, 5, 5]`; 9 phép bớt đều vi phạm | `lich_toi_uu.csv` | 3.2 |
@@ -279,8 +280,11 @@ Từ V4, toàn bộ số liệu mô phỏng được sinh bằng một lệnh `p
 | Kiên nhẫn (M1) | 46 q-h cho kiên nhẫn 15–60 phút; 48 q-h khi không bỏ về | `do_nhay_kien_nhan.csv` | 7.5 |
 | Ràng buộc bỏ về (M2) | $p_{ab} \le 5\%$: 46 q-h; $\le 3\%$: 51 q-h; $\le 2\%$: 55 q-h | `toi_uu_rang_buoc_bo_ve.csv` | 7.6 |
 | Giờ tệ nhất và số lần lặp (M5) | Lịch 45: 11h–12h là giờ tệ nhất với xác suất 99.7% (R = 1.646) | `gio_te_nhat.csv`, `so_lan_lap_can_thiet.csv` | 7.7 |
-| Đối chiếu V3 → V4 | Lịch tối ưu 44 → 45 q-h, chủ yếu do phục vụ thực nghiệm (M3) | `doi_chieu_v3_v4.csv` | 8 |
-| Kiểm thử tự động | 35/35 test pass trong 64.5 giây | `pytest_log.txt` | 9 |
+| Tối ưu theo giờ công ca (M6) | 44 giờ công: không khả thi; 48 giờ công: 33/94 lịch khả thi, tốt nhất Lịch 48 (4 ca 8h + 4 ca 4h) | `toi_uu_theo_ca.csv`, `toi_uu_theo_ca_top.csv` | 7.9 |
+| Xác suất đạt SLA ngày (M7) | ≥ 90% số ngày: 48 giờ công; ≥ 95%: 52 giờ công | `toi_uu_xac_suat_ngay.csv` | 7.10 |
+| Tăng quầy theo hàng chờ (M8) | Lịch 45 + mở thêm khi > 2 người chờ 5 phút: 46.17 quầy-giờ TB, $P(SL_{\text{ngày}} \ge 90\%)$ 97.3% (Lịch 48: 94.0%) | `chinh_sach_tang_quay.csv` | 7.11 |
+| Đối chiếu V4 → V5 | 17 chỉ số V4 không đổi; giờ công tối thiểu 48 (M6) | `doi_chieu_v4_v5.csv` | 8 |
+| Kiểm thử tự động | 66 test pass trong 549 giây (9.2 phút, gồm smoke test toàn pipeline) | `pytest_log.txt` | 9 |
 
 ---
 
@@ -288,7 +292,7 @@ Từ V4, toàn bộ số liệu mô phỏng được sinh bằng một lệnh `p
 
 Bảng đối chiếu số quầy theo từng giờ giữa các phương pháp (Excel và lý thuyết: `bang_sipp.csv`; SimPy: `lich_khuyen_nghi.json`):
 
-| Khung giờ | Excel / Erlang C (SIPP) | Lý thuyết Erlang-A (SIPP) | SimPy Tối ưu (V4) | SimPy Bền vững (+10% tải) | Mốc cơ sở: Hằng số 6 quầy |
+| Khung giờ | Excel / Erlang C (SIPP) | Lý thuyết Erlang-A (SIPP) | SimPy Tối ưu quầy-giờ | SimPy Lịch 48 (tối ưu giờ công, M6) | Mốc cơ sở: Hằng số 6 quầy |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | **8h - 9h** | 4 | **4** | **4** | 4 | 6 |
 | **9h - 10h** | 6 | **5** | **5** | 6 | 6 |
@@ -311,6 +315,8 @@ Cột Excel/Erlang C và Erlang-A dùng cùng tham số train ($E[S] = 2.9236$, 
 2. **Vì sao SimPy V4 cần 45 quầy-giờ, nhiều hơn Erlang-A 1 quầy ở 16h–17h?**  
    Erlang-A giả định thời gian phục vụ mũ ($cs^2 = 1$) và hệ dừng trong từng giờ. Mô phỏng V4 dùng phân phối phục vụ thực nghiệm ($cs^2 = 1.20$) và tiêu chí cận dưới CI95 của SL mỗi giờ. Với 4 quầy, giờ 16h–17h có cận dưới 0.8893 (60 lần lặp, seed chọn lịch) nên bị loại. Tối ưu cùng pipeline nhưng phục vụ Gamma ($cs^2 = 0.91$) vẫn cho lịch 44 của V3; vậy chênh lệch đến từ độ biến động thời gian phục vụ.
 3. **Lịch 45 là tối thiểu cục bộ:** 9 phép bớt 1 quầy (pha 2) và 117 phép hoán đổi/giảm 2 quầy (pha 3) đều vi phạm tiêu chí mô phỏng.
+4. **Vì sao khuyến nghị là Lịch 48 dù Lịch 45 mở ít quầy hơn?**  
+   Với ca 8h (nghỉ trưa 11h–14h) và ca 4h, Lịch 45 không phủ đúng được nên vẫn tốn 48 giờ công. Tối ưu thẳng theo giờ công (M6) cho thấy 48 là mức nhỏ nhất và Lịch 48 là cách xếp tốt nhất ở mức đó (`tong_hop.md` mục 7.9).
 
 ---
 
@@ -320,6 +326,8 @@ Bảng quyết định đầy đủ (lịch, SL, giờ tệ nhất, các xác su
 
 | Phương án | Lịch theo giờ | Quầy-giờ mở | $SL$ ngày | Giờ tệ nhất (cận dưới CI95) | Bỏ về | Giờ công ca (nghỉ trưa 11h–14h) |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Tối ưu thường nhật** | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | **45** | 94.23% | 92.36% | 4.99% | 48 (5 ca 8h + 2 ca 4h) |
-| **Dự phòng bền vững** | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | **48** | 95.79% | 93.27% | 3.70% | 48 (4 ca 8h + 4 ca 4h) |
+| **Khuyến nghị: Lịch 48 (ít giờ công nhất, M6)** | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | **48** | 95.79% | 93.27% | 3.70% | **48 (4 ca 8h + 4 ca 4h)** |
+| **Ít quầy-giờ mở nhất: Lịch 45** | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | **45** | 94.23% | 92.36% | 4.99% | 48 (5 ca 8h + 2 ca 4h) |
 | **Mốc cơ sở 6 quầy** | `[6, 6, 6, 6, 6, 6, 6, 6, 6]` | 54 | 97.63% | 94.94% | 2.17% | 56 (6 ca 8h + 2 ca 4h) |
+
+Bổ sung V5: nếu có 1 nhân viên dự phòng, Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút cho trung bình 46.17 quầy-giờ mở và đạt SLA ở 97.3% số ngày (M8); muốn đạt SLA ở ≥ 95% số ngày cần 52 giờ công (M7).

@@ -92,7 +92,7 @@ flowchart TD
 
 ---
 
-## 6. Tham số đầu vào (tập train 10 ngày, `results/final_v4/params.json`)
+## 6. Tham số đầu vào (tập train 10 ngày, `results/final_v5/params.json`)
 
 | Tham số | Ký hiệu | Giá trị thực tế | Nguồn dữ liệu |
 |---|---|---|---|

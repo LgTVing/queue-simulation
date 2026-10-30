@@ -1,7 +1,7 @@
 # Báo cáo Kiểm chứng Mô hình Mô phỏng Ba tầng
 
 **Người phụ trách:** Thành viên C  
-**Ngày cập nhật:** 29/10/2026 (số liệu V4, `results/final_v4/kiem_chung.csv`, `kiem_chung_pooling.csv`)  
+**Ngày cập nhật:** 30/10/2026 (số liệu V4, giữ nguyên ở V5; `results/final_v5/kiem_chung.csv`, `kiem_chung_pooling.csv`)  
 **Dự án:** Mô phỏng hàng đợi và xác định số quầy phục vụ tối ưu  
 
 ---
@@ -39,7 +39,7 @@ Khoảng tin cậy dùng Student-t ($df = n_{\text{reps}} - 1$).
 ---
 
 ## 2. Phân tích Hiện tượng Khởi động (Welch)
-- Theo dõi thời gian chờ của 1.200 khách đầu tiên trong hệ chạy dài ($\rho = 0.90$, tải cao để thấy rõ pha chuyển tiếp). Hình: [`fig_c_welch.png`](../results/final_v4/hinh/fig_c_welch.png).
+- Theo dõi thời gian chờ của 1.200 khách đầu tiên trong hệ chạy dài ($\rho = 0.90$, tải cao để thấy rõ pha chuyển tiếp). Hình: [`fig_c_welch.png`](../results/final_v5/hinh/fig_c_welch.png).
 - Khoảng 200 khách đầu (~150 phút), thời gian chờ tăng từ 0 lên mức cân bằng; sau đó đường trung bình trượt (window = 50) dao động ổn định.
 - **Quy tắc:**
   - Mô phỏng hệ dừng (kiểm chứng lý thuyết): bỏ **500 phút đầu**.
@@ -48,7 +48,7 @@ Khoảng tin cậy dùng Student-t ($df = n_{\text{reps}} - 1$).
 ---
 
 ## 3. Hiệu ứng Gộp hàng đợi (Queue Pooling)
-6 quầy, $\lambda = 1.5$ khách/phút, phục vụ trung bình 3 phút (`kiem_chung_pooling.csv`, hình [`fig_c_pooling.png`](../results/final_v4/hinh/fig_c_pooling.png)):
+6 quầy, $\lambda = 1.5$ khách/phút, phục vụ trung bình 3 phút (`kiem_chung_pooling.csv`, hình [`fig_c_pooling.png`](../results/final_v5/hinh/fig_c_pooling.png)):
 
 | Cách tổ chức | P(chờ ≤ 5 phút) |
 |---|:---:|

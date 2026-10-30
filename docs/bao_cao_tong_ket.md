@@ -8,7 +8,7 @@
 - **Thành viên C (Lê Văn C):** Mô phỏng SimPy, kiểm chứng ba tầng, tối ưu hóa lịch quầy, phân tích độ nhạy
 
 **Thời gian hoàn thành:** Tháng 10/2026  
-**Phiên bản số liệu:** V4, đóng băng tại `results/final_v4/` ngày 2026-10-29 (`python main.py --stage all --reps-scale 1.0`, 33.3 phút). Bảng số chi tiết và nguồn từng con số: [`tong_hop.md`](../tong_hop.md).
+**Phiên bản số liệu:** V5, đóng băng tại `results/final_v5/` ngày 2026-10-30 (`python main.py --stage all --reps-scale 1.0`, 17.2 phút). Mọi số của V4 giữ nguyên; V5 thêm tối ưu theo giờ công (M6), chọn lịch theo xác suất đạt SLA ngày (M7) và mở thêm quầy theo hàng chờ (M8). Bảng số chi tiết và nguồn từng con số: [`tong_hop.md`](../tong_hop.md).
 
 ---
 
@@ -104,7 +104,7 @@ Số khách theo ngày quá phân tán mạnh: trung bình 702.6, độ lệch c
 ## 4. ƯỚC LƯỢNG THAM SỐ, KIỂM ĐỊNH, ĐỘ BẤT ĐỊNH VÀ NGOÀI MẪU
 
 ### 4.1 Tốc độ đến và kiểm định Poisson (train)
-$\hat\lambda_h = \bar N_h / 60$. Vì số khách giữa các ngày quá phân tán, CI95 dùng Student-t trên 10 ngày: $\hat\lambda_h \pm t_{0.975;9}\, s_h/(60\sqrt{10})$ (`results/final_v4/params.json`). Chỉ số phân tán $D = \sum_d (N_{d,h} - \bar N_h)^2/\bar N_h \sim \chi^2(9)$.
+$\hat\lambda_h = \bar N_h / 60$. Vì số khách giữa các ngày quá phân tán, CI95 dùng Student-t trên 10 ngày: $\hat\lambda_h \pm t_{0.975;9}\, s_h/(60\sqrt{10})$ (`results/final_v5/params.json`). Chỉ số phân tán $D = \sum_d (N_{d,h} - \bar N_h)^2/\bar N_h \sim \chi^2(9)$.
 
 | Khung giờ | $\bar N_h$ | $\hat\lambda_h$ | CI95 (Student-t) | $D$ | $p$ | Kết luận |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -216,6 +216,8 @@ $$\min \sum_s x_s \quad \text{s.t.} \quad \sum_s A_{h,s} x_s \ge c_h\ \forall h,
 
 Cùng mô hình B hỗn hợp: **Lịch 48 phủ đúng 48 q-h** (4 ca 8h + 4 ca 4h); Mốc 54 cần 56 q-h (6 ca 8h + 2 ca 4h). Hệ quả: **tính theo giờ công, Lịch 45 và Lịch 48 tốn như nhau (48 q-h).**
 
+Cách làm trên có hai bước: tối ưu quầy-giờ mở trước, xếp ca sau. Mục 9.5 (M6) tối ưu thẳng theo giờ công và xác nhận **48 giờ công là mức nhỏ nhất**, với Lịch 48 là cách xếp tốt nhất ở mức này.
+
 ### 6.4 Lịch bền vững và quy tắc căn bậc hai (`lich_ben_vung_delta.csv`)
 
 | Nhu cầu tăng | Tải TB $\bar a$ | Lịch | Quầy-giờ | Tăng so với 45 | $\beta$ |
@@ -247,7 +249,7 @@ $\text{seed}_i = \text{seed}_{\text{base}} + 1000 i$. Các chính sách so sánh
 
 ## 8. KIỂM CHỨNG MÔ HÌNH
 
-Nguồn: `results/final_v4/kiem_chung.csv`, 30 lần lặp trừ khi ghi khác, CI Student-t.
+Nguồn: `results/final_v5/kiem_chung.csv`, 30 lần lặp trừ khi ghi khác, CI Student-t.
 
 | Tầng | Chỉ số | Lý thuyết | Mô phỏng | CI95 | Sai lệch | Đạt |
 |---|---|:---:|:---:|:---:|:---:|:---:|
@@ -321,33 +323,71 @@ Lịch 45 không chịu được nhu cầu +10%; Lịch 48 chịu được +10% 
 
 **Ràng buộc tỉ lệ bỏ về (M2).** Lịch 45 có $p_{ab} = 4.99\%$, sát 5%. Thêm ràng buộc: $p_{ab} \le 5\%$ cần 46 q-h; $\le 3\%$ cần 51 q-h; $\le 2\%$ cần 55 q-h. Một phần "tiết kiệm" của Lịch 45 đến từ việc khách bỏ về.
 
+### 9.5 Tối ưu trực tiếp theo giờ công ca (M6, `toi_uu_theo_ca.csv`)
+
+Câu hỏi quản lý là ít giờ công nhân viên nhất mà vẫn đạt SLA. `h_staffing.optimize_shift_staffing` liệt kê mọi cách xếp ca mô hình B (ca 8h nghỉ trưa trong 11h–14h, ca 4h) có độ phủ mỗi giờ $\ge$ SIPP Erlang-A, theo giờ công tăng dần, và mô phỏng mỗi độ phủ như một lịch quầy (60 lần lặp, seed 1000, cùng tiêu chí cận dưới CI95).
+
+- **44 giờ công:** chỉ có một độ phủ (đúng bằng SIPP Erlang-A); giờ 16h–17h cận dưới 0.8893, không khả thi. Lần thăm dò cho phép thiếu 1 quầy so với SIPP (3.180 độ phủ, 36–48 giờ công) cũng không có lịch khả thi nào dưới 48.
+- **48 giờ công:** 94 độ phủ, 33 khả thi. Năm lịch tốt nhất được xác nhận bằng seed 50000 (300 lần lặp); đứng đầu là **Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (4 ca 8h + 4 ca 4h)**: SL 0.9579, giờ tệ nhất cận dưới 0.9327, bỏ về 3.70%, $P(SL_{\text{ngày}} \ge 90\%)$ 94.7%, giờ tệ nhất khi nhu cầu +10% 0.9146. Lịch này tốt nhất ở mọi chỉ số trong top-5.
+
+**Kết luận M6:** tối thiểu **48 giờ công/ngày với 4 ca 8h + 4 ca 4h**, xếp theo Lịch 48.
+
+### 9.6 Chọn lịch theo xác suất đạt SLA ngày (M7, `toi_uu_xac_suat_ngay.csv`)
+
+Lịch khả thi khi đạt tiêu chí danh định theo giờ **và** cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$ (300 lần lặp có hệ số nhân ngày, $CV$ 14.0%) không nhỏ hơn mức $P$ tối thiểu. Đánh giá lại bằng seed 50000:
+
+| Mức $P$ tối thiểu | Lịch nhỏ nhất theo ca | Giờ công | $P$ seed đánh giá | Lịch nhỏ nhất theo quầy-giờ | Quầy-giờ / giờ công |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 80% | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 95.0% | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 45 / 48 |
+| 90% | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 95.0% | `[4, 6, 6, 6, 5, 5, 5, 6, 5]` | 48 / 52 |
+| 95% | `[4, 6, 7, 7, 5, 6, 6, 6, 5]` | 52 | 99.3% | `[5, 6, 6, 6, 6, 5, 5, 6, 5]` | 50 / 52 |
+
+Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công (Lịch 48 với 94.7% không khác biệt có ý nghĩa so với lịch M7 và có giờ tệ nhất danh định tốt hơn); $\ge 95\%$ số ngày cần **52 giờ công**. Lịch tìm trong không gian quầy-giờ thường không phủ đúng bằng ca và tốn thêm giờ công.
+
+### 9.7 Mở thêm quầy trong ngày theo hàng chờ (M8, `chinh_sach_tang_quay.csv`)
+
+Quy tắc: kiểm tra mỗi phút; nếu số khách chờ vượt ngưỡng liên tục trong cửa sổ cho trước thì mở thêm 1 quầy dự phòng (giữ ít nhất 30 phút, đóng khi hàng chờ về 0). Seed riêng 400000 trở lên, 300 lần lặp mỗi kịch bản, 40 lần lặp mỗi ngày thực tế.
+
+| Chính sách | Quầy-giờ mở TB | $P(SL_{\text{ngày}} \ge 90\%)$, $CV$ 14% | Nhu cầu +10%: giờ tệ nhất (cận dưới) | $E[S]$ +10%: giờ tệ nhất (cận dưới) | Ngày thực tế đạt |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Lịch 45 cố định | 45.00 | 80.3% | 0.8850 | 0.8802 | 12/14 |
+| Lịch 48 cố định | 48.00 | 94.0% | 0.9029 | 0.9013 | 14/14 |
+| **Lịch 45 + mở thêm khi > 2 người chờ liên tục 5 phút** | **46.17** | **97.3%** | **0.9193** | **0.9128** | **14/14** |
+
+Chính sách được chọn theo quy tắc: ít người dự phòng nhất, $P$ không thấp hơn Lịch 48 và đạt 14/14 ngày, quầy-giờ mở ít nhất. So với Lịch 48 cố định, nó mở ít hơn khoảng 1.6 quầy-giờ/ngày và bền hơn ở mọi kịch bản. Điều kiện: **cần 1 nhân viên dự phòng** sẵn sàng mở quầy; chi phí người này không nằm trong quầy-giờ mở.
+
 ---
 
 ## 10. KẾT LUẬN, KHUYẾN NGHỊ VÀ HẠN CHẾ
 
 ### 10.1 Trả lời các câu hỏi chính
 
-**1. Số quầy tối thiểu theo giờ?**
+**1. Số quầy và số giờ công tối thiểu?**
+Tính theo **giờ công nhân viên** (thước đo chi phí chính): tối thiểu **48 giờ công/ngày, 4 ca 8h + 4 ca 4h**, mở quầy theo
+$$c = [4, 6, 6, 6, 5, 5, 6, 5, 5] \quad \text{(Lịch 48)}$$
+SL ngày 95.79% ± 0.17%; giờ tệ nhất (15h–16h) cận dưới 93.27%; bỏ về 3.70%. Không cách xếp ca nào dưới 48 giờ công đạt SLA (M6).
+Tính theo **quầy-giờ mở**: tối thiểu
 $$c^* = [4, 5, 6, 5, 5, 5, 5, 5, 5] \implies \mathbf{45\ \text{quầy-giờ/ngày}}$$
-SL ngày 94.23% ± 0.22%; giờ tệ nhất (11h–12h) cận dưới 92.36%; VIP 95.58%; $W_q$ 0.46 phút (~28 giây); bỏ về 4.99%; hiệu suất quầy 70.85%. Nếu khách quầy kiên nhẫn hơn khách tổng đài, con số là **46–48 q-h**.
+SL ngày 94.23% ± 0.22%; giờ tệ nhất (11h–12h) cận dưới 92.36%; VIP 95.58%; $W_q$ 0.46 phút (~28 giây); bỏ về 4.99%; hiệu suất quầy 70.85%. Lịch này cũng tốn 48 giờ công. Nếu khách quầy kiên nhẫn hơn khách tổng đài, số quầy-giờ là **46–48 q-h**.
 
 **2. Tiết kiệm bao nhiêu so với lịch hằng số 6 quầy?**
 9 quầy-giờ mở/ngày (**16.67%**), hiệu suất quầy tăng từ 60.77% lên 70.85%. Tuy nhiên tính theo **giờ công ca** (nghỉ trưa 11h–14h, ca 8h/4h), Lịch 45 cần 48 q-h công so với 56 của mốc 54, tức tiết kiệm 8 q-h công (14.3%).
 
 **3. Lịch có bền không, giá của độ bền?**
-Lịch 45 mỏng: hụt 2/14 ngày thực tế, $P(SL_{\text{ngày}} \ge 90\%) = 85.7\%$ khi có biến động ngày, và giờ tệ nhất xuống 87.9% khi nhu cầu +10%. **Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]`** thêm 3 quầy-giờ mở (+6.7%), đạt 14/14 ngày, chịu được +10% nhu cầu, giảm bỏ về từ 4.99% xuống 3.70%. Theo giờ công ca, Lịch 48 tốn **bằng** Lịch 45.
+Lịch 45 mỏng: hụt 2/14 ngày thực tế, $P(SL_{\text{ngày}} \ge 90\%) = 85.7\%$ khi có biến động ngày, và giờ tệ nhất xuống 87.9% khi nhu cầu +10%. **Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]`** thêm 3 quầy-giờ mở (+6.7%), đạt 14/14 ngày, chịu được +10% nhu cầu, giảm bỏ về từ 4.99% xuống 3.70%. Theo giờ công ca, Lịch 48 tốn **bằng** Lịch 45. Muốn đạt SLA ở $\ge 95\%$ số ngày cần 52 giờ công (M7). Nếu có 1 người dự phòng, Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút đạt SLA ở 97.3% số ngày với 46.17 quầy-giờ mở trung bình (M8).
 
 **4. Lịch theo ca tốn thêm bao nhiêu?**
-Lịch 45 không phủ đúng được bằng ca 8h/4h có nghỉ trưa 11h–14h: cần 5 ca 8h + 2 ca 4h = 48 q-h (+3, +6.7%). Lịch 48 phủ đúng (4 ca 8h + 4 ca 4h). Chỉ dùng ca 8h nghỉ trưa 11h–14h: 64 q-h (+42%).
+Lịch 45 không phủ đúng được bằng ca 8h/4h có nghỉ trưa 11h–14h: cần 5 ca 8h + 2 ca 4h = 48 q-h (+3, +6.7%). Lịch 48 phủ đúng (4 ca 8h + 4 ca 4h). Chỉ dùng ca 8h nghỉ trưa 11h–14h: 64 q-h (+42%). Tối ưu thẳng theo giờ công (M6) cho cùng đáp số 48 nên không có cách xếp ca rẻ hơn trong mô hình ca này.
 
 **5. Khi nào kết quả không áp dụng được?**
 Khi chi nhánh không dùng một hàng chung (6 hàng riêng tự chọn chỉ đạt khoảng 50.6%); khi quầy chuyên biệt hóa theo nghiệp vụ; khi chi phí mất khách lớn ($k > 0.58$ quầy-giờ/khách, Mốc 54 rẻ hơn).
 
 ### 10.2 Khuyến nghị vận hành
-1. **Dùng Lịch 48 làm lịch mặc định nếu chi phí chính là giờ công nhân viên** (cùng 48 q-h công như Lịch 45 nhưng bền hơn). Dùng Lịch 45 khi chi phí mở quầy là đáng kể và 3 q-h công dư được dùng cho việc khác.
+1. **Dùng Lịch 48 làm lịch mặc định** (48 giờ công, mức tối thiểu theo M6; bền hơn Lịch 45 với cùng giờ công). Dùng Lịch 45 khi chi phí mở quầy là đáng kể và 3 giờ công dư được dùng cho việc khác.
 2. **Tổ chức ca:** 4 nhân viên ca 8h (nghỉ trưa so le 11h–14h) + 4 nhân viên ca 4h phủ đúng Lịch 48.
-3. **Tăng cường trong ngày:** theo dõi hàng chờ và thời gian phục vụ thực tế; khi tăng bất thường (như ngày 10) cần có quầy dự phòng. Không nên chỉ dựa vào dự báo lúc 10h.
-4. **Giữ một hàng chung** (bốc số); đây là điều kiện để các con số trên đúng.
+3. **Tăng cường trong ngày:** nếu có 1 nhân viên dự phòng (làm việc khác khi không cần), áp dụng Lịch 45 + **mở thêm 1 quầy khi có hơn 2 người chờ liên tục 5 phút**, đóng khi hết hàng chờ (M8). Không nên chỉ dựa vào dự báo lúc 10h.
+4. **Mức tin cậy cao hơn:** nếu cần đạt SLA ở $\ge 95\%$ số ngày, bố trí 52 giờ công (thêm 1 ca 4h, M7).
+5. **Giữ một hàng chung** (bốc số); đây là điều kiện để các con số trên đúng.
 
 ### 10.3 Hạn chế
 1. Dữ liệu tổng đài, không phải quầy giao dịch; kiên nhẫn có thể khác (46–48 q-h nếu kiên nhẫn hơn).
@@ -358,11 +398,15 @@ Khi chi nhánh không dùng một hàng chung (6 hàng riêng tự chọn chỉ 
 6. Dự báo sớm fit trên cả 14 ngày; sai số ngoài mẫu 55–64 khách.
 7. Lựa chọn giữa Lịch 45/48/Mốc 54 phụ thuộc vào hệ số chi phí $k$ là giả định.
 8. Chỉ có hoạt động PS nên số phiên chồng lấn là cận dưới của số nhân viên thực.
+9. Kết luận 48 giờ công dựa trên mô hình ca B (ca 8h nghỉ trưa trong 11h–14h, ca 4h); kiểu ca khác có thể rẻ hơn.
+10. Chính sách tăng quầy (M8) cần 1 người dự phòng; chi phí người này không nằm trong quầy-giờ mở.
+11. Thời gian phục vụ không đổi theo giờ, nên trường hợp ngày 10 (phục vụ chậm chỉ ở 14h–17h) chưa mô phỏng được.
 
 ### 10.4 Hướng phát triển
 - Đo trực tiếp kiên nhẫn và thời gian phục vụ tại quầy (kế hoạch khảo sát trong `docs/ke_hoach_khao_sat.md`).
 - Định tuyến theo kỹ năng (skill-based routing) cho quầy chuyên biệt.
-- Điều chỉnh số quầy động trong ngày theo hàng chờ quan sát thay cho dự báo một lần lúc 10h.
+- Mô hình thời gian phục vụ thay đổi theo giờ (mở đường cho kịch bản ngày 10 của M8).
+- Mở rộng M6 sang kiểu ca khác (nghỉ trưa linh hoạt 9h–16h, ca 6h).
 
 ---
 
@@ -383,15 +427,16 @@ Khi chi nhánh không dùng một hàng chung (6 hàng riêng tự chọn chỉ 
 | `b_shifts.py` | MILP lập lịch ca (HiGHS) |
 | `c_sim.py` | Động cơ mô phỏng SimPy |
 | `chay_kiem_chung.py` | Kiểm chứng ba tầng, Kiểm tra A/B, gộp hàng |
-| `d_experiments.py`, `e_robustness.py`, `f_scenarios.py` | Tối ưu, so sánh chính sách, độ bền, kịch bản M1/M2 |
+| `d_experiments.py`, `e_robustness.py`, `f_scenarios.py` | Tối ưu, so sánh chính sách, độ bền, kịch bản M1/M2/M3/M5/M7/M8 |
+| `h_staffing.py` | Tối ưu theo giờ công ca (M6) và theo xác suất đạt SLA ngày (M7) |
 | `g_report.py`, `main.py` | Báo cáo tự động và điểm chạy pipeline |
-| `tests/` | 35 kiểm thử `pytest` |
+| `tests/` | 66 kiểm thử `pytest` |
 
 ```bash
 pip install -r requirements-dev.txt
 pytest -q
-python main.py --stage all          # ghi vào results/final_v4/
+python main.py --stage all          # ghi vào results/final_v5/ (QS_WORKERS đặt số tiến trình song song)
 python tools/check_consistency.py   # đối chiếu tong_hop.md với CSV
 ```
 
-Số liệu V4 đóng băng tại `results/final_v4/` (danh mục và nguồn từng tệp: `results/final_v4/MO_TA.md`). Các phiên bản trước lưu ở `results/final_v3/` và `results/archive/`.
+Số liệu V5 đóng băng tại `results/final_v5/` (danh mục và nguồn từng tệp: `results/final_v5/MO_TA.md`; đối chiếu với V4: `doi_chieu_v4_v5.csv`). Các phiên bản trước lưu ở `results/final_v4/`, `results/final_v3/` và `results/archive/`.

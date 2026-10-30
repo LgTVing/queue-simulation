@@ -79,7 +79,7 @@ Nếu sau Ngày 3 của Tuần 1, các ngân hàng và đơn vị hành chính �
 
 ## 7. Đo tốc độ bỏ về θ tại quầy thật (V4, liên hệ nhiệm vụ M1)
 
-**Vì sao cần.** Mô hình hiện dùng θ ước lượng từ tổng đài (kiên nhẫn trung bình khoảng 9 phút, hành vi cúp máy). Khách ở quầy có lấy số thường kiên nhẫn hơn nhiều. Kịch bản M1 (`results/final_v4/do_nhay_kien_nhan.csv`) cho thấy số quầy-giờ cần thiết thay đổi theo kiên nhẫn trung bình, từ mức Erlang-A (θ gốc) lên tới mức Erlang C (không ai bỏ về). Vì vậy, muốn áp dụng khuyến nghị cho một quầy cụ thể, phải đo θ tại chỗ.
+**Vì sao cần.** Mô hình hiện dùng θ ước lượng từ tổng đài (kiên nhẫn trung bình khoảng 9 phút, hành vi cúp máy). Khách ở quầy có lấy số thường kiên nhẫn hơn nhiều. Kịch bản M1 (`results/final_v5/do_nhay_kien_nhan.csv`) cho thấy số quầy-giờ cần thiết thay đổi theo kiên nhẫn trung bình, từ mức Erlang-A (θ gốc) lên tới mức Erlang C (không ai bỏ về). Vì vậy, muốn áp dụng khuyến nghị cho một quầy cụ thể, phải đo θ tại chỗ.
 
 **Cần ghi cho mỗi khách** (đã có trong biểu mẫu mục 4):
 1. Giờ vào hàng (lấy số) A.
