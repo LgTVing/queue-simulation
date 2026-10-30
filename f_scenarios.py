@@ -233,6 +233,116 @@ def _save(df: pd.DataFrame, name: str) -> None:
     df.to_csv(out_path(name), index=False, encoding="utf-8-sig")
     print(f"  -> {name}")
 
+# =============================================================================
+# HINH V5 (M6, M7, M8)
+# =============================================================================
+# Mau phan loai co dinh (slot 1-2 bang mau tham chieu, da kiem dinh CVD), chu va luoi trung tinh
+C1, C2, INK, INK2, GRID = "#2a78d6", "#eb6834", "#0b0b0b", "#52514e", "#e4e3df"
+
+
+def _style(ax, xlabel: str, ylabel: str, title: str) -> None:
+    ax.set_xlabel(xlabel, color=INK2)
+    ax.set_ylabel(ylabel, color=INK2)
+    ax.set_title(title, color=INK, loc="left", fontsize=11)
+    ax.grid(True, color=GRID, linewidth=0.8)
+    ax.set_axisbelow(True)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    for sp in ("left", "bottom"):
+        ax.spines[sp].set_color(INK2)
+    ax.tick_params(colors=INK2)
+
+
+def fig_m6(trials: pd.DataFrame, trials_flex: pd.DataFrame, best: str) -> None:
+    """Can duoi gio te nhat (seed chon lich) cua moi lich phu theo gio cong, hai kieu nghi trua."""
+    fig, ax = plt.subplots(figsize=(7, 4.2))
+    rng = np.random.default_rng(0)
+    x_std = None
+    for df, off, color, label in ((trials, -0.7, C1, "Nghỉ trưa 11h–14h"), (trials_flex, 0.7, C2, "Nghỉ trưa 9h–16h")):
+        x = df["gio_cong"].to_numpy() + off + rng.uniform(-0.35, 0.35, len(df))
+        x_std = x if x_std is None else x_std
+        ax.scatter(x, df["sl_gio_te_nhat_low"] * 100, s=22, color=color, alpha=0.75, edgecolor="white",
+                   linewidth=0.6, label=f"{label} ({len(df)} lịch)")
+    ax.axhline(TARGET_SLA * 100, color=INK2, linestyle="--", linewidth=1)
+    ax.text(43.0, TARGET_SLA * 100 + 0.15, "Ngưỡng khả thi 90%", color=INK2, fontsize=8, va="bottom")
+    b = np.flatnonzero(trials["phu_quay"].to_numpy() == best)
+    if len(b):
+        y = float(trials["sl_gio_te_nhat_low"].iloc[b[0]]) * 100
+        ax.annotate(f"Lịch 48 {best}", xy=(x_std[b[0]], y), xytext=(44.3, 91.55), fontsize=8, color=INK,
+                    arrowprops=dict(arrowstyle="-", color=INK2, linewidth=0.8))
+    ax.set_xticks(sorted(set(trials["gio_cong"]) | set(trials_flex["gio_cong"])))
+    ax.set_xlim(42.5, 49.5)
+    _style(ax, "Giờ công nhân viên/ngày", "SL giờ tệ nhất, cận dưới CI95 (%)",
+           "M6: không cách xếp ca nào dưới 48 giờ công đạt SLA")
+    ax.legend(frameon=False, fontsize=8, loc="upper left")
+    fig.savefig(out_path("fig_m6_gio_cong.png", "hinh"), dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
+
+def fig_m7(p: pd.DataFrame) -> None:
+    """Gio cong can thiet theo muc P(SL ngay >= 90%) toi thieu, hai khong gian tim kiem."""
+    fig, ax = plt.subplots(figsize=(6, 3.8))
+    labelled = set()
+    for space, color, label in (("theo ca", C1, "Tìm thẳng theo ca"), ("quay-gio", C2, "Tìm theo quầy-giờ rồi xếp ca")):
+        d = p[p["khong_gian"] == space].dropna(subset=["lich"])
+        x = d["min_p"].to_numpy() * 100
+        ax.plot(x, d["gio_cong_ca"], color=color, linewidth=2, marker="o", markersize=7, label=label)
+        for xi, yi in zip(x, d["gio_cong_ca"]):
+            if (xi, yi) not in labelled:  # hai duong trung diem: chi ghi mot nhan
+                labelled.add((xi, yi))
+                ax.text(xi, yi + 0.6, f"{int(yi)}", color=INK, fontsize=8, ha="center")
+    ax.set_xticks([80, 90, 95])
+    ax.set_xticklabels(["≥ 80%", "≥ 90%", "≥ 95%"])
+    ax.set_ylim(44, 55)
+    _style(ax, "Tỉ lệ ngày đạt SLA tối thiểu (cận dưới Wilson)", "Giờ công/ngày",
+           "M7: giờ công cần thiết theo mức tin cậy")
+    ax.legend(frameon=False, fontsize=8, loc="upper left")
+    fig.savefig(out_path("fig_m7_muc_tin_cay.png", "hinh"), dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
+
+def fig_m8(m: pd.DataFrame) -> None:
+    """Hai bang chung truc doc: quay-gio mo TB (14 ngay) va P(SL ngay >= 90%) co bien dong ngay, moi chinh sach 1 hang."""
+    rec = recommended_surge(m)
+    d = m.reset_index(drop=True).iloc[::-1]
+    labels, colors, bold = [], [], []
+    for _, r in d.iterrows():
+        if pd.isna(r["nguong_cho"]):
+            labels.append(r["chinh_sach"].replace("Lich", "Lịch").replace("co dinh", "cố định"))
+            colors.append(C2)
+        else:
+            labels.append(f"Lịch 45 + mở thêm khi > {int(r['nguong_cho'])} người chờ {int(r['cua_so_phut'])} phút, "
+                          f"tối đa +{int(r['quay_du_phong_toi_da'])}")
+            colors.append(C1)
+        bold.append(rec is not None and r["chinh_sach"] == rec["chinh_sach"])
+    y = np.arange(len(d))
+    fig, axes = plt.subplots(1, 2, figsize=(9, 3.9), sharey=True, gridspec_kw={"wspace": 0.08})
+    panels = ((d["quay_gio_TB_14_ngay"].to_numpy(), "Quầy-giờ mở TB/ngày (14 ngày thực tế)", "{:.2f}"),
+              (d["P_SL_ngay_ge90_bien_dong"].to_numpy() * 100, "P(SL ngày ≥ 90%), CV ngày 14% (%)", "{:.1f}%"))
+    for ax, (vals, xlabel, fmt) in zip(axes, panels):
+        lo = vals.min() - 0.12 * (vals.max() - vals.min())
+        ax.hlines(y, lo, vals, color=GRID, linewidth=1.5)
+        ax.scatter(vals, y, s=55, color=colors, edgecolor="white", linewidth=1, zorder=3)
+        for yi, v in zip(y, vals):
+            ax.text(v, yi + 0.28, fmt.format(v), fontsize=8, color=INK, ha="center")
+        ax.set_xlim(lo, vals.max() + 0.12 * (vals.max() - vals.min()))
+        _style(ax, xlabel, "", "")
+        ax.grid(axis="y", visible=False)
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(labels, fontsize=8)
+    for t, b in zip(axes[0].get_yticklabels(), bold):
+        t.set_fontweight("bold" if b else "normal")
+        t.set_color(INK)
+    fig.suptitle("M8: mở thêm quầy theo hàng chờ so với lịch cố định (in đậm: khuyến nghị)", x=0.02, ha="left",
+                 fontsize=11, color=INK)
+    from matplotlib.lines import Line2D
+    axes[1].legend(handles=[Line2D([], [], marker="o", linestyle="", color=C2, label="Lịch cố định"),
+                            Line2D([], [], marker="o", linestyle="", color=C1, label="Lịch 45 + mở thêm quầy")],
+                   frameon=False, fontsize=8, loc="center left")
+    fig.savefig(out_path("fig_m8_tang_quay.png", "hinh"), dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
+
 LUNCH_FLEX = (1, 7)  # M6 bien the: nghi trua 1 gio trong 9h-16h
 
 
@@ -271,8 +381,12 @@ def run_scenarios_optimize(ctx: Dict) -> None:
                                      cv_day=ctx["params"]["day_cv"])
     _save(m6f["trials"], "toi_uu_theo_ca_linh_hoat.csv")
     _save(m6f["top"], "toi_uu_theo_ca_linh_hoat_top.csv")
+    if len(m6["top"]):
+        fig_m6(m6["trials"], m6f["trials"], m6["top"].iloc[0]["phu_quay"])
     print("[M7] Chon lich theo xac suat dat SLA ngay (bien dong ngay)...")
-    _save(p_day_levels(ctx, sch), "toi_uu_xac_suat_ngay.csv")
+    p7 = p_day_levels(ctx, sch)
+    _save(p7, "toi_uu_xac_suat_ngay.csv")
+    fig_m7(p7)
 
 
 def p_day_levels(ctx: Dict, sch: Dict[str, List[int]], levels=(0.80, 0.90, 0.95)) -> pd.DataFrame:
@@ -314,7 +428,9 @@ def run_scenarios_robust(ctx: Dict) -> None:
     _save(need, "so_lan_lap_can_thiet.csv")
     _save(worst, "gio_te_nhat.csv")
     print("[M8] Tang quay trong ngay theo hang cho...")
-    _save(surge_policies(ctx, sch), "chinh_sach_tang_quay.csv")
+    m8 = surge_policies(ctx, sch)
+    _save(m8, "chinh_sach_tang_quay.csv")
+    fig_m8(m8)
 
 
 # =============================================================================
