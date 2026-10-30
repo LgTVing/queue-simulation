@@ -63,6 +63,10 @@ class Model:
     hour_len: float = DEFAULT_HOUR_LEN       # Do dai moi khung gio (phut)
     mean_svc: float = 2.88                   # E[S] tham chieu (phut)
     cs2_svc: float = 1.20                    # cs^2 tham chieu
+    # Mo rong V5 (mac dinh None = hanh vi va chuoi so ngau nhien cu):
+    patience: Optional[Callable[[np.random.Generator], float]] = None   # S12: bo sinh kien nhan; None = Exp(theta)
+    sub_rates: Optional[List[Optional[List[float]]]] = None            # S15: lambda cac khuc deu nhau trong gio h
+    service_by_hour: Optional[List[Optional[Callable]]] = None         # M8 ngay 10: bo sinh phuc vu rieng theo gio
 
 
 # =============================================================================
@@ -157,6 +161,35 @@ def mix_service(
 ) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Hon hop hai loai dich vu: nhanh (cls=0) va phuc tap (cls=1)."""
     return _MixService(p_quick, quick_sampler, complex_sampler)
+
+
+# =============================================================================
+# BO SINH KIEN NHAN (S12)
+# =============================================================================
+
+class _ExpPatience:
+    """Kien nhan ~ Exp(theta); cung loi goi rng nhu mac dinh trong c_sim."""
+    def __init__(self, theta: float):
+        self.theta = theta
+
+    def __call__(self, rng: np.random.Generator) -> float:
+        return float(rng.exponential(1.0 / self.theta)) if self.theta > 0 else float("inf")
+
+
+class _WeibullPatience:
+    def __init__(self, shape: float, scale: float):
+        self.shape, self.scale = shape, scale
+
+    def __call__(self, rng: np.random.Generator) -> float:
+        return float(self.scale * rng.weibull(self.shape))
+
+
+def exp_patience(theta: float) -> Callable[[np.random.Generator], float]:
+    return _ExpPatience(theta)
+
+def weibull_patience(shape: float, scale: float) -> Callable[[np.random.Generator], float]:
+    """Kien nhan Weibull: S(t) = exp(-(t/scale)^shape)."""
+    return _WeibullPatience(shape, scale)
 
 
 # =============================================================================

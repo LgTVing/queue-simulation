@@ -260,18 +260,30 @@ def simulate(
         """
         cid = 0
         n_h = len(model.rates)
-        h = 0
+        # Khuc lambda hang so: (ranh gioi, lambda goc, gio). Mac dinh 1 khuc/gio (ranh gioi nhu V4);
+        # S15: sub_rates[h] chia gio h thanh cac khuc deu nhau, gio cua khach van la h.
+        segs = []
+        for h in range(n_h):
+            end_h = min((h + 1) * hour_len, total_time) if h < n_h - 1 else total_time
+            sub = model.sub_rates[h] if model.sub_rates is not None and h < len(model.sub_rates) else None
+            if sub:
+                for i, r in enumerate(sub):
+                    b = end_h if i == len(sub) - 1 else min(h * hour_len + (i + 1) * hour_len / len(sub), end_h)
+                    segs.append((b, r, h))
+            else:
+                segs.append((end_h, model.rates[h], h))
+        j = 0
         while True:
-            boundary = min((h + 1) * hour_len, total_time) if h < n_h - 1 else total_time
-            lam = model.rates[h] * m_d
+            boundary, lam_base, h = segs[j]
+            lam = lam_base * m_d
             if lam > 0:
                 inter_arr = rng.exponential(1.0 / lam)
             if lam <= 0 or env.now + inter_arr >= boundary:
                 if boundary - env.now > 0:
                     yield env.timeout(boundary - env.now)
-                if boundary >= total_time:
+                if boundary >= total_time or j == len(segs) - 1:
                     break
-                h += 1
+                j += 1
                 continue
             yield env.timeout(inter_arr)
 
@@ -282,9 +294,13 @@ def simulate(
             else:
                 pv = model.p_vip
             is_vip = 1 if rng.random() < pv else 0
-            svc_time, _ = model.service(rng)
-            
-            patience = rng.exponential(1.0 / model.theta) if model.theta > 0 else float("inf")
+            svc_h = model.service_by_hour[h_arrival] if model.service_by_hour is not None else None
+            svc_time, _ = (svc_h or model.service)(rng)
+
+            if model.patience is not None:
+                patience = model.patience(rng)
+            else:
+                patience = rng.exponential(1.0 / model.theta) if model.theta > 0 else float("inf")
             
             env.process(customer_process(
                 env, cid, h_arrival, is_vip, svc_time, patience, resource, records
