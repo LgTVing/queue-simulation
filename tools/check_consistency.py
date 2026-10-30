@@ -94,7 +94,8 @@ def check_numeric_consistency():
         "ngoai_mau.csv", "theo_14_ngay.csv", "kiem_chung.csv", "do_nhay.csv", "do_nhay_phan_phoi.csv",
         "chi_phi.csv", "pha3.csv", "kiem_dinh_phan_phoi_chi_tiet.csv", "patience_km.csv",
         "cluster_bootstrap_params.csv", "so_sanh_chinh_sach.csv", "do_nhay_kien_nhan.csv",
-        "toi_uu_rang_buoc_bo_ve.csv", "gio_te_nhat.csv", "doi_chieu_v3_v4.csv", "params.json", "pytest_log.txt",
+        "toi_uu_rang_buoc_bo_ve.csv", "gio_te_nhat.csv", "doi_chieu_v4_v5.csv", "params.json", "pytest_log.txt",
+        "toi_uu_theo_ca.csv", "toi_uu_theo_ca_top.csv", "toi_uu_xac_suat_ngay.csv", "chinh_sach_tang_quay.csv",
     ]
     missing = [f for f in required if not os.path.exists(os.path.join(RESULTS, f))]
     if missing:

@@ -14,7 +14,7 @@ import scipy.stats as stats
 # =============================================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_CLEAN = os.path.join(BASE_DIR, "data", "clean", "data_clean.csv")
-RESULTS_VERSION = "final_v4"
+RESULTS_VERSION = "final_v5"
 # QS_RESULTS_DIR: ghi ket qua ra thu muc khac (chay thu / smoke test), khong dong vao ban dong bang
 RESULTS_DIR = os.environ.get("QS_RESULTS_DIR") or os.path.join(BASE_DIR, "results", RESULTS_VERSION)
 HINH_DIR = os.path.join(RESULTS_DIR, "hinh")

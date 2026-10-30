@@ -1,0 +1,50 @@
+﻿chi_so,gia_tri_V4,gia_tri_V5,chenh_lech,nguyen_nhan
+Lich toi uu,"[4, 5, 6, 5, 5, 5, 5, 5, 5]","[4, 5, 6, 5, 5, 5, 5, 5, 5]",giong,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Tong quay-gio lich toi uu,45.0,45.0,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Tong quay-gio SIPP Erlang C,47.0,47.0,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Tong quay-gio SIPP Erlang-A,44.0,44.0,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+SL toan ngay lich toi uu,0.9423,0.9423,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+SL gio te nhat (can duoi CI95) lich toi uu,0.9236,0.9236,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Gio te nhat (chi so 0-8),3.0,3.0,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Ti le bo ve lich toi uu,0.0499,0.0499,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Wq TB lich toi uu (phut),0.4628,0.4628,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Hieu suat rho lich toi uu,0.7085,0.7085,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Tong quay-gio lich ben vung (+10%),48.0,48.0,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+SL toan ngay lich ben vung,0.9579,0.9579,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+"P(SL ngay >= 90%) co bien dong ngay, lich toi uu",0.8567,0.8567,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+"P(moi gio >= 90%) co bien dong ngay, lich toi uu",0.2867,0.2867,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+"So ngay quan sat dat SLA (/14), lich toi uu",12.0,12.0,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+SL gio cuoi lich toi uu (xa hang giu so quay gio cuoi),0.9704,0.9704,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+SL toan ngay lich toi uu danh gia bang phuc vu Gamma,0.9443,0.9443,0.0,"Khong doi: P1/P2 giu ket qua giong tung byte, M6-M8 khong dong vao chi so V4"
+Gio cong toi thieu/ngay (nghi trua 11h-14h),48.0,48.0,0.0,V4: xep ca MILP phu lich toi uu quay-gio; V5: M6 toi uu truc tiep theo gio cong ca
+"Lich phu theo ca, V4 (xep ca lich toi uu quay-gio)","[5, 5, 6, 5, 5, 5, 6, 6, 5]",,chi co o V4,V5 thay bang lich M6
+"Phuong an ca, V4 (xep ca lich toi uu quay-gio)",5 ca 8h + 2 ca 4h,,chi co o V4,V5 thay bang phuong an M6
+Lich theo ca tot nhat o gio cong toi thieu (M6),,"[4, 6, 6, 6, 5, 5, 6, 5, 5]",moi o V5,M6: lich dau tien trong top-5 kha thi o gio cong toi thieu (seed danh gia)
+Phuong an ca (M6),,4 ca 8h + 4 ca 4h,moi o V5,M6
+SL toan ngay lich theo ca M6,,0.9579,moi o V5,"M6 (seed danh gia, 300 lan lap)"
+SL gio te nhat (can duoi CI95) lich theo ca M6,,0.9327,moi o V5,M6
+"P(SL ngay >= 90%) co bien dong ngay, lich theo ca M6",,0.9466666666666667,moi o V5,M6
+So lich phu da thu duoi gio cong toi thieu (deu khong kha thi),,1.0,moi o V5,"M6 pipeline slack=0; tham do slack=1 (3.180 lich, docs/KE_HOACH_V5.md) cung khong co lich kha thi"
+"Lich nho nhat dat P(SL ngay >= 90%) >= 80%, quay-gio (M7)",,"[4, 5, 6, 5, 5, 5, 5, 5, 5]",moi o V5,M7
+"Quay-gio / gio cong lich P(SL ngay >= 90%) >= 80%, quay-gio",,45 / 48,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 80%, quay-gio",,0.8566666666666667,moi o V5,M7
+"Lich nho nhat dat P(SL ngay >= 90%) >= 80%, theo ca (M7)",,"[4, 5, 6, 6, 5, 5, 6, 6, 5]",moi o V5,M7
+"Quay-gio / gio cong lich P(SL ngay >= 90%) >= 80%, theo ca",,48 / 48,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 80%, theo ca",,0.95,moi o V5,M7
+"Lich nho nhat dat P(SL ngay >= 90%) >= 90%, quay-gio (M7)",,"[4, 6, 6, 6, 5, 5, 5, 6, 5]",moi o V5,M7
+"Quay-gio / gio cong lich P(SL ngay >= 90%) >= 90%, quay-gio",,48 / 52,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 90%, quay-gio",,0.9533333333333334,moi o V5,M7
+"Lich nho nhat dat P(SL ngay >= 90%) >= 90%, theo ca (M7)",,"[4, 5, 6, 6, 5, 5, 6, 6, 5]",moi o V5,M7
+"Quay-gio / gio cong lich P(SL ngay >= 90%) >= 90%, theo ca",,48 / 48,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 90%, theo ca",,0.95,moi o V5,M7
+"Lich nho nhat dat P(SL ngay >= 90%) >= 95%, quay-gio (M7)",,"[5, 6, 6, 6, 6, 5, 5, 6, 5]",moi o V5,M7
+"Quay-gio / gio cong lich P(SL ngay >= 90%) >= 95%, quay-gio",,50 / 52,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 95%, quay-gio",,0.98,moi o V5,M7
+"Lich nho nhat dat P(SL ngay >= 90%) >= 95%, theo ca (M7)",,"[4, 6, 7, 7, 5, 6, 6, 6, 5]",moi o V5,M7
+"Quay-gio / gio cong lich P(SL ngay >= 90%) >= 95%, theo ca",,52 / 52,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 95%, theo ca",,0.9933333333333333,moi o V5,M7
+Chinh sach tang quay khuyen nghi (M8),,"Lich 45 + tang quay (cho > 2 trong 5 phut, toi da +1)",moi o V5,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge)
+Quay-gio mo TB 14 ngay: Lich 48 co dinh -> Lich 45 + tang quay,48.0,46.433839285714285,-1.566160714285715,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge); cot V4 = Lich 48 co dinh cung kich ban
+P(SL ngay >= 90%) bien dong ngay: Lich 48 co dinh -> Lich 45 + tang quay,0.94,0.9733333333333334,0.03333333333333344,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge); cot V4 = Lich 48 co dinh cung kich ban
+SL gio te nhat (can duoi CI95) nhu cau +10%: Lich 48 co dinh -> Lich 45 + tang quay,0.9029234012622407,0.9192695457275776,0.016346144465336887,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge); cot V4 = Lich 48 co dinh cung kich ban
+"So ngay quan sat dat SLA (/14), Lich 45 + tang quay",,14.0,moi o V5,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge)

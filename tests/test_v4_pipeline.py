@@ -67,5 +67,5 @@ def test_pipeline_smoke(tmp_path):
                        cwd=BASE_DIR, env=env, capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, r.stderr[-3000:]
     for name in ["params.json", "so_sanh_chinh_sach.csv", "kiem_chung.csv", "do_nhay_kien_nhan.csv",
-                 "doi_chieu_v3_v4.csv", "MO_TA.md"]:
+                 "doi_chieu_v4_v5.csv", "MO_TA.md"]:
         assert (tmp_path / name).exists(), name

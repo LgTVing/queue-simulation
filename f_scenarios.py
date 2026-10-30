@@ -8,6 +8,11 @@ f_scenarios.py: Cac kich ban cung co noi dung mo hinh (V4):
   -> m3_dich_vu_thuc_nghiem.csv
 - M5 worst_hour_stability(): so lan lap can thiet de CI SL moi gio <= 0,3 diem %,
   xac suat moi gio la gio te nhat -> gio_te_nhat.csv, so_lan_lap_can_thiet.csv
+V5:
+- M6 (h_staffing) toi uu theo gio cong ca -> toi_uu_theo_ca.csv, toi_uu_theo_ca_top.csv
+- M7 p_day_levels(): lich nho nhat theo muc P(SL ngay >= 90%) -> toi_uu_xac_suat_ngay.csv
+- M8 surge_policies(): mo them quay khi hang cho dai -> chinh_sach_tang_quay.csv;
+  recommended_surge() chon chinh sach khuyen nghi
 """
 
 import dataclasses
@@ -312,3 +317,19 @@ def surge_policies(ctx: Dict, sch: Dict[str, List[int]], grid=SURGE_GRID, R: int
         rows.append(row)
         print(f"  • M8 {name}: SL {row['SL_danh dinh']:.4f}, 14 ngay {ok}/14, q-h TB {row['quay_gio_TB_14_ngay']:.2f}")
     return pd.DataFrame(rows)
+
+
+def recommended_surge(df: pd.DataFrame) -> Optional[pd.Series]:
+    """
+    Chinh sach tang quay khuyen nghi tu chinh_sach_tang_quay.csv: it nguoi du phong nhat
+    (quay_du_phong_toi_da), roi trong so do P(SL ngay >= 90%) co bien dong ngay >= Lich 48 co dinh
+    va dat 14/14 ngay thuc te; chon quay-gio TB 14 ngay nho nhat. None neu khong co chinh sach nao dat.
+    """
+    ref = df.loc[df["chinh_sach"] == "Lich 48 co dinh", "P_SL_ngay_ge90_bien_dong"]
+    cand = df[df["nguong_cho"].notna() & (df["so_ngay_dat_14"] == 14)]
+    if len(ref):
+        cand = cand[cand["P_SL_ngay_ge90_bien_dong"] >= float(ref.iloc[0])]
+    if cand.empty:
+        return None
+    cand = cand[cand["quay_du_phong_toi_da"] == cand["quay_du_phong_toi_da"].min()]
+    return cand.sort_values("quay_gio_TB_14_ngay").iloc[0]

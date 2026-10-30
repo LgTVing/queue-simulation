@@ -5,9 +5,10 @@ main.py: Chuong trinh chinh chay toan bo pipeline du an theo giai doan:
   theory   - lich SIPP Erlang C / Erlang-A
   verify   - kiem chung mo phong 3 tang + M/G/1 P-K + M/G/6
   optimize - toi uu lich, Pha 3, lich ben vung, xep ca, so sanh chinh sach, F1,
-             kich ban M1 (kien nhan), M2 (rang buoc bo ve), M3 (phuc vu thuc nghiem vs Gamma)
-  robust   - do nhay, S2-S9, S11, M5 (on dinh gio te nhat)
-  report   - doi_chieu_v3_v4.csv, MO_TA.md
+             kich ban M1 (kien nhan), M2 (rang buoc bo ve), M3 (phuc vu thuc nghiem vs Gamma),
+             M6 (toi uu theo gio cong ca), M7 (lich theo muc P(SL ngay >= 90%))
+  robust   - do nhay, S2-S9, S11, M5 (on dinh gio te nhat), M8 (tang quay theo hang cho)
+  report   - doi_chieu_v4_v5.csv, MO_TA.md
   all      - chay lan luot tat ca giai doan
 
 Vi du:
