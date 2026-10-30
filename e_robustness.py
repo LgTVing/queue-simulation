@@ -2,9 +2,9 @@
 e_robustness.py: Phan tich do ben va kiem dinh thong ke (giai doan 'robust'),
 hop nhat tu tools/run_s2_s3_s4.py, tools/run_s5_s6_s7_s8_s9_s11.py, d_experiments V3:
 - sensitivity(): do nhay theo nhu cau, E[S], theta -> do_nhay.csv, fig_c_do_nhay.png
-- conditional_expectation() (S2): chi so ky vong co dieu kien theo he so nhan ngay
+- conditional_expectation() (S2): chi so ky vong co dieu kien theo he so nhan ngay (S14: CI cluster bootstrap)
 - cv_day_sensitivity(), posterior_predictive_check() (S3)
-- volume_threshold() (S4): nguong luu luong ngay va chinh sach du bao som
+- volume_threshold() (S4): nguong luu luong ngay va chinh sach du bao som (S13: hoi quy fit tren train)
 - nested_bootstrap() (S5): bootstrap tham so long nhau va phan ra phuong sai
 - out_of_sample() (S6): khoang du bao 95% cho tap test va Holm-Bonferroni
 - fourteen_days() (S7): doi chieu 14 ngay quan sat
@@ -100,12 +100,26 @@ def sensitivity(model: Model, svc: np.ndarray, policies: Dict[str, List[int]],
 # S2 / S3: KY VONG CO DIEU KIEN THEO HE SO NHAN NGAY, PPC
 # =============================================================================
 
+B_S14 = 2000
+SEED_S14 = 1500000  # rng rieng cho resample S14 (khong dung trong mo phong)
+
+
+def cluster_bootstrap_ci(cluster_means: np.ndarray, B: int = B_S14, seed: int = SEED_S14) -> Tuple[float, float]:
+    """S14: CI 95% phan vi cho trung binh qua cum (cac cum cung co so quan sat)."""
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(len(cluster_means), size=(B, len(cluster_means)))
+    boot = cluster_means[idx].mean(axis=1)
+    return float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))
+
+
 def conditional_expectation(model: Model, policies: Dict[str, List[int]], cv_day: float,
                             K: int = 200, R: int = 30, seed: int = 20000) -> pd.DataFrame:
     """
     S2: Voi K kich ban he so nhan ngay m, chay R lan lap de uoc luong E_h(m) = SL ky vong gio h.
     Bao cao P(E_ngay >= 90%), P(min_h E_h >= 90%), P(thuc te moi gio >= 90%) va
     P(gop 20 ngay moi gio >= 90%) kem Wilson CI.
+    S14: Wilson coi K*R ngay-lan lap la doc lap nen qua hep cho "thuc te moi gio"; them CI cluster
+    bootstrap (resample K kich ban, giu R lan lap ben trong, B_S14 lan, phan vi 2.5-97.5%).
     """
     K, R = scaled(K, 10), scaled(R, 3)
     rows = []
@@ -143,6 +157,7 @@ def conditional_expectation(model: Model, policies: Dict[str, List[int]], cv_day
         p_d = wilson_ci(int(np.sum(e_day >= TARGET_SLA)), K)
         p_m = wilson_ci(int(np.sum(e_min >= TARGET_SLA)), K)
         p_a = wilson_ci(int(np.sum(actual_ok)), len(actual_ok))
+        p_a_boot = cluster_bootstrap_ci(np.asarray(actual_ok, dtype=float).reshape(K, R).mean(axis=1))
         p_mo = wilson_ci(month_ok, max(1, n_month))
         rows.append({
             "chinh_sach": name, "lich_quay": str(sched), "quay_gio": sum(sched), "cv_day": cv_day,
@@ -152,6 +167,7 @@ def conditional_expectation(model: Model, policies: Dict[str, List[int]], cv_day
             "P_min_h_Eh_ge90": p_m[0], "P_min_h_Eh_low95": p_m[1], "P_min_h_Eh_high95": p_m[2],
             "so_gio_Eh_duoi_90_TB": float(np.mean(n_below)),
             "P_thuc_te_moi_gio_ge90": p_a[0], "P_thuc_te_moi_gio_low95": p_a[1], "P_thuc_te_moi_gio_high95": p_a[2],
+            "P_thuc_te_moi_gio_boot_low95": p_a_boot[0], "P_thuc_te_moi_gio_boot_high95": p_a_boot[1],
             "P_thang_20ngay_moi_gio_ge90": p_mo[0], "P_thang_20ngay_low95": p_mo[1], "P_thang_20ngay_high95": p_mo[2],
             "so_thang": n_month
         })
@@ -203,12 +219,24 @@ def posterior_predictive_check(df_all: pd.DataFrame, cv_day: float, B: int = 100
 # S4: NGUONG LUU LUONG VA CHINH SACH DU BAO SOM
 # =============================================================================
 
+def early_forecast(cm: pd.DataFrame, train_days):
+    """S13: V_ngay = a + b * N_8h-10h fit tren cac ngay train; tra (reg, x, V, mat na train, RMSE train, RMSE test)."""
+    x_early = (cm[0] + cm[1]).to_numpy()
+    v_total = cm.sum(axis=1).to_numpy()
+    is_train = np.isin(np.asarray(cm.index), list(train_days))
+    reg = st.linregress(x_early[is_train], v_total[is_train])
+    resid = v_total - (reg.intercept + reg.slope * x_early)
+    return (reg, x_early, v_total, is_train, float(np.sqrt(np.mean(resid[is_train] ** 2))),
+            float(np.sqrt(np.mean(resid[~is_train] ** 2))))
+
+
 def volume_threshold(model: Model, df_all: pd.DataFrame, policies: Dict[str, List[int]],
-                     n_mean: float, R: int = 40) -> Tuple[pd.DataFrame, pd.DataFrame, Dict]:
+                     n_mean: float, train_days, R: int = 40) -> Tuple[pd.DataFrame, pd.DataFrame, Dict]:
     """
     S4: (1) SL toan ngay theo luu luong ngay V co dinh (m = V / n_mean) cho lich toi uu va ben vung;
     V* = luu luong lon nhat lich toi uu con dat SL >= 90% (noi suy tuyen tinh).
-    (2) Hoi quy V_ngay theo so khach 8h-10h; chinh sach ghep: dung lich ben vung khi V_du_bao > V*.
+    (2) Hoi quy V_ngay theo so khach 8h-10h, fit chi tren 10 ngay train (S13), RMSE tach train/test;
+    chinh sach ghep tren 14 ngay: dung lich ben vung khi V_du_bao > V*.
     """
     R = scaled(R)
     opt_name, rob_name = list(policies)[:2]
@@ -238,23 +266,22 @@ def volume_threshold(model: Model, df_all: pd.DataFrame, policies: Dict[str, Lis
         v_star = float(np.interp(TARGET_SLA, [sl_opt[i], sl_opt[i - 1]], [volumes[i], volumes[i - 1]]))
 
     cm = a_data.counts_matrix(df_all)
-    x_early = (cm[0] + cm[1]).to_numpy()
-    v_total = cm.sum(axis=1).to_numpy()
-    reg = st.linregress(x_early, v_total)
-    rmse = float(np.sqrt(np.mean((v_total - (reg.intercept + reg.slope * x_early)) ** 2)))
+    reg, x_early, v_total, is_train, rmse_tr, rmse_te = early_forecast(cm, train_days)
     q_opt, q_rob = sum(policies[opt_name]), sum(policies[rob_name])
     comp = []
     for i, d in enumerate(cm.index):
         v_hat = reg.intercept + reg.slope * x_early[i]
         use_rob = v_hat > v_star
-        comp.append({"ngay": int(d), "tap": "Train" if i < 10 else "Test", "N_8h_10h": int(x_early[i]),
+        comp.append({"ngay": int(d), "tap": "Train" if is_train[i] else "Test", "N_8h_10h": int(x_early[i]),
                      "V_thuc_te": int(v_total[i]), "V_du_bao": round(float(v_hat), 1),
                      "sai_so_du_bao": round(float(v_hat - v_total[i]), 1),
                      "chinh_sach_chon": rob_name if use_rob else opt_name,
                      "quay_gio_su_dung": q_rob if use_rob else q_opt,
                      "V_thuc_te_vuot_V_sao": "Y" if v_total[i] > v_star else "N"})
-    info = {"V_sao": v_star, "intercept": reg.intercept, "slope": reg.slope, "r": reg.rvalue,
-            "p": reg.pvalue, "rmse": rmse, "qh_tb": float(np.mean([c["quay_gio_su_dung"] for c in comp]))}
+    miss = [c for c in comp if c["V_thuc_te_vuot_V_sao"] == "Y" and c["chinh_sach_chon"] == opt_name]
+    info = {"V_sao": v_star, "intercept": reg.intercept, "slope": reg.slope, "r_train": reg.rvalue,
+            "p_train": reg.pvalue, "n_train": int(is_train.sum()), "rmse_train": rmse_tr, "rmse_test": rmse_te,
+            "qh_tb": float(np.mean([c["quay_gio_su_dung"] for c in comp])), "so_ngay_bo_lo": len(miss)}
     return df_v, pd.DataFrame(comp), info
 
 # =============================================================================
@@ -482,7 +509,7 @@ def run_robust(ctx: Dict) -> Dict:
     save(cv_day_sensitivity(model, pol), "do_nhay_cv_ngay.csv")
     save(posterior_predictive_check(ctx["df_all"], cv_d), "posterior_predictive_check.csv")
     print("[R.4] S4 nguong luu luong va du bao som...")
-    df_v, df_comp, info = volume_threshold(model, ctx["df_all"], pol, n_mean)
+    df_v, df_comp, info = volume_threshold(model, ctx["df_all"], pol, n_mean, set(ctx["df_train"]["day"]))
     save(df_v, "nguong_luu_luong_chi_tiet.csv")
     save(df_comp, "danh_gia_chinh_sach_du_bao_14ngay.csv")
     save(pd.DataFrame([info]), "du_bao_som_hoi_quy.csv")
