@@ -16,7 +16,7 @@
 | P1 | `6978fcb` | Chạy song song bằng `c_sim.map_sim`; bộ sinh phục vụ đổi sang class pickle được. Pipeline 33.3 → 5.5–6.5 phút; CSV và hình giống từng byte với `final_v4`. | Mặc định `min(CPU − 1, 8)` tiến trình (19 tiến trình làm hết RAM, pool hỏng); pool hỏng thì tự chạy lại tuần tự. |
 | P2 | `17a9f6d` | `rep_stats` dùng NumPy: 0.82 → 0.06 s/60 lần lặp; đo A/B cùng điều kiện máy pipeline 9.0 → 6.55 phút; vẫn giống từng byte. | Thời gian tuyệt đối dao động theo tải máy (5.5–9 phút cho cùng code). |
 | T2 | `8d97391` | `check_report_numbers()` đối chiếu 132 số trong báo cáo, slide, README; test âm. | – |
-| T3 | `62436fb` | `.github/workflows/ci.yml` (pytest `not slow` + checker). | **Chưa kiểm chứng**: cần push lên GitHub. |
+| T3 | `62436fb`, `a56d653` | `.github/workflows/ci.yml` (pytest `not slow` + checker). Đã push `feat/v5` (2026-10-30): CI xanh, 83 test pass (1 `slow` bỏ qua), checker 1.502 + 132 giá trị khớp, 52 giây. | Nâng `actions/checkout`, `actions/setup-python` lên v7 vì v4/v5 dùng Node.js 20 đã ngừng hỗ trợ. Không cần nới phiên bản trong `requirements.txt`. |
 | M6 | `6c7927d` | `h_staffing.optimize_shift_staffing`. Thăm dò đầy đủ 3.180 lịch phủ: ≤ 44 giờ công không lịch nào khả thi → **tối thiểu 48 giờ công**; tốt nhất trong 48 giờ công là Lịch 48 `[4,6,6,6,5,5,6,5,5]` (4 ca 8h + 4 ca 4h), trội ở mọi chỉ số. | Pipeline dùng `slack=0` (95 lịch) vì ở W = 48 không lịch nào thiếu quầy so với SIPP lại khả thi; cận trên W = giờ công phủ lịch tối ưu quầy-giờ. |
 | M7 | `66db6d1` | `toi_uu_xac_suat_ngay.csv`: đạt SLA ở ≥ 90% số ngày cần **48 giờ công**, ≥ 95% cần **52 giờ công**. | Ở 48 giờ công, lịch M7 `[4,5,6,6,5,5,6,6,5]` (P 95.0%) và Lịch 48 (94.7%) không khác biệt có ý nghĩa. Có sàng lọc 100 lần lặp và cache để giai đoạn `optimize` còn ~6–10 phút. |
 | M8 | `87f94aa` | `surge_policy` trong `c_sim.simulate`; `chinh_sach_tang_quay.csv`. Lịch 45 + mở thêm 1 quầy khi > 2 người chờ liên tục 5 phút: TB 46.2 quầy-giờ mở, P(SL ngày ≥ 90%) 97.3% (Lịch 48: 94.0%), nhu cầu +10% 0.919 (0.903), 14/14 ngày. | Ngưỡng 4–10 người / 10 phút trong kế hoạch gần như không kích hoạt; lưới cuối là ngưỡng 1–3, cửa sổ 3–5 phút. Kịch bản "ngày 10" (E[S] tăng chỉ 14h–17h) thay bằng E[S] +10% cả ngày vì `Model` chưa hỗ trợ phục vụ theo giờ. Cần 1 người dự phòng (chi phí không nằm trong quầy-giờ mở). |
@@ -34,7 +34,6 @@
 
 | Mã | Việc | Ghi chú |
 |---|---|---|
-| T3 | Kiểm chứng CI trên GitHub | **Làm tiếp theo** (cần người có quyền push). Push nhánh `feat/v5`, xem tab Actions ([mục 9.3](#93-t3--kiểm-chứng-ci)) |
 | D5, D6 | Dashboard demo, slide thật, tập dượt | [Mục 9.5](#95-d5-d6--trình-bày) |
 
 ---

@@ -75,7 +75,8 @@
 - Pipeline đầy đủ (M6–M8): 9.9 phút. Test `test_surge_none_identical`, `test_surge_opens_counter`; `pytest -q` 59/59.
 
 ### T3 — CI (2026-10-29)
-- `.github/workflows/ci.yml`: Python 3.12, `pytest -q -m "not slow"` và checker trên mỗi push / pull request (`QS_WORKERS=2`). Chưa kiểm chứng trên GitHub (cần push).
+- `.github/workflows/ci.yml`: Python 3.12, `pytest -q -m "not slow"` và checker trên mỗi push / pull request (`QS_WORKERS=2`).
+- Kiểm chứng (2026-10-30): push `feat/v5`, CI xanh ngay lần đầu (83 pass, 1 `slow` bỏ qua, checker sạch); nâng `actions/checkout`, `actions/setup-python` lên v7 (Node 24) để hết cảnh báo Node.js 20.
 
 ## v4.0 (tài liệu) — Đồng bộ toàn bộ tài liệu với `results/final_v4/` (2026-10-29)
 
