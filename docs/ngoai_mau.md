@@ -27,7 +27,7 @@ Tập Test có lưu lượng khách bình quân cao hơn tập Train (+8.1% toà
 | **Tham số mô phỏng** | Toàn bộ từ tập train: $\lambda_h$ train, phục vụ thực nghiệm (6.346 mẫu, $cs^2 = 1.20$), $\theta = 0.1087$, $p_{vip} = 0.3543$ |
 | **Biến động ngày** | Hệ số nhân ngày $m_d \sim$ Gamma, $CV = 14.0\%$ (ước lượng trên train) |
 | **Khoảng dự báo** | Sinh $K = 1.000$ bộ "4 ngày test" từ mô hình; PI95 = phân vị 2.5%–97.5% của SL mỗi giờ (seed 54321) |
-| **So sánh** | SL quan sát trên 4 ngày test (khoảng Wilson); kiểm định z hai phía, hiệu chỉnh Holm–Bonferroni cho 9 giờ |
+| **So sánh** | SL quan sát trên 4 ngày test (khoảng Wilson); p-value hai phía lấy từ chính 1.000 bộ mô phỏng (V5.1, S16; V5.0 dùng z-test SE nhị thức, quá hẹp), hiệu chỉnh Holm–Bonferroni cho 9 giờ |
 
 Kiểm định KS 2 mẫu thời gian phục vụ train ($n = 6.346$) và test ($n = 2.787$): $D = 0.0326$, $p = 0.031$. Khác biệt có ý nghĩa thống kê do cỡ mẫu lớn, nhưng nhỏ về thực tiễn.
 
@@ -37,17 +37,17 @@ Kiểm định KS 2 mẫu thời gian phục vụ train ($n = 6.346$) và test (
 
 | Khung giờ | Quầy | SL mô phỏng TB | PI95 | SL thực tế | Wilson 95% | Trong PI95? | Holm $p_{adj}$ | Khác biệt có ý nghĩa? |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 8h–9h | 4 | 0.9359 | [0.8523, 0.9893] | 0.9809 | [0.9561, 0.9918] | Có | 0.0176 | Có (thực tế tốt hơn) |
-| 9h–10h | 5 | 0.9187 | [0.8231, 0.9802] | 0.9735 | [0.9520, 0.9856] | Có | 0.0008 | Có (thực tế tốt hơn) |
-| 10h–11h | 6 | 0.9449 | [0.8660, 0.9871] | 0.9283 | [0.9010, 0.9485] | Có | 0.2350 | Không |
-| 11h–12h | 5 | 0.9076 | [0.7989, 0.9727] | 0.9413 | [0.9128, 0.9609] | Có | 0.1197 | Không |
-| 12h–13h | 5 | 0.9361 | [0.8508, 0.9863] | 0.9865 | [0.9659, 0.9948] | Không | 0.0027 | Có (thực tế tốt hơn) |
-| 13h–14h | 5 | 0.9475 | [0.8690, 0.9891] | 0.9443 | [0.9136, 0.9645] | Có | 0.7939 | Không |
-| 14h–15h | 5 | 0.9229 | [0.8236, 0.9826] | 0.8958 | [0.8566, 0.9252] | Có | 0.2242 | Không |
-| 15h–16h | 5 | 0.9252 | [0.8278, 0.9820] | **0.7647** | [0.7141, 0.8088] | Không | 0.0000 | **Có (thực tế kém hơn nhiều)** |
-| 16h–17h | 5 | 0.9642 | [0.9046, 0.9959] | 0.9387 | [0.9028, 0.9619] | Có | 0.1197 | Không |
+| 8h–9h | 4 | 0.9359 | [0.8523, 0.9893] | 0.9809 | [0.9561, 0.9918] | Có | 0.8392 | Không |
+| 9h–10h | 5 | 0.9187 | [0.8231, 0.9802] | 0.9735 | [0.9520, 0.9856] | Có | 0.6573 | Không |
+| 10h–11h | 6 | 0.9449 | [0.8660, 0.9871] | 0.9283 | [0.9010, 0.9485] | Có | 1.0000 | Không |
+| 11h–12h | 5 | 0.9076 | [0.7989, 0.9727] | 0.9413 | [0.9128, 0.9609] | Có | 1.0000 | Không |
+| 12h–13h | 5 | 0.9361 | [0.8508, 0.9863] | 0.9865 | [0.9659, 0.9948] | Không | 0.4156 | Không |
+| 13h–14h | 5 | 0.9475 | [0.8690, 0.9891] | 0.9443 | [0.9136, 0.9645] | Có | 1.0000 | Không |
+| 14h–15h | 5 | 0.9229 | [0.8236, 0.9826] | 0.8958 | [0.8566, 0.9252] | Có | 1.0000 | Không |
+| 15h–16h | 5 | 0.9252 | [0.8278, 0.9820] | **0.7647** | [0.7141, 0.8088] | Không | 0.1079 | Không |
+| 16h–17h | 5 | 0.9642 | [0.9046, 0.9959] | 0.9387 | [0.9028, 0.9619] | Có | 1.0000 | Không |
 
-**7/9 giờ** có SL thực tế nằm trong PI95.
+**7/9 giờ** có SL thực tế nằm trong PI95. Sau hiệu chỉnh Holm không giờ nào khác biệt có ý nghĩa ở mức 5%; hai giờ ngoài PI95 là 12h–13h (thực tế tốt hơn, $p$ thô 0.052) và 15h–16h (thực tế kém hơn nhiều, $p$ thô 0.012, Holm 0.108).
 
 ---
 
@@ -58,8 +58,8 @@ Kiểm định KS 2 mẫu thời gian phục vụ train ($n = 6.346$) và test (
 > SL quan sát diễn ra dưới **nhân sự thực tế của tổng đài** (dữ liệu không ghi số người trực từng giờ), còn mô phỏng chạy dưới **Lịch 45**. Phép so sánh theo giờ vì vậy chỉ là đối chiếu tham khảo, không phải kiểm chứng cùng điều kiện.
 
 ### 4.2 Diễn giải
-- Ba giờ thực tế **tốt hơn** mô phỏng có ý nghĩa (8h, 9h, 12h), phù hợp với việc tổng đài thực có nhiều người phục vụ hơn lịch (số phiên chồng lấn tối đa 5.5–8 người, mục 5).
-- 15h–16h thực tế **kém hơn nhiều** (76.5%). Mục 5 cho thấy nguyên nhân nằm ở riêng ngày 10, không phải sai lệch của mô hình.
+- Ba giờ thực tế **tốt hơn** mô phỏng (8h, 9h, 12h), phù hợp với việc tổng đài thực có nhiều người phục vụ hơn lịch (số phiên chồng lấn tối đa 5.5–8 người, mục 5). Sau Holm, khác biệt không có ý nghĩa ở mức 5% (V5.0 báo có ý nghĩa do SE nhị thức quá hẹp).
+- 15h–16h thực tế **kém hơn nhiều** (76.5%), nằm ngoài PI95 ($p$ thô 0.012) nhưng không còn có ý nghĩa sau hiệu chỉnh cho 9 giờ (Holm 0.108). Mục 5 cho thấy nguyên nhân nằm ở riêng ngày 10, không phải sai lệch của mô hình.
 - Tập test đông hơn train 8.1%. Trên 14 ngày thực tế, Lịch 45 đạt SLA 12/14 ngày (hụt hai ngày đông nhất); Lịch 48 đạt 14/14 (`tong_hop.md` mục 4.5).
 
 ---

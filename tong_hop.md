@@ -214,19 +214,19 @@ Lịch sử 11 bước tại `results/final_v5/lich_toi_uu.csv` (60 lần lặp/
 
 ### 3.3 Phân tích Bootstrap lồng nhau và Phân rã phương sai ANOVA (S5)
 
-Mô hình lồng nhau: $B = 50$ bộ tham số (resample ngày train; mẫu phục vụ resample trực tiếp, không fit lại Gamma) $\times R = 60$ lần lặp/bộ. Chi tiết tại `results/final_v5/phan_ra_phuong_sai.csv` và `bat_dinh_nested.csv`:
+Mô hình lồng nhau: $B = 50$ bộ tham số (resample ngày train; mẫu phục vụ resample trực tiếp, không fit lại Gamma) $\times R = 60$ lần lặp/bộ. Từ V5.1 (F9), mỗi bộ dùng một dải seed riêng (`common.SEED_BANDS["nested_boot"]`) nên nhiễu mô phỏng độc lập giữa các bộ, đúng giả định của phép phân rã; V5.0 chỉ có 640 seed khác nhau cho 3.000 cặp (bộ, lần lặp) và cho tỉ lệ 94.01%, 45/50 bộ (bản cũ ở `results/archive/final_v5_0/`). Chi tiết tại `results/final_v5/phan_ra_phuong_sai.csv` và `bat_dinh_nested.csv`:
 
 | Chỉ số phân rã phương sai | Giá trị thực nghiệm | Khoảng tin cậy 95% | Diễn giải |
 |---|:---:|:---:|---|
-| **SL Toàn ngày danh nghĩa ($R=60$)** | **0.9424** | [0.9377, 0.9470] | Trung bình qua 60 lần lặp độc lập |
-| **SL Giờ tệ nhất danh nghĩa ($R=60$)** | **0.9225** | - | Trung bình theo giờ rồi lấy min |
-| **Phương sai tổng quan sát qua 50 bộ** | $9.548 \times 10^{-5}$ | - | $SD = 0.00977$ |
-| **Phương sai do nhiễu mô phỏng (Within / R)** | $5.723 \times 10^{-6}$ | - | Sai số Monte Carlo |
-| **Phương sai do bất định tham số (Between)** | $8.976 \times 10^{-5}$ | - | Bất định từ việc ước lượng tham số |
-| **Tỉ lệ phương sai do bất định tham số** | **94.01%** | - | **Bất định tham số chi phối** |
-| **Tỉ lệ phương sai do nhiễu mô phỏng** | **5.99%** | - | Với $R=60$, nhiễu mô phỏng khoảng 6% |
+| **SL Toàn ngày danh nghĩa ($R=60$)** | **0.9455** | [0.9407, 0.9503] | Trung bình qua 60 lần lặp độc lập |
+| **SL Giờ tệ nhất danh nghĩa ($R=60$)** | **0.9351** | - | Trung bình theo giờ rồi lấy min |
+| **Phương sai tổng quan sát qua 50 bộ** | $1.033 \times 10^{-4}$ | - | $SD = 0.01016$ |
+| **Phương sai do nhiễu mô phỏng (Within / R)** | $5.996 \times 10^{-6}$ | - | Sai số Monte Carlo |
+| **Phương sai do bất định tham số (Between)** | $9.726 \times 10^{-5}$ | - | Bất định từ việc ước lượng tham số |
+| **Tỉ lệ phương sai do bất định tham số** | **94.19%** | - | **Bất định tham số chi phối** |
+| **Tỉ lệ phương sai do nhiễu mô phỏng** | **5.81%** | - | Với $R=60$, nhiễu mô phỏng khoảng 6% |
 | **Xác suất SL toàn ngày $\ge 90\%$** | **100.0%** | [92.87%, 100.0%] | 50/50 bộ bootstrap đạt chuẩn toàn ngày |
-| **Xác suất SL giờ tệ nhất $\ge 90\%$** | **90.0%** | [78.64%, 95.65%] | 45/50 bộ bootstrap đạt chuẩn giờ tệ nhất |
+| **Xác suất SL giờ tệ nhất $\ge 90\%$** | **86.0%** | [73.81%, 93.05%] | 43/50 bộ bootstrap đạt chuẩn giờ tệ nhất |
 
 ---
 
@@ -354,21 +354,21 @@ SLA chính (ràng buộc khi tối ưu) là $SL(5)$ của **mọi khách đến*
 
 ## 5. ĐÁNH GIÁ NGOÀI MẪU VỚI KHOẢNG DỰ BÁO 95% (PI95) VÀ HOLM-BONFERRONI (S6, M4)
 
-So sánh mô phỏng Lịch 45 (1.000 bộ 4 ngày có biến động lưu lượng ngày) với quan sát thực tế tập Test (4 ngày, $2.969$ khách), tại `results/final_v5/ngoai_mau.csv`:
+So sánh mô phỏng Lịch 45 (1.000 bộ 4 ngày có biến động lưu lượng ngày) với quan sát thực tế tập Test (4 ngày, $2.969$ khách), tại `results/final_v5/ngoai_mau.csv`. Từ V5.1 (S16), p-value hai phía lấy từ chính 1.000 bộ mô phỏng, cùng phân phối dùng để tính PI95, rồi hiệu chỉnh Holm cho 9 giờ. V5.0 dùng z-test với SE nhị thức (coi mọi khách độc lập, bỏ qua tương quan trong ngày và biến động ngày) nên SE quá hẹp: 8h–9h và 9h–10h nằm trong PI95 vẫn bị gắn "có ý nghĩa" (bản cũ ở `results/archive/final_v5_0/`).
 
 | Khung giờ | Quầy | SL mô phỏng TB | PI95 Low | PI95 High | SL thực tế quan sát | Thực tế Wilson 95% | Trong PI95? | Holm $p_{\text{adj}}$ | Khác biệt có ý nghĩa? |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **8h - 9h** | 4 | 0.9359 | 0.8523 | 0.9893 | **0.9809** | [0.9561, 0.9918] | **Có** | 0.0176 | **Có (Thực tế tốt hơn)** |
-| **9h - 10h** | 5 | 0.9187 | 0.8231 | 0.9802 | **0.9735** | [0.9520, 0.9856] | **Có** | 0.0008 | **Có (Thực tế tốt hơn)** |
-| **10h - 11h** | 6 | 0.9449 | 0.8660 | 0.9871 | 0.9283 | [0.9010, 0.9485] | **Có** | 0.2350 | Không |
-| **11h - 12h** | 5 | 0.9076 | 0.7989 | 0.9727 | 0.9413 | [0.9128, 0.9609] | **Có** | 0.1197 | Không |
-| **12h - 13h** | 5 | 0.9361 | 0.8508 | 0.9863 | **0.9865** | [0.9659, 0.9948] | Không | 0.0027 | **Có (Thực tế tốt hơn)** |
-| **13h - 14h** | 5 | 0.9475 | 0.8690 | 0.9891 | 0.9443 | [0.9136, 0.9645] | **Có** | 0.7939 | Không |
-| **14h - 15h** | 5 | 0.9229 | 0.8236 | 0.9826 | 0.8958 | [0.8566, 0.9252] | **Có** | 0.2242 | Không |
-| **15h - 16h** | 5 | 0.9252 | 0.8278 | 0.9820 | **0.7647** | [0.7141, 0.8088] | Không | 0.0000 | **Có (Thực tế giảm mạnh)** |
-| **16h - 17h** | 5 | 0.9642 | 0.9046 | 0.9959 | 0.9387 | [0.9028, 0.9619] | **Có** | 0.1197 | Không |
+| **8h - 9h** | 4 | 0.9359 | 0.8523 | 0.9893 | **0.9809** | [0.9561, 0.9918] | **Có** | 0.8392 | Không |
+| **9h - 10h** | 5 | 0.9187 | 0.8231 | 0.9802 | **0.9735** | [0.9520, 0.9856] | **Có** | 0.6573 | Không |
+| **10h - 11h** | 6 | 0.9449 | 0.8660 | 0.9871 | 0.9283 | [0.9010, 0.9485] | **Có** | 1.0000 | Không |
+| **11h - 12h** | 5 | 0.9076 | 0.7989 | 0.9727 | 0.9413 | [0.9128, 0.9609] | **Có** | 1.0000 | Không |
+| **12h - 13h** | 5 | 0.9361 | 0.8508 | 0.9863 | **0.9865** | [0.9659, 0.9948] | Không | 0.4156 | Không |
+| **13h - 14h** | 5 | 0.9475 | 0.8690 | 0.9891 | 0.9443 | [0.9136, 0.9645] | **Có** | 1.0000 | Không |
+| **14h - 15h** | 5 | 0.9229 | 0.8236 | 0.9826 | 0.8958 | [0.8566, 0.9252] | **Có** | 1.0000 | Không |
+| **15h - 16h** | 5 | 0.9252 | 0.8278 | 0.9820 | **0.7647** | [0.7141, 0.8088] | Không | 0.1079 | Không |
+| **16h - 17h** | 5 | 0.9642 | 0.9046 | 0.9959 | 0.9387 | [0.9028, 0.9619] | **Có** | 1.0000 | Không |
 
-7/9 giờ có SL thực tế nằm trong PI95. Ba giờ thực tế tốt hơn mô phỏng có ý nghĩa (8h, 9h, 12h), phù hợp với việc ngân hàng thực có nhiều người phục vụ hơn lịch (xem dưới). Riêng 15h–16h thực tế kém hơn nhiều.
+7/9 giờ có SL thực tế nằm trong PI95. Sau hiệu chỉnh Holm **không giờ nào khác biệt có ý nghĩa** ở mức 5%. Hai giờ nằm ngoài PI95: 12h–13h (thực tế tốt hơn, $p$ thô 0.052) và 15h–16h (thực tế kém hơn nhiều, $p$ thô 0.012, Holm 0.108). Các giờ thực tế tốt hơn mô phỏng (8h, 9h, 12h) phù hợp với việc ngân hàng thực có nhiều người phục vụ hơn lịch (xem dưới), nhưng với 4 ngày test và biến động ngày, khác biệt chưa đủ để kết luận.
 
 > [!NOTE]
 > **Kết luận điều tra 15h–16h (M4, `dieu_tra_15h_16h.csv`, chi tiết `docs/ngoai_mau.md` mục 5):**  
@@ -657,6 +657,18 @@ Chỉ 8h–9h khác biệt có ý nghĩa: khách đến thưa hơn ngay khi mở
 
 **Kết luận S15:** λ theo nửa giờ không đổi tổng số quầy-giờ tối ưu (45); thuật toán chọn một cách phân bổ 45 khác (`[4, 5, 6, 6, 5, 5, 5, 5, 4]`) nằm sát ranh giới khả thi ở seed đánh giá. Lịch 45 và Lịch 48 vẫn đạt mọi giờ. Giờ 8h–9h được lợi (nửa đầu thưa khách), 9h–10h giảm nhẹ. Khung giờ 60 phút đủ cho bài toán này.
 
+### 7.14 Tối ưu khi SLA tính riêng khách thường (M9, V5.1)
+
+Thuật toán tối ưu hai pha như mục 3.2 (seed chọn lịch `1000`, 60 lần lặp) nhưng ràng buộc là cận dưới CI95 của $SL(5)$ **riêng khách thường** ở mọi giờ, thay cho SL mọi khách. Đánh giá bằng seed `50000` (300 lần lặp), giờ công xếp ca MILP (nghỉ trưa 11h–14h, ca 8h + 4h), tại `results/final_v5/toi_uu_sla_khach_thuong.csv`:
+
+| Lịch | Phân bổ | Quầy-giờ | Giờ công ca | SL toàn ngày | Giờ tệ nhất, mọi khách (Low CI95) | Giờ tệ nhất, khách thường (Low CI95) | Đạt SLA khách thường? | Bỏ về |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Lịch 45 (tối ưu theo SLA mọi khách) | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 45 | 48 | 0.9423 | 0.9236 (11h-12h) | 0.8997 (11h-12h) | Không | 4.99% |
+| **Tối ưu theo SLA khách thường** | `[4, 6, 6, 6, 5, 5, 5, 5, 5]` | 47 | 48 | 0.9530 | 0.9276 (14h-15h) | 0.9056 (14h-15h) | Đạt | 4.10% |
+| Lịch 48 | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | 48 | 48 | 0.9579 | 0.9327 (15h-16h) | 0.9133 (15h-16h) | Đạt | 3.70% |
+
+**Kết luận M9:** tính SLA riêng cho khách thường cần **47 quầy-giờ** (trùng lịch SIPP Erlang C, thêm 1 quầy ở 9h–10h và 11h–12h so với Lịch 45), nhưng **giờ công vẫn là 48** vì cả ba lịch đều cần 48 giờ công khi xếp ca. Ở cùng 48 giờ công, Lịch 48 tốt hơn ở mọi chỉ số, nên khuyến nghị "48 giờ công theo Lịch 48" không phụ thuộc cách định nghĩa SLA.
+
 ---
 
 ## 8. ĐỐI CHIẾU V4 → V5
@@ -685,15 +697,15 @@ Tại `results/final_v5/doi_chieu_v4_v5.csv` (cột V4 đọc trực tiếp từ
 | Lịch tối ưu khi λ 8h–10h theo nửa giờ | - | 45 quầy-giờ | S15: tổng không đổi |
 | Thời gian chạy pipeline | 33.3 phút | 15.1 phút | P1, P2 (đã gồm M6–M8, S12, S15) |
 
-**V5.1 (2026-11-02, `docs/KE_HOACH_V5_1.md`):** chạy lại giai đoạn `optimize` và `report`; mọi CSV và hình khác giống từng byte với V5.0. Chỉ đổi: `toi_uu_xac_suat_ngay.csv` (F5: xác nhận M7 bằng dải seed độc lập 2.000 lần lặp, thêm cột `dat_muc_danh_gia` và dòng đối chiếu Lịch 48; lựa chọn lịch không đổi, $P$ giảm 0.4–1.3 điểm ở 5/6 dòng, mục 7.10), các dòng M7 của `doi_chieu_v4_v5.csv`, và tệp mới `sl_theo_nhom.csv` (F6, mục 4.6). Kết luận 48 / 52 giờ công không đổi. Bản V5.0 của các tệp đổi ở `results/archive/final_v5_0/`.
+**V5.1 (2026-11-02, `docs/KE_HOACH_V5_1.md`):** chạy lại giai đoạn `optimize` và `report`; mọi CSV và hình khác giống từng byte với V5.0. Chỉ đổi: `toi_uu_xac_suat_ngay.csv` (F5: xác nhận M7 bằng dải seed độc lập 2.000 lần lặp, thêm cột `dat_muc_danh_gia` và dòng đối chiếu Lịch 48; lựa chọn lịch không đổi, $P$ giảm 0.4–1.3 điểm ở 5/6 dòng, mục 7.10), các dòng M7 của `doi_chieu_v4_v5.csv`, và tệp mới `sl_theo_nhom.csv` (F6, mục 4.6). Đợt hai chạy lại `optimize`, `robust`, `report` (12.3 phút; bộ nhớ đệm `run_reps` O1 dùng lại 284/1.994 lần đánh giá ở `optimize`): đổi `bat_dinh_nested.csv`, `phan_ra_phuong_sai.csv` (F9, mục 3.3: phương sai do tham số 94.01% → 94.19%, giờ tệ nhất ≥ 90% ở 45/50 → 43/50 bộ), `ngoai_mau.csv` (S16, mục 5: sau Holm không giờ nào khác biệt có ý nghĩa), thêm `toi_uu_sla_khach_thuong.csv` (M9, mục 7.14) và khóa `toi_uu_khach_thuong` trong `lich_khuyen_nghi.json`; mọi CSV và hình khác vẫn giống từng byte. Kết luận 48 / 52 giờ công không đổi. Bản V5.0 của các tệp đổi ở `results/archive/final_v5_0/`.
 
 ---
 
 ## 9. TỔNG KẾT KIỂM THỬ VÀ TRẠNG THÁI BÀN GIAO
 
-1. **Kiểm thử tự động:** **102 ca kiểm thử** trong `tests/`: 100 pass và 2 xfail có lý do (hai trùng lặp seed đã biết, `tests/test_f4_seeds.py`), trong 635 giây (10.6 phút, gồm smoke test toàn pipeline) (log tại `results/final_v5/pytest_log.txt`). V5.1 thêm test sổ đăng ký seed (F4), tái lập làm sạch dữ liệu (F7), cờ khả thi (F10), SL theo nhóm khách (F6) và kiểm hàm `poisson_label` thật (T4). V5 thêm test cho chạy song song giống tuần tự (P1), checker số trong báo cáo/slide/README (T2), M6 (cả nghỉ trưa linh hoạt), chính sách tăng quầy (M8), bảng đối chiếu V4 → V5 (R4), các trường mở rộng của `Model` (giá trị tương đương mặc định cho kết quả giống hệt) và S12–S15. Smoke test toàn pipeline (`--reps-scale 0.02`) đánh dấu `slow`.
+1. **Kiểm thử tự động:** **115 ca kiểm thử** trong `tests/`: 114 pass và 1 xfail có lý do (trùng seed chọn lịch / đánh giá 11/300 lần lặp, giữ để không đổi số V5, `tests/test_f4_seeds.py`), trong 59 giây gồm smoke test toàn pipeline (V5.0: 557 giây; O2 rút smoke test từ khoảng 10 phút xuống 84 giây) (log tại `results/final_v5/pytest_log.txt`). V5.1 thêm test sổ đăng ký seed (F4, F9), tái lập làm sạch dữ liệu (F7), cờ khả thi (F10), khách chưa xử lý xong (F11), SL theo nhóm khách (F6, M9), p-value mô phỏng (S16), bộ nhớ đệm (O1), trang demo chạy bằng Node (D5) và kiểm hàm `poisson_label` thật (T4). V5 thêm test cho chạy song song giống tuần tự (P1), checker số trong báo cáo/slide/README (T2), M6 (cả nghỉ trưa linh hoạt), chính sách tăng quầy (M8), bảng đối chiếu V4 → V5 (R4), các trường mở rộng của `Model` (giá trị tương đương mặc định cho kết quả giống hệt) và S12–S15. Smoke test toàn pipeline (`--reps-scale 0.02`) đánh dấu `slow`.
 2. **Pipeline:** `python main.py --stage all` chạy 6 giai đoạn trong 15.1 phút (`thoi_gian_chay.json`; V4: 33.3 phút). Mục tiêu 10 phút của P1 đạt được với phạm vi V4 cộng M6–M8 (9.9 phút); thêm S12, S15 và biến thể M6 nâng lên 15.1 phút. Các lần lặp chạy song song (`c_sim.map_sim`), số tiến trình đặt bằng biến môi trường `QS_WORKERS` (mặc định `min(CPU − 1, 8)`; `QS_WORKERS=1` chạy tuần tự, cho kết quả giống hệt). `results/final_v5/MO_TA.md` sinh tự động, liệt kê nguồn của từng tệp.
-3. **Kiểm tra nhất quán:** `tools/check_consistency.py` quét thuật ngữ không có căn cứ, đối chiếu số trong các bảng chính của tài liệu này (1, 2.1, 2.2, 2.4, 2.5, 3.1, 4.1, 4.2, 4.4–4.6, 5, 7.1–7.6, 7.9–7.13) với `data/clean/data_clean.csv` và CSV trong `results/final_v5/`, và đối chiếu số trong báo cáo, slide, README (T2). CI (`.github/workflows/ci.yml`) chạy test không `slow` và checker mỗi lần push.
+3. **Kiểm tra nhất quán:** `tools/check_consistency.py` quét thuật ngữ không có căn cứ, đối chiếu số trong các bảng chính của tài liệu này (1, 2.1, 2.2, 2.4, 2.5, 3.1, 3.3, 4.1, 4.2, 4.4–4.6, 5, 7.1–7.6, 7.9–7.14) với `data/clean/data_clean.csv` và CSV trong `results/final_v5/`, và đối chiếu số trong báo cáo, slide, README (T2). CI (`.github/workflows/ci.yml`) chạy test không `slow` và checker mỗi lần push.
 
 ---
 
@@ -710,5 +722,5 @@ Tại `results/final_v5/doi_chieu_v4_v5.csv` (cột V4 đọc trực tiếp từ
 9. **Chính sách tăng quầy (M8) cần 1 người dự phòng:** chi phí người này không tính trong quầy-giờ mở; quy tắc chỉ có lợi khi người dự phòng làm việc khác lúc không mở quầy (mục 7.11).
 10. **Ngày phục vụ chậm như ngày 10:** không chính sách nào (kể cả Lịch 48 và mở thêm 1 quầy) giữ được giờ tệ nhất $\ge 90\%$; cần thêm hơn 1 quầy dự phòng ở buổi chiều (mục 7.11).
 11. **Khung giờ 60 phút:** chỉ 8h–9h có λ khác rõ giữa hai nửa giờ và không làm đổi tổng số quầy-giờ (mục 7.13); các khung ngắn hơn 30 phút chưa xét.
-12. **SLA tính trên mọi khách:** khách thường chờ lâu hơn vì VIP được ưu tiên. Riêng khách thường, Lịch 45 không đạt 90% ở 11h-12h; Lịch 48 đạt (mục 4.6). Tối ưu với SLA riêng cho khách thường chưa làm (M9 trong `docs/KE_HOACH_V5_1.md`).
-13. **Seed đánh giá chính sách trùng một phần seed chọn lịch:** 11/300 lần lặp (mục 4.1, 7.9), giữ để không đổi số V5. Đánh giá lại bằng dải seed tách hẳn cho Lịch 45 giờ tệ nhất 0.914 (vẫn khả thi). M7 đã chuyển sang dải xác nhận độc lập ở V5.1 (mục 7.10). Bootstrap lồng nhau (mục 3.3) còn dùng lại seed giữa các bộ, phần phương sai do tham số có thể bị ước lượng thấp (F9, chưa sửa).
+12. **SLA tính trên mọi khách:** khách thường chờ lâu hơn vì VIP được ưu tiên. Riêng khách thường, Lịch 45 không đạt 90% ở 11h-12h; Lịch 48 đạt (mục 4.6). Tối ưu với SLA riêng cho khách thường cần 47 quầy-giờ nhưng vẫn 48 giờ công (mục 7.14).
+13. **Seed đánh giá chính sách trùng một phần seed chọn lịch:** 11/300 lần lặp (mục 4.1, 7.9), giữ để không đổi số V5. Đánh giá lại bằng dải seed tách hẳn cho Lịch 45 giờ tệ nhất 0.914 (vẫn khả thi). M7 (mục 7.10) và bootstrap lồng nhau (mục 3.3) đã chuyển sang dải seed riêng ở V5.1.

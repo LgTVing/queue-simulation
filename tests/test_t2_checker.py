@@ -35,7 +35,8 @@ def test_report_numbers_detect_error(fname, old, new):
 
 
 V5_CHECKS = (cc.check_shift_staffing, cc.check_p_day, cc.check_surge, cc.check_forecast, cc.check_weibull,
-             cc.check_half_hour, cc.check_cv_sensitivity, cc.check_decision_table, cc.check_class_sl)
+             cc.check_half_hour, cc.check_cv_sensitivity, cc.check_decision_table, cc.check_class_sl,
+             cc.check_nested, cc.check_regular_sla)
 
 
 def _v5_errors(md: str):
@@ -53,6 +54,9 @@ def _v5_errors(md: str):
     ("(Lịch 48) | 4 ca 8h + 4 ca 4h | 0.9579", "(Lịch 48) | 4 ca 8h + 4 ca 4h | 0.9589", "7.9 linh hoat"),
     ("94.2% [93.0%, 95.1%]", "94.2% [93.0%, 95.9%]", "7.10"),
     ("| 0.8997 (11h-12h) | 1 |", "| 0.8997 (11h-12h) | 0 |", "4.6"),
+    ("| **94.19%** |", "| **94.29%** |", "3.3"),
+    ("43/50 bộ bootstrap", "45/50 bộ bootstrap", "3.3"),
+    ("| 47 | 48 | 0.9530 |", "| 47 | 48 | 0.9540 |", "7.14"),
     ("| 46.17 | 0.9549 |", "| 46.17 | 0.9559 |", "7.11"),
     ("| 0.9193 | 0.9128 | 0.8748 |", "| 0.9193 | 0.9128 | 0.8848 |", "7.11"),
     ("| **Lịch 48 cố định** | 48.00 | 94.0%", "| **Lịch 48 cố định** | 48.00 | 95.0%", "1 M8"),

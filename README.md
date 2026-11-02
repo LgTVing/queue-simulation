@@ -476,6 +476,7 @@ queue-simulation/
 ├── g_report.py            # giai đoạn report: doi_chieu_v4_v5.csv, MO_TA.md
 ├── main.py                # điều phối: python main.py --stage ... --reps-scale ...
 ├── data/  docs/  excel/  tests/
+├── docs/demo/sipp.html    # trang demo SIPP Erlang C / Erlang-A (mở trực tiếp bằng trình duyệt, chạy offline)
 ├── tools/                 # check_consistency.py, build_tables.py, update_tong_hop_chi_tiet.py; archive/ = script V2/V3 cũ
 └── results/final_v5/      # kết quả hiện hành; final_v4/, final_v3/ mốc đối chiếu; archive/ = final_v1, final_v2
 ```
@@ -555,7 +556,8 @@ Số liệu từ `results/final_v5/` (Anonymous Bank, 14 ngày, 9.836 khách; th
 
 - **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. Ở 44 giờ công không cách nào đạt SLA; ở 48 giờ công có 33/94 cách đạt, tốt nhất là Lịch 48 (4 ca 8h + 4 ca 4h). **Kết luận: tối thiểu 48 giờ công/ngày, xếp theo Lịch 48.**
 - **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công (Lịch 48: 94,5% [93,5%; 95,5%], xác nhận bằng 2.000 lần lặp với dải seed độc lập, V5.1); ≥ 95% số ngày cần 52 giờ công.
-- **SL theo nhóm khách (V5.1):** SLA chính tính trên mọi khách. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả SL mọi khách, SL khách thường và SL VIP (≤ 2 phút) ở mọi giờ (`sl_theo_nhom.csv`).
+- **SL theo nhóm khách (V5.1):** SLA chính tính trên mọi khách. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả SL mọi khách, SL khách thường và SL VIP (≤ 2 phút) ở mọi giờ (`sl_theo_nhom.csv`). Tối ưu lại với SLA riêng khách thường cần 47 quầy-giờ nhưng vẫn 48 giờ công (M9, `toi_uu_sla_khach_thuong.csv`).
+- **Trang demo SIPP (V5.1):** mở `docs/demo/sipp.html` bằng trình duyệt (chạy offline) để tính lịch Erlang C / Erlang-A theo giờ với tham số tùy chọn; với tham số train cho đúng `bang_sipp.csv` (44 / 47 quầy-giờ).
 - **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút: trung bình 46,17 quầy-giờ mở, đạt SLA ở 97,3% số ngày (Lịch 48 cố định: 94,0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.
 - **Kiểm tra giả định (S12, S15):** kiên nhẫn Weibull khớp dữ liệu tốt hơn mũ nhưng lịch tối ưu vẫn 45 quầy-giờ; λ theo nửa giờ chỉ khác rõ ở 8h–9h và không đổi tổng quầy-giờ; nghỉ trưa linh hoạt 9h–16h vẫn cần 48 giờ công.
 - **Ngày phục vụ chậm như ngày 10:** không lịch nào giữ được giờ tệ nhất ≥ 90%; mở thêm quầy nâng giờ tệ nhất từ 0,82 lên 0,87.

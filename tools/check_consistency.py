@@ -98,6 +98,7 @@ def check_numeric_consistency():
         "toi_uu_theo_ca.csv", "toi_uu_theo_ca_top.csv", "toi_uu_xac_suat_ngay.csv", "chinh_sach_tang_quay.csv",
         "toi_uu_theo_ca_linh_hoat.csv", "toi_uu_theo_ca_linh_hoat_top.csv", "kien_nhan_weibull_fit.csv",
         "kien_nhan_weibull.csv", "lambda_nua_gio.csv", "khung_30_phut.csv", "sl_theo_nhom.csv",
+        "toi_uu_sla_khach_thuong.csv",
     ]
     missing = [f for f in required if not os.path.exists(os.path.join(RESULTS, f))]
     if missing:
@@ -110,7 +111,7 @@ def check_numeric_consistency():
     checker = TableChecker(md)
     for check in (check_decision_table, check_data_summary, check_lambda_table, check_erlang_table,
                   check_distribution_fits, check_verification, check_policy_table, check_cv_sensitivity,
-                  check_fourteen_days, check_class_sl, check_out_of_sample, check_sensitivity, check_service_dist,
+                  check_fourteen_days, check_class_sl, check_nested, check_regular_sla, check_out_of_sample, check_sensitivity, check_service_dist,
                   check_cost_table, check_phase3, check_patience, check_abandon_constraint,
                   check_shift_staffing, check_p_day, check_surge, check_forecast, check_weibull,
                   check_half_hour):
@@ -608,6 +609,57 @@ def check_p_day(ck: TableChecker):
         if cells[6] != dat:
             ck.errors.append(f"{lab} dat muc: tai lieu '{cells[6]}', CSV '{dat}'")
         ck.expect(lab + " 14 ngay", cells[7], r["so_ngay_dat_14"])
+
+
+def check_nested(ck: TableChecker):
+    """3.3 (S5, F9): phan ra phuong sai bootstrap long nhau; dong theo thu tu phan_ra_phuong_sai.csv."""
+    p = _csv("phan_ra_phuong_sai.csv")
+    rows = ck.rows("### 3.3")[1:]
+    if len(rows) != len(p):
+        ck.errors.append(f"3.3: tai lieu co {len(rows)} dong, phan_ra_phuong_sai.csv co {len(p)}")
+    for i, ((_, r), cells) in enumerate(zip(p.iterrows(), rows)):
+        lab = f"3.3 {r['chi_so']}"
+        k = 100 if i in (7, 8) else 1  # dong 7, 8: xac suat luu dang ti le, tai lieu ghi %
+        sci = re.search(r"([\d.]+)\s*\\times\s*10\^\{(-?\d+)\}", cells[1])
+        if sci:  # phuong sai dang a x 10^k: so phan dinh tri
+            ck.expect(lab, sci.group(1), r["gia_tri"] / 10 ** int(sci.group(2)))
+        else:
+            ck.expect(lab, cells[1], r["gia_tri"] * k)
+        if pd.notna(r["ci_low"]):
+            ck.expect(lab + " ci low", cells[2], r["ci_low"] * k, 0)
+            ck.expect(lab + " ci high", cells[2], r["ci_high"] * k, 1)
+    b = _csv("bat_dinh_nested.csv")
+    for i, col in ((7, "mean_sl_day"), (8, "worst_hour_sl")):
+        if i < len(rows):
+            n_ok = int((b[col] >= 0.90).sum())
+            ck.n_checked += 1
+            if f"{n_ok}/{len(b)}" not in rows[i][3]:
+                ck.errors.append(f"3.3 {col}: tai lieu '{rows[i][3]}', CSV {n_ok}/{len(b)}")
+
+
+def check_regular_sla(ck: TableChecker):
+    """7.14 (M9): toi uu theo SLA rieng khach thuong so voi Lich 45 / Lich 48."""
+    d = _csv("toi_uu_sla_khach_thuong.csv")
+    rows = [c for c in ck.rows("### 7.14")[1:] if len(c) == 9]
+    if len(rows) != len(d):
+        ck.errors.append(f"7.14: tai lieu co {len(rows)} dong, toi_uu_sla_khach_thuong.csv co {len(d)}")
+    for (_, r), cells in zip(d.iterrows(), rows):
+        lab = f"7.14 {r['chinh_sach']}"
+        _check_lich(ck, lab, cells[1], r["lich_quay"])
+        ck.expect(lab + " quay-gio", cells[2], r["quay_gio"])
+        ck.expect(lab + " gio cong", cells[3], r["gio_cong_ca"])
+        ck.expect(lab + " SL", cells[4], r["sl_toan_ngay"])
+        ck.expect(lab + " moi khach low", cells[5], r["sl_gio_te_nhat_low"])
+        ck.expect(lab + " khach thuong low", cells[6], r["sl_khach_thuong_gio_te_nhat_low"])
+        for col, hcol in ((5, "gio_te_nhat"), (6, "gio_te_nhat_khach_thuong")):
+            ck.n_checked += 1
+            hour = common.H_LABELS[int(r[hcol])]
+            if f"({hour})" not in cells[col].replace(" ", ""):
+                ck.errors.append(f"{lab}: gio te nhat tai lieu '{cells[col]}', CSV {hour}")
+        ck.n_checked += 1
+        if ("Đạt" in cells[7]) != (r["dat_sla_khach_thuong"] == "Y"):
+            ck.errors.append(f"{lab}: nhan dat SLA khach thuong khong khop CSV")
+        ck.expect(lab + " bo ve", cells[8], r["ti_le_bo_ve"] * 100)
 
 
 def check_class_sl(ck: TableChecker):

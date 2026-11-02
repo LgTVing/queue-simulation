@@ -35,7 +35,7 @@ Mở ít quầy thì khách chờ lâu và bỏ về; mở nhiều quầy thì t
 
 ### 1.2 Cam kết dịch vụ
 1. **SLA chính, tính trên mọi khách đến (VIP và thường):** $SL = P(\text{được phục vụ và } W_q \le 5\text{ phút}) \ge 90\%$. Đây là ràng buộc duy nhất khi chọn lịch, vì Erlang C, Erlang-A và SIPP không tách nhóm khách.
-2. **Hai chỉ số giám sát (không ràng buộc):** $SL(5)$ riêng khách thường và $P(W_q \le 2\text{ phút})$ riêng khách VIP (khoảng 35% khách), báo cáo ở `sl_theo_nhom.csv` (V5.1). Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả ba chỉ số ở mọi giờ.
+2. **Hai chỉ số giám sát (không ràng buộc):** $SL(5)$ riêng khách thường và $P(W_q \le 2\text{ phút})$ riêng khách VIP (khoảng 35% khách), báo cáo ở `sl_theo_nhom.csv` (V5.1). Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả ba chỉ số ở mọi giờ. Nếu tối ưu theo SLA riêng khách thường, cần 47 quầy-giờ `[4, 6, 6, 6, 5, 5, 5, 5, 5]` nhưng vẫn 48 giờ công (M9, `toi_uu_sla_khach_thuong.csv`).
 3. **Khách bỏ về tính là không đạt.** Mẫu số là mọi khách đến:
    $$SL = \frac{\text{Số khách được phục vụ với } W_q \le 5}{\text{Tổng số khách đến}}$$
 4. **Tiêu chí khả thi của lịch:** cận dưới CI95 của SL **ở mọi giờ** $\ge 0.90$.
@@ -141,12 +141,12 @@ Kiên nhẫn trung bình 9.2 phút. Cluster bootstrap theo ngày cho CI rộng h
 
 ### 4.4 Độ bất định tham số (bootstrap lồng nhau)
 $B = 50$ bộ tham số (resample ngày train) × $R = 60$ lần lặp, Lịch 45:
-- **94.0%** phương sai của SL ngày đến từ bất định tham số, 6.0% từ nhiễu mô phỏng.
-- $P(SL_{\text{ngày}} \ge 90\%) = 100\%$ (50/50, Wilson [92.9%, 100%]); $P(SL_{\text{giờ tệ nhất}} \ge 90\%) = 90\%$ (45/50, [78.6%, 95.7%]).
+- **94.2%** phương sai của SL ngày đến từ bất định tham số, 5.8% từ nhiễu mô phỏng (V5.1: mỗi bộ bootstrap một dải seed riêng; V5.0 dùng lại seed giữa các bộ, cho 94.0%).
+- $P(SL_{\text{ngày}} \ge 90\%) = 100\%$ (50/50, Wilson [92.9%, 100%]); $P(SL_{\text{giờ tệ nhất}} \ge 90\%) = 86\%$ (43/50, [73.8%, 93.1%]).
 
 ### 4.5 Kiểm tra ngoài mẫu (4 ngày test)
 - KS 2 mẫu thời gian phục vụ train/test: $D = 0.0326$, $p = 0.031$; khác biệt có ý nghĩa thống kê do cỡ mẫu lớn nhưng nhỏ về thực tiễn.
-- Mô phỏng Lịch 45 qua 1.000 bộ 4 ngày (có biến động ngày), so với SL quan sát theo giờ: **7/9 giờ nằm trong PI95**. Ba giờ thực tế tốt hơn có ý nghĩa (8h, 9h, 12h; Holm), phù hợp với việc tổng đài thực có nhiều người hơn lịch.
+- Mô phỏng Lịch 45 qua 1.000 bộ 4 ngày (có biến động ngày), so với SL quan sát theo giờ: **7/9 giờ nằm trong PI95**. Với p-value lấy từ chính phân phối mô phỏng (V5.1) và hiệu chỉnh Holm, không giờ nào khác biệt có ý nghĩa ở mức 5%; ba giờ thực tế tốt hơn (8h, 9h, 12h) phù hợp với việc tổng đài thực có nhiều người hơn lịch, còn 15h–16h nằm ngoài PI95 ($p$ thô 0.012, Holm 0.108).
 - **15h–16h thực tế chỉ 76.5%.** Điều tra (M4) cho thấy bất thường nằm ở **một ngày (ngày 10)**: SL 31.5%, bỏ về 39.3%, $E[S] = 4.14$ phút (cao hơn train 29%), tải 6.14 Erlang (cao nhất trong 14 ngày), trong khi số phiên phục vụ chồng lấn trung bình chỉ 3.67. Ba ngày test còn lại đạt 93.2%, 97.5%, 93.7%. Đây là ngày nhu cầu cao gặp nhân sự hiệu dụng thấp, không phải sai lệch mô hình.
 
 ---

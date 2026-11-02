@@ -266,7 +266,7 @@ Toàn bộ số liệu mô phỏng được sinh bằng một lệnh `python mai
 |---|---|---|:---:|
 | Kiểm chứng ba tầng + M/G/1 P-K exact | Tầng 1–2 khớp lý thuyết; Kiểm tra A: $W_q$ 14.2179 so với 14.625 (CI95 [13.59, 14.85]) | `kiem_chung.csv` | 3.1 |
 | Tối ưu 2 pha SimPy | Khởi tạo Erlang-A 44 q-h vi phạm ở 16h–17h; thêm 1 quầy → **45 q-h** `[4, 5, 6, 5, 5, 5, 5, 5, 5]`; 9 phép bớt đều vi phạm | `lich_toi_uu.csv` | 3.2 |
-| Bootstrap lồng nhau (S5) | 94.0% phương sai do bất định tham số; $P(SL_{\text{giờ tệ nhất}} \ge 90\%) = 90\%$ | `phan_ra_phuong_sai.csv` | 3.3 |
+| Bootstrap lồng nhau (S5) | 94.2% phương sai do bất định tham số; $P(SL_{\text{giờ tệ nhất}} \ge 90\%) = 86\%$ | `phan_ra_phuong_sai.csv` | 3.3 |
 | So sánh 6 chính sách (300 lần lặp) | Lịch 45: SL 0.9423 ± 0.0022, giờ tệ nhất cận dưới 0.9236, bỏ về 4.99% | `so_sanh_chinh_sach.csv` | 4.1 |
 | Chỉ số kỳ vọng có điều kiện, CV ngày (S2, S3) | $P(E_{\text{day}} \ge 90\%)$: 88.0% / 96.0% / 99.5% (Lịch 45 / 48 / Mốc 54) | `chi_so_ky_vong_dieu_kien.csv`, `do_nhay_cv_ngay.csv` | 4.2 |
 | Ngưỡng lưu lượng và dự báo sớm (S4) | $V^* = 803$ khách/ngày; chính sách ghép dùng TB 45.21 q-h | `nguong_luu_luong_chi_tiet.csv`, `du_bao_som_hoi_quy.csv` | 4.4 |

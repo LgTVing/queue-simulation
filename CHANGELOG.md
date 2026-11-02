@@ -13,6 +13,17 @@
 - **T4:** `test_poisson_labels_strict` kiểm `a_data.poisson_label` thật (trước kiểm bản sao); test Holm–Bonferroni kiểm giá trị.
 - Checker thêm `check_class_sl` (mục 4.6), cột "Đạt mức" và dòng đối chiếu ở mục 7.10: 1.546 giá trị, 0 lệch. Báo cáo 7.2, 9.6; slide 10, Q&A 10–11; README §15.5.
 
+### Đợt hai V5.1 (2026-11-02): F9, S16, F11, F12, O1, O2, M9, D5
+Chạy lại `optimize`, `robust`, `report` (12.3 phút); mọi CSV và hình không liên quan giống từng byte.
+- **F9 (S5):** mỗi bộ bootstrap một dải seed riêng (`SEED_BANDS["nested_boot"]`, `NESTED_BOOT_STEP`); V5.0 có 640 seed khác nhau cho 3.000 cặp (bộ, lần lặp). Phương sai do tham số 94.01% → 94.19%; giờ tệ nhất ≥ 90% ở 45/50 → 43/50 bộ.
+- **S16 (S6):** p-value hai phía lấy từ chính 1.000 bộ mô phỏng (cùng phân phối với PI95), Holm như cũ; p cũ giữ ở cột `raw_p_value_nhi_thuc`. Sau Holm không giờ nào khác biệt có ý nghĩa (V5.0: 4 giờ, kể cả hai giờ nằm trong PI95).
+- **M9:** `scope="regular"` cho `is_schedule_feasible` / `optimize_schedule` (`rep_stats` thêm `sl_reg`); tối ưu theo SLA riêng khách thường: 47 quầy-giờ `[4, 6, 6, 6, 5, 5, 5, 5, 5]`, vẫn 48 giờ công → `toi_uu_sla_khach_thuong.csv`, `tong_hop.md` mục 7.14.
+- **D5:** `docs/demo/sipp.html` + `sipp_math.js` (Erlang C / Erlang-A / SIPP trên trình duyệt, offline); `tests/test_d5_demo.py` chạy JS bằng Node, khớp `b_theory` đến 1e-9 và tái tạo `bang_sipp.csv`.
+- **O1:** bộ nhớ đệm `run_reps` theo nội dung tham số (`QS_CACHE=0` tắt): `optimize` dùng lại 284/1.994 lần đánh giá, 11.1 → 8.3 phút (đã gồm M9).
+- **O2:** `QS_MAX_W_LEVELS` (chỉ smoke test) giới hạn số mức giờ công M6/M7 duyệt: smoke test 10–13 phút → 84 giây.
+- **F11:** cảnh báo và `df.attrs["n_unfinished"]` khi còn khách chưa xử lý xong lúc cắt mô phỏng. **F12:** `ast.literal_eval` thay `eval`, hằng số thay số cứng, nhãn Train/Test theo `split_train_test`, `save_schedules` xóa khóa cũ.
+- Checker thêm `check_nested` (mục 3.3), `check_regular_sla` (mục 7.14): 1.593 giá trị, 0 lệch.
+
 ## v5.0 — Đóng băng `results/final_v5/` (2026-10-30, `docs/KE_HOACH_V5.md`)
 
 **Kết luận mới:** tối thiểu **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (M6). Đạt SLA ở ≥ 95% số ngày cần 52 giờ công (M7). Có 1 người dự phòng: Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút (M8). Kết luận vững khi đổi kiên nhẫn sang Weibull (S12), λ theo nửa giờ (S15) hay nghỉ trưa linh hoạt 9h–16h (M6). Mọi số của V4 giữ nguyên.

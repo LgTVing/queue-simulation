@@ -19,18 +19,18 @@
 | F7 | Sửa đường dẫn cứng `data/lam_sach.py` + test tái lập | P2 | Vinh | [x] | `788a845` |
 | F8 | Kiểm tra điều khoản phân phối lại dữ liệu thô | P2 | Vinh | [x] gỡ dữ liệu thô; [ ] **gửi email cho người quản lý dữ liệu** | `0478ead` |
 | T4 | Sửa test `poisson_label` kiểm bản sao | P2 | Vinh | [x] | `8e46bd7` |
-| F9 | Seed bootstrap lồng nhau S5 | P2 | Quang | [ ] | |
-| S16 | p-value ngoài mẫu S6 từ phân phối mô phỏng | P2 | Vinh | [ ] | |
+| F9 | Seed bootstrap lồng nhau S5 | P2 | Quang | [x] | `7778e40` |
+| S16 | p-value ngoài mẫu S6 từ phân phối mô phỏng | P2 | Vinh | [x] | `7778e40` |
 | F10 | Cờ khả thi cho bộ tối ưu và SIPP | P2 | Thọ | [x] | `06de1cc` |
-| F11 | Đếm khách chưa xử lý xong khi cắt mô phỏng | P3 | Thọ | [ ] | |
-| F12 | Dọn nợ kỹ thuật nhỏ | P3 | cả nhóm | [ ] | |
-| T5 | Bộ test bổ sung | P2 | theo mảng | [ ] | |
-| O1 | Bộ nhớ đệm kết quả `run_reps` | P3 | Thọ | [ ] | |
-| O2 | Rút thời gian smoke test | P3 | Thọ | [ ] | |
-| M9 | Tùy chọn tối ưu theo SLA khách thường | P3 (tùy chọn) | Thọ | [ ] | |
+| F11 | Đếm khách chưa xử lý xong khi cắt mô phỏng | P3 | Thọ | [x] | `e6151ae` |
+| F12 | Dọn nợ kỹ thuật nhỏ | P3 | cả nhóm | [x] (giữ `version` trong `params.json` tới lần chạy lại giai đoạn `data`) | `bde0a34` |
+| T5 | Bộ test bổ sung | P2 | theo mảng | [x] `test_f4_seeds`, `test_f7_clean`, `test_v51_fixes`, `test_d5_demo` | nhiều commit |
+| O1 | Bộ nhớ đệm kết quả `run_reps` | P3 | Thọ | [x] `optimize` 11.1 → 8.3 phút | `c39f124` |
+| O2 | Rút thời gian smoke test | P3 | Thọ | [x] 10–13 phút → 84 giây | `34fdd79` |
+| M9 | Tùy chọn tối ưu theo SLA khách thường | P3 (tùy chọn) | Thọ | [x] 47 quầy-giờ, vẫn 48 giờ công | `3588b3c` |
 | R5 | Chạy lại, cập nhật `final_v5` thành v5.1 | **P1** | Vinh | [x] chạy `optimize` + `report`; `doi_chieu_v5_v5_1.csv` thay bằng mục 8 `tong_hop.md` và `results/archive/final_v5_0/` | `results(R5)` |
 | D7 | Cập nhật tài liệu theo v5.1 | **P1** | theo mảng | [x] | `docs(D7)` |
-| D5 | Trang HTML demo SIPP (đã có trong `PHAN_CONG.md`) | P2 | Quang | [ ] | |
+| D5 | Trang HTML demo SIPP (đã có trong `PHAN_CONG.md`) | P2 | Quang | [x] `docs/demo/sipp.html` | `29e211b` |
 | D6 | Slide thật và tập dượt (đã có trong `PHAN_CONG.md`) | P1 | Vinh, Thọ | [ ] | |
 
 ---
