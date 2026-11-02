@@ -14,6 +14,17 @@ import c_sim as cs
 import d_experiments as dx
 
 
+def test_simulated_p_value():
+    """S16: quan sat o trung vi -> p ~ 1; vuot moi mo phong -> p = 2/(K+1); nhat quan voi PI95."""
+    import e_robustness as er
+    sims = np.linspace(0.80, 1.00, 1000)
+    assert er.simulated_p_value(sims, float(np.median(sims))) > 0.99
+    assert er.simulated_p_value(sims, 1.5) == pytest.approx(2 / 1001)
+    lo, hi = np.percentile(sims, [2.5, 97.5])
+    for obs in np.linspace(lo + 1e-6, hi - 1e-6, 25):  # trong PI95 -> khong co y nghia o muc 5%
+        assert er.simulated_p_value(sims, obs) >= 0.05
+
+
 def _loaded():
     return Model(rates=[1.6, 1.9, 1.7], service=exp_service(3.0), theta=0.1, p_vip=0.35, mean_svc=3.0)
 

@@ -41,7 +41,10 @@ SEED_BANDS = {
     "select_day": (3000, 300),        # M7 chon lich co bien dong ngay
     "screen_day": (503000, 100),      # M7 sang loc
     "eval_day": (20_000_000, 2000),   # M7 danh gia doc lap (F5)
+    "nested_boot": (60_000_000, 60),  # S5 bo bootstrap b: seed_base + NESTED_BOOT_STEP * b (F9)
+    "nested_nom": (70_000_000, 60),   # S5 danh nghia (F9)
 }
+NESTED_BOOT_STEP = 100_000  # > SEED_STEP * so lan lap toi da -> cac bo bootstrap khong chung seed
 
 
 def seed_range(name: str, n: Optional[int] = None) -> range:

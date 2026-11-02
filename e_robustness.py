@@ -294,8 +294,13 @@ def nested_bootstrap(model: Model, df_train: pd.DataFrame, sched: List[int],
     S5: B bo tham so, moi bo resample ngay train (cluster) de lay lambda_h, mau phuc vu
     thuc nghiem, theta, p_vip; chay R lan lap. Phan ra phuong sai SL toan ngay giua cac bo
     thanh phan bat dinh tham so va nhieu mo phong (Var_within / R).
+    seed: rng resample ngay. Seed mo phong lay tu common.SEED_BANDS["nested_boot"], ["nested_nom"] (F9):
+    moi bo co dai rieng nen nhieu mo phong doc lap giua cac bo, dung gia dinh cua phan ra phuong sai.
     """
     B, R = scaled(B, 10), scaled(R, 5)
+    boot_base, r_max = common.SEED_BANDS["nested_boot"]
+    if R > r_max or common.SEED_STEP * R > common.NESTED_BOOT_STEP:
+        raise ValueError(f"nested_bootstrap: R = {R} vuot dai seed moi bo ({r_max})")
     rng = np.random.default_rng(seed)
     days = df_train["day"].unique()
     by_day = {d: g for d, g in df_train.groupby("day")}
@@ -309,14 +314,14 @@ def nested_bootstrap(model: Model, df_train: pd.DataFrame, sched: List[int],
         m_b = dataclasses.replace(model, rates=rates_b, service=empirical_service(svc_b),
                                   theta=pat_b["theta"], p_vip=float(sub["vip"].mean()),
                                   mean_svc=float(svc_b.mean()))
-        res = sim.run_reps(m_b, sched, n_reps=R, seed_base=60000 + b * 100, keep_reps=True)
+        res = sim.run_reps(m_b, sched, n_reps=R, seed_base=boot_base + common.NESTED_BOOT_STEP * b, keep_reps=True)
         boot_rows.append({"boot_id": b, "mean_sl_day": float(res["rep_sl_day"].mean()),
                           "worst_hour_sl": float(res["rep_sl_hourly"].mean(axis=0).min()),
                           "mean_svc": float(svc_b.mean()), "theta": pat_b["theta"],
                           "p_vip": float(sub["vip"].mean()), "lambda_tb": float(np.mean(rates_b))})
     df_boot = pd.DataFrame(boot_rows)
 
-    nom = sim.run_reps(model, sched, n_reps=R, seed_base=90000, keep_reps=True)
+    nom = sim.run_reps(model, sched, n_reps=R, seed_base=common.SEED_BANDS["nested_nom"][0], keep_reps=True)
     nom_sl = nom["rep_sl_day"]
     var_total = float(np.var(df_boot["mean_sl_day"], ddof=1))
     var_noise = float(np.var(nom_sl, ddof=1)) / R
@@ -342,11 +347,23 @@ def nested_bootstrap(model: Model, df_train: pd.DataFrame, sched: List[int],
 # S6: KIEM TRA NGOAI MAU VOI KHOANG DU BAO
 # =============================================================================
 
+def simulated_p_value(sims: np.ndarray, obs: float) -> float:
+    """S16: p-value hai phia cua quan sat obs so voi phan phoi mo phong sims (hieu chinh +1, chan tren 1)."""
+    sims = np.asarray(sims, dtype=float)
+    k = len(sims)
+    upper = (np.count_nonzero(sims >= obs) + 1) / (k + 1)
+    lower = (np.count_nonzero(sims <= obs) + 1) / (k + 1)
+    return float(min(1.0, 2.0 * min(upper, lower)))
+
+
 def out_of_sample(model: Model, df_test: pd.DataFrame, sched: List[int], cv_day: float,
                   K: int = 1000, seed: int = 54321) -> pd.DataFrame:
     """
     S6: Sinh K tap "n ngay test" tu mo hinh (co he so nhan ngay), lay PI95 cua SL theo gio;
-    so voi SL quan sat tren tap test (Wilson CI), kiem dinh z hai phia + Holm-Bonferroni.
+    so voi SL quan sat tren tap test (Wilson CI). p-value hai phia lay tu chinh phan phoi mo phong
+    (S16): p = min(1, 2 min((#sim >= obs + 1)/(K + 1), (#sim <= obs + 1)/(K + 1))), roi Holm-Bonferroni.
+    Truoc S16 dung z-test SE nhi thuc (coi moi khach doc lap, bo qua tuong quan trong ngay va bien
+    dong ngay) nen gio nam trong PI95 van bi gan "lech co y nghia"; giu o cot raw_p_value_nhi_thuc.
     Luu y: SL quan sat duoc tao boi nhan su thuc te (khong biet), khong phai lich mo phong.
     """
     K = scaled(K, 30)
@@ -373,13 +390,15 @@ def out_of_sample(model: Model, df_test: pd.DataFrame, sched: List[int], cv_day:
         p_obs, lo, hi, _ = wilson_ci(s5, n_h)
         mu_sim = float(sim_sl[:, h].mean())
         pi_lo, pi_hi = np.percentile(sim_sl[:, h], [2.5, 97.5])
+        p_val = simulated_p_value(sim_sl[:, h], p_obs)
         se = np.sqrt(mu_sim * (1 - mu_sim) / n_h) if n_h > 0 else 1.0
-        p_val = float(2 * (1 - st.norm.cdf(abs((p_obs - mu_sim) / max(se, 1e-9)))))
+        p_binom = float(2 * (1 - st.norm.cdf(abs((p_obs - mu_sim) / max(se, 1e-9)))))
         p_raw.append(p_val)
         rows.append({"khung_gio": H_LABELS[h], "so_quay": sched[h], "SL_mo_phong_TB": mu_sim,
                      "PI95_low": float(pi_lo), "PI95_high": float(pi_hi), "SL_thuc_te": p_obs,
                      "SL_thuc_te_Wilson_low": lo, "SL_thuc_te_Wilson_high": hi,
                      "trong_PI95": "Co" if pi_lo <= p_obs <= pi_hi else "Khong", "raw_p_value": p_val,
+                     "raw_p_value_nhi_thuc": p_binom,
                      "Wq_thuc_te": float(sub["wait"].mean()), "Bo_ve_thuc_te": float((sub["served"] == 0).mean())})
     adj, rej = holm_bonferroni(p_raw)
     for h in range(HOURS):

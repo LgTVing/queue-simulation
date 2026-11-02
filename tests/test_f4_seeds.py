@@ -53,8 +53,22 @@ def test_select_eval_main_disjoint():
     assert not set(seed_range("select")) & set(seed_range("eval"))
 
 
-@pytest.mark.xfail(strict=True, reason="S5 dung lai seed giua cac bo bootstrap; sua o F9 (KE_HOACH_V5_1)")
-def test_nested_bootstrap_seeds_distinct():
-    # Cong thuc trong e_robustness.nested_bootstrap: seed_base = 60000 + 100 b, lan lap + SEED_STEP * i
-    seeds = [60000 + 100 * b + SEED_STEP * i for b in range(50) for i in range(60)]
-    assert len(set(seeds)) == len(seeds)
+def test_nested_bootstrap_seeds_distinct(monkeypatch):
+    """F9: 50 bo x 60 lan lap cua S5 va ban danh nghia dung seed doi mot khac nhau (doc seed thuc te tu run_reps)."""
+    import pandas as pd
+    import e_robustness as er
+    seen = []
+
+    def fake_run_reps(model, sched, n_reps, seed_base, keep_reps=False, **kw):
+        seen.append(list(range(seed_base, seed_base + SEED_STEP * n_reps, SEED_STEP)))
+        import numpy as np
+        return {"rep_sl_day": np.full(n_reps, 0.95), "rep_sl_hourly": np.full((n_reps, len(sched)), 0.95)}
+
+    monkeypatch.setattr(er.sim, "run_reps", fake_run_reps)
+    days = pd.DataFrame({"day": [0, 0, 1, 1], "hour": [0, 1, 0, 1], "served": [1, 0, 1, 1],
+                         "svc": [2.0, None, 3.0, 1.5], "wait": [0.5, 4.0, 0.0, 1.0], "vip": [0, 1, 0, 0]})
+    er.nested_bootstrap(common.Model(rates=[1.0] * 9, service=common.exp_service(1.0), theta=0.1),
+                        days, [5] * 9, B=50, R=60)
+    flat = [s for run in seen for s in run]
+    assert len(seen) == 51 and len(flat) == 51 * 60
+    assert len(set(flat)) == len(flat)
