@@ -2,6 +2,7 @@
 tests/test_v51_fixes.py: Kiem thu cac ban sua V5.1 (docs/KE_HOACH_V5_1.md):
 1. F10: optimize_schedule bao "feasible"; lich khong dat khi qua tai va c_cap nho
 2. F10: sipp_schedule canh bao khi roi vao nhanh du phong
+3. F6: SL gop cua _post_class_sl trung rep_stats; khach thuong <= gop khi tai cao (VIP uu tien)
 """
 
 import numpy as np
@@ -10,6 +11,27 @@ import pytest
 from common import Model, exp_service
 import b_theory as th
 import c_sim as cs
+import d_experiments as dx
+
+
+def _loaded():
+    return Model(rates=[1.6, 1.9, 1.7], service=exp_service(3.0), theta=0.1, p_vip=0.35, mean_svc=3.0)
+
+
+@pytest.mark.parametrize("seed", range(3))
+def test_class_sl_gop_matches_rep_stats(seed):
+    sched = [5, 6, 5]
+    df = cs.simulate(_loaded(), sched, seed=seed)
+    mat = dx._post_class_sl(df, sched)
+    assert list(mat[0]) == [h["sl"] for h in cs.rep_stats(df, sched)["hourly"]]
+
+
+def test_class_sl_regular_not_above_all():
+    sched = [5, 6, 5]
+    mats = np.stack([dx._post_class_sl(cs.simulate(_loaded(), sched, seed=100 + s), sched) for s in range(20)])
+    gop, thuong = np.nanmean(mats[:, 0], axis=0), np.nanmean(mats[:, 1], axis=0)
+    assert np.all(thuong <= gop + 1e-12)
+    assert np.any(thuong < gop - 0.01)  # tai cao: uu tien VIP lam khach thuong cho lau hon ro
 
 
 def test_optimize_reports_infeasible():

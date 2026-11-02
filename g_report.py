@@ -47,6 +47,7 @@ FILE_DESC = {
     "lich_theo_ca.csv": ("optimize", "Xep ca MILP (mo hinh A/B, ca 4h, hon hop)"),
     "so_sanh_chinh_sach.csv": ("optimize", "So sanh 6 chinh sach, 300 lan lap, seed danh gia rieng"),
     "so_sanh_chinh_sach_bd.csv": ("optimize", "So sanh chinh sach co he so nhan ngay"),
+    "sl_theo_nhom.csv": ("optimize / F6", "SL theo gio: gop moi khach (SLA chinh), khach thuong <= 5 phut va VIP <= 2 phut (giam sat), cung seed danh gia"),
     "doi_chieu_xa_hang.csv": ("optimize / F1", "SL gio cuoi khi xa hang giu so quay gio cuoi vs mo het c_max"),
     "do_nhay_kien_nhan.csv": ("optimize / M1", "Lich va chi so theo kien nhan trung binh 9,2 -> vo cung"),
     "toi_uu_rang_buoc_bo_ve.csv": ("optimize / M2", "Toi uu voi rang buoc ti le bo ve, SL o nguong 2/3/5 phut"),

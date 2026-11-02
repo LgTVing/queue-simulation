@@ -158,6 +158,48 @@ def evaluate(model: Model, sched: List[int], n_reps: int = 300, **kw) -> Dict:
     """Danh gia cuoi voi bo seed danh gia (doc lap voi bo seed chon lich)."""
     return sim.run_reps(model, sched, n_reps=scaled(n_reps), seed_base=SEED_EVAL, **kw)
 
+CLASS_SL = (("gop", "SL(5 phut) moi khach - SLA chinh"),
+            ("thuong", "SL(5 phut) rieng khach thuong - giam sat"),
+            ("vip", "SL(2 phut) rieng khach VIP - giam sat"))
+
+
+def _post_class_sl(df: pd.DataFrame, sched: List[int]) -> np.ndarray:
+    """SL theo gio (3 x H): gop moi khach <= 5 phut, khach thuong <= 5 phut, VIP <= 2 phut (NaN neu gio khong co khach nhom do)."""
+    out = np.full((len(CLASS_SL), len(sched)), np.nan)
+    hour = df["hour"].to_numpy()
+    ok = df["served"].to_numpy() == 1
+    wait = df["wait"].to_numpy(dtype=float)
+    vip = df["vip"].to_numpy() == 1
+    for h in range(len(sched)):
+        in_h = hour == h
+        for k, (mask, thr) in enumerate(((in_h, common.WAIT_THRESHOLD), (in_h & ~vip, common.WAIT_THRESHOLD),
+                                         (in_h & vip, common.WAIT_THRESHOLD_VIP))):
+            if mask.any():
+                out[k, h] = np.count_nonzero(ok[mask] & (wait[mask] <= thr)) / np.count_nonzero(mask)
+    return out
+
+
+def class_sl_table(model: Model, policies: Dict[str, List[int]], n_reps: int = 300) -> pd.DataFrame:
+    """
+    F6: SL theo gio cua tung nhom khach, cung seed va so lan lap voi evaluate() (so theo cap voi
+    so_sanh_chinh_sach.csv). SLA chinh (dung khi toi uu) la SL gop; SL khach thuong va SL VIP chi de giam sat.
+    """
+    R = scaled(n_reps)
+    rows = []
+    for name, sched in policies.items():
+        jobs = [dict(model=model, schedule=sched, seed=s) for s in common.seed_range("eval", R)]
+        mats = np.stack(sim.map_sim(jobs, _post_class_sl, (sched,)))
+        for h in range(len(sched)):
+            row = {"chinh_sach": name, "lich_quay": str(list(sched)), "gio": h, "khung_gio": H_LABELS[h], "c": sched[h]}
+            for k, (key, _) in enumerate(CLASS_SL):
+                vals = mats[:, k, h]
+                m, half, (low, _) = common.mean_ci(vals[~np.isnan(vals)])
+                row.update({f"sl_{key}": m, f"sl_{key}_ci_half": half, f"sl_{key}_ci95_low": low,
+                            f"dat_{key}": "Y" if low >= TARGET_SLA else "N"})
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def run_optimize(ctx: Dict) -> Dict[str, List[int]]:
     model = ctx["model"]
 
@@ -213,6 +255,9 @@ def run_optimize(ctx: Dict) -> Dict[str, List[int]]:
         rows.append(sim.summary_row(name, s, evaluate(model, s)))
         print(f"  • {name}: {s} -> SL={rows[-1]['sl_toan_ngay']:.4f}, p_ab={rows[-1]['ti_le_bo_ve']:.4f}")
     pd.DataFrame(rows).to_csv(out_path("so_sanh_chinh_sach.csv"), index=False, encoding="utf-8-sig")
+
+    print("[O.5b] SL theo nhom khach (F6: SLA gop, khach thuong va VIP de giam sat)...")
+    class_sl_table(model, policies).to_csv(out_path("sl_theo_nhom.csv"), index=False, encoding="utf-8-sig")
 
     print("[O.6] So sanh chinh sach co bien dong ngay...")
     cv_d = ctx["params"]["day_cv"]
