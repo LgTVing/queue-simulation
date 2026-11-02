@@ -1,9 +1,9 @@
 # Mô tả kết quả `final_v5` (sinh tự động bởi `g_report.py`)
 
-- **Ngày sinh:** 2026-10-30
+- **Ngày sinh:** 2026-11-02
 - **Môi trường:** Python 3.12.10, SimPy 4.1.2, NumPy 2.5.4, SciPy 1.18.1, pandas 3.1.0, Matplotlib 3.11.2
 - **Lệnh tái lập:** `python main.py --stage all --reps-scale 1.0`
-- **Seed:** chọn lịch `seed_base=1000`, đánh giá cuối `seed_base=50000` (tách biệt để tránh selection bias)
+- **Seed:** chọn lịch `seed_base=1000`, đánh giá cuối `seed_base=50000` (bước 1000; hai dải trùng 11/300 lần lặp, giữ để không đổi số V5); M7 đánh giá độc lập `seed_base=20000000` (2000 lần lặp). Sổ đăng ký: `common.SEED_BANDS`
 - **Mô hình chính:** NHPP theo giờ (F2), phục vụ thực nghiệm lấy mẫu từ train (M3), bỏ về mũ θ, VIP ưu tiên không ngắt, xả hàng giữ số quầy giờ cuối (F1)
 - **Lịch tối ưu:** `[4, 5, 6, 5, 5, 5, 5, 5, 5]` (45 quầy-giờ); bền vững +10%: `[4, 6, 6, 6, 5, 5, 6, 5, 5]`
 - **Lịch theo ca ít giờ công nhất (M6):** `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (48 quầy-giờ mở; xem `toi_uu_theo_ca_top.csv`)
@@ -15,9 +15,9 @@
 | data | 1.0 | 0.1 | 2026-10-30T08:20:23 |
 | theory | 1.0 | 0.0 | 2026-10-30T08:20:23 |
 | verify | 1.0 | 0.2 | 2026-10-30T08:20:37 |
-| optimize | 1.0 | 9.8 | 2026-10-30T08:30:24 |
+| optimize | 1.0 | 11.1 | 2026-11-02T12:52:35 |
 | robust | 1.0 | 5.0 | 2026-10-30T08:35:24 |
-| report | 1.0 | 0.0 | 2026-10-30T08:35:24 |
+| report | 1.0 | 0.0 | 2026-11-02T12:56:35 |
 
 ## Danh mục tệp
 
@@ -64,6 +64,7 @@
 | [`posterior_predictive_check.csv`](posterior_predictive_check.csv) | robust / S3 | Posterior predictive check chi so phan tan |
 | [`pytest_log.txt`](pytest_log.txt) | test | Log pytest |
 | [`qua_phan_tan_ngay.csv`](qua_phan_tan_ngay.csv) | data / T1 | Qua phan tan tong khach theo ngay, CV ngay sau hieu chinh Poisson |
+| [`sl_theo_nhom.csv`](sl_theo_nhom.csv) | optimize / F6 | SL theo gio: gop moi khach (SLA chinh), khach thuong <= 5 phut va VIP <= 2 phut (giam sat), cung seed danh gia |
 | [`so_lan_lap_can_thiet.csv`](so_lan_lap_can_thiet.csv) | robust / M5 | So lan lap de CI SL moi gio <= 0,3 diem % |
 | [`so_sanh_chinh_sach.csv`](so_sanh_chinh_sach.csv) | optimize | So sanh 6 chinh sach, 300 lan lap, seed danh gia rieng |
 | [`so_sanh_chinh_sach_bd.csv`](so_sanh_chinh_sach_bd.csv) | optimize | So sanh chinh sach co he so nhan ngay |
@@ -75,7 +76,7 @@
 | [`toi_uu_theo_ca_linh_hoat.csv`](toi_uu_theo_ca_linh_hoat.csv) | optimize / M6 | Nhu toi_uu_theo_ca.csv voi nghi trua linh hoat 9h-16h |
 | [`toi_uu_theo_ca_linh_hoat_top.csv`](toi_uu_theo_ca_linh_hoat_top.csv) | optimize / M6 | Top-5 lich kha thi, nghi trua linh hoat 9h-16h |
 | [`toi_uu_theo_ca_top.csv`](toi_uu_theo_ca_top.csv) | optimize / M6 | Top-5 lich kha thi o gio cong nho nhat: seed danh gia, bien dong ngay, nhu cau +10% |
-| [`toi_uu_xac_suat_ngay.csv`](toi_uu_xac_suat_ngay.csv) | optimize / M7 | Lich nho nhat theo muc P(SL ngay >= 90%) co bien dong ngay, quay-gio va theo ca, 14 ngay thuc te |
+| [`toi_uu_xac_suat_ngay.csv`](toi_uu_xac_suat_ngay.csv) | optimize / M7 | Lich nho nhat theo muc P(SL ngay >= 90%) co bien dong ngay, quay-gio va theo ca; xac nhan bang dai seed doc lap 2.000 lan lap (F5), doi chieu Lich 48, 14 ngay thuc te |
 
 ## Hình
 

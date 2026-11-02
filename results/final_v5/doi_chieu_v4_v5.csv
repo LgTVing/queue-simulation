@@ -25,24 +25,25 @@ SL toan ngay lich theo ca M6,,0.9579,moi o V5,"M6 (seed danh gia, 300 lan lap)"
 SL gio te nhat (can duoi CI95) lich theo ca M6,,0.9327,moi o V5,M6
 "P(SL ngay >= 90%) co bien dong ngay, lich theo ca M6",,0.9466666666666667,moi o V5,M6
 So lich phu da thu duoi gio cong toi thieu (deu khong kha thi),,1.0,moi o V5,"M6 pipeline slack=0; tham do slack=1 (3.180 lich, docs/KE_HOACH_V5.md) cung khong co lich kha thi"
+"P(SL ngay >= 90%) seed danh gia, Lich 48 doi chieu (M7)",,0.9455,moi o V5,M7 (F5): cung dai seed xac nhan doc lap
 "Lich nho nhat dat P(SL ngay >= 90%) >= 80%, quay-gio (M7)",,"[4, 5, 6, 5, 5, 5, 5, 5, 5]",moi o V5,M7
 "Quay-gio / gio cong lich P(SL ngay >= 90%) >= 80%, quay-gio",,45 / 48,moi o V5,M7
-"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 80%, quay-gio",,0.8566666666666667,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 80%, quay-gio",,0.8605,moi o V5,M7
 "Lich nho nhat dat P(SL ngay >= 90%) >= 80%, theo ca (M7)",,"[4, 5, 6, 6, 5, 5, 6, 6, 5]",moi o V5,M7
 "Quay-gio / gio cong lich P(SL ngay >= 90%) >= 80%, theo ca",,48 / 48,moi o V5,M7
-"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 80%, theo ca",,0.95,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 80%, theo ca",,0.937,moi o V5,M7
 "Lich nho nhat dat P(SL ngay >= 90%) >= 90%, quay-gio (M7)",,"[4, 6, 6, 6, 5, 5, 5, 6, 5]",moi o V5,M7
 "Quay-gio / gio cong lich P(SL ngay >= 90%) >= 90%, quay-gio",,48 / 52,moi o V5,M7
-"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 90%, quay-gio",,0.9533333333333334,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 90%, quay-gio",,0.9415,moi o V5,M7
 "Lich nho nhat dat P(SL ngay >= 90%) >= 90%, theo ca (M7)",,"[4, 5, 6, 6, 5, 5, 6, 6, 5]",moi o V5,M7
 "Quay-gio / gio cong lich P(SL ngay >= 90%) >= 90%, theo ca",,48 / 48,moi o V5,M7
-"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 90%, theo ca",,0.95,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 90%, theo ca",,0.937,moi o V5,M7
 "Lich nho nhat dat P(SL ngay >= 90%) >= 95%, quay-gio (M7)",,"[5, 6, 6, 6, 6, 5, 5, 6, 5]",moi o V5,M7
 "Quay-gio / gio cong lich P(SL ngay >= 90%) >= 95%, quay-gio",,50 / 52,moi o V5,M7
-"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 95%, quay-gio",,0.98,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 95%, quay-gio",,0.968,moi o V5,M7
 "Lich nho nhat dat P(SL ngay >= 90%) >= 95%, theo ca (M7)",,"[4, 6, 7, 7, 5, 6, 6, 6, 5]",moi o V5,M7
 "Quay-gio / gio cong lich P(SL ngay >= 90%) >= 95%, theo ca",,52 / 52,moi o V5,M7
-"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 95%, theo ca",,0.9933333333333333,moi o V5,M7
+"P(SL ngay >= 90%) seed danh gia, lich P(SL ngay >= 90%) >= 95%, theo ca",,0.9885,moi o V5,M7
 Chinh sach tang quay khuyen nghi (M8),,"Lich 45 + tang quay (cho > 2 trong 5 phut, toi da +1)",moi o V5,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge)
 Quay-gio mo TB 14 ngay: Lich 48 co dinh -> Lich 45 + tang quay,48.0,46.433839285714285,-1.566160714285715,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge); cot V4 = Lich 48 co dinh cung kich ban
 P(SL ngay >= 90%) bien dong ngay: Lich 48 co dinh -> Lich 45 + tang quay,0.94,0.9733333333333334,0.03333333333333344,M8: chinh sach khuyen nghi (f_scenarios.recommended_surge); cot V4 = Lich 48 co dinh cung kich ban

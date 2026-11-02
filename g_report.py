@@ -52,7 +52,7 @@ FILE_DESC = {
     "do_nhay_kien_nhan.csv": ("optimize / M1", "Lich va chi so theo kien nhan trung binh 9,2 -> vo cung"),
     "toi_uu_rang_buoc_bo_ve.csv": ("optimize / M2", "Toi uu voi rang buoc ti le bo ve, SL o nguong 2/3/5 phut"),
     "toi_uu_theo_ca.csv": ("optimize / M6", "Moi lich phu theo ca da thu (gio cong, phuong an ca, SL, can duoi gio te nhat)"),
-    "toi_uu_xac_suat_ngay.csv": ("optimize / M7", "Lich nho nhat theo muc P(SL ngay >= 90%) co bien dong ngay, quay-gio va theo ca, 14 ngay thuc te"),
+    "toi_uu_xac_suat_ngay.csv": ("optimize / M7", "Lich nho nhat theo muc P(SL ngay >= 90%) co bien dong ngay, quay-gio va theo ca; xac nhan bang dai seed doc lap 2.000 lan lap (F5), doi chieu Lich 48, 14 ngay thuc te"),
     "chinh_sach_tang_quay.csv": ("robust / M8", "Lich 45 + mo them quay khi hang cho dai so voi Lich 45/48 co dinh, 4 kich ban + 14 ngay"),
     "kien_nhan_weibull_fit.csv": ("optimize / S12", "MLE kien nhan Weibull co kiem duyet tren train so voi mu (AIC, ti so hop ly)"),
     "kien_nhan_weibull.csv": ("optimize / S12", "Lich toi uu va danh gia Lich 45/48 duoi kien nhan mu va Weibull"),
