@@ -415,9 +415,10 @@ def fourteen_days(model: Model, df_all: pd.DataFrame, policies: Dict[str, List[i
     """S7: Moi ngay quan sat d, mo phong R lan voi m_d = N_d / n_mean cho tung chinh sach."""
     R = scaled(R)
     totals = df_all.groupby("day").size()
+    train_days = set(a_data.split_train_test(df_all, train_ratio=0.7)[0]["day"])
     rows = []
-    for i, (d, n_d) in enumerate(totals.items()):
-        row = {"ngay": int(d), "phan_tap": "Train" if i < 10 else "Test", "tong_khach": int(n_d)}
+    for d, n_d in totals.items():
+        row = {"ngay": int(d), "phan_tap": "Train" if d in train_days else "Test", "tong_khach": int(n_d)}
         for k, (name, s) in enumerate(policies.items()):
             vals = sim.map_sim([dict(model=model, schedule=s, seed=10000 * (k + 1) + int(d) * 100 + r,
                                      day_multiplier=n_d / n_mean) for r in range(R)], _post_sl_all, (s,))

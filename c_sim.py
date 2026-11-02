@@ -535,14 +535,14 @@ def run_reps(
     m_ut, ci_ut, (low_ut, high_ut) = mean_ci(util_vals)
 
     # Chi so xac suat dat SLA theo ngay
-    sl_day_ge90 = float(sum(1 for s in sl_vals if s >= 0.90) / n_reps) if n_reps > 0 else 0.0
+    sl_day_ge90 = float(sum(1 for s in sl_vals if s >= TARGET_SLA) / n_reps) if n_reps > 0 else 0.0
     all_hours_ge90_cnt = 0
     cnt_below_list = []
     for rep_i in range(n_reps):
         all_ok = True
         cnt_below = 0
         for h in range(len(schedule)):
-            if hourly_reps[h][rep_i]["sl"] < 0.90:
+            if hourly_reps[h][rep_i]["sl"] < TARGET_SLA:
                 all_ok = False
                 cnt_below += 1
         if all_ok:

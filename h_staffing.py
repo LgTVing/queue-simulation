@@ -13,6 +13,7 @@ xep theo can duoi gio te nhat; top-k duoc xac nhan bang seed danh gia (300 lan l
 kem do ben: bien dong ngay (CV ngay) va nhu cau +10%.
 """
 
+import ast
 from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
@@ -98,7 +99,7 @@ def optimize_shift_staffing(model: Model, sipp: List[int], lunch_window: Tuple[i
         return {"W": None, "trials": trials, "top": pd.DataFrame()}
     feas_rows = trials[(trials["gio_cong"] == w) & (trials["kha_thi"] == "Y")]
     feas_rows = feas_rows.sort_values("sl_gio_te_nhat_low", ascending=False).head(top_k)
-    top = [_confirm(model, eval(r.phu_quay), r, cv_day) for r in feas_rows.itertuples()]
+    top = [_confirm(model, ast.literal_eval(r.phu_quay), r, cv_day) for r in feas_rows.itertuples()]
     return {"W": w, "trials": trials, "top": pd.DataFrame(top)}
 
 

@@ -73,10 +73,14 @@ def load_context(estimate: bool = False) -> Dict:
         "n_day_mean": float(sum(params["rates_per_min"]) * 60.0),
     }
 
-def save_schedules(updates: Dict[str, List[int]]) -> Dict[str, List[int]]:
-    """Cap nhat lich_khuyen_nghi.json (giu cac lich da co)."""
+def save_schedules(updates: Dict[str, Optional[List[int]]]) -> Dict[str, List[int]]:
+    """Cap nhat lich_khuyen_nghi.json (giu cac lich da co); gia tri None xoa khoa do."""
     sch = load_schedules(required=False)
-    sch.update({k: [int(c) for c in v] for k, v in updates.items()})
+    for k, v in updates.items():
+        if v is None:
+            sch.pop(k, None)
+        else:
+            sch[k] = [int(c) for c in v]
     with open(out_path(SCHEDULES_FILE), "w", encoding="utf-8") as f:
         json.dump(sch, f, indent=2, ensure_ascii=False)
     return sch

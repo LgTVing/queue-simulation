@@ -18,6 +18,7 @@ V5:
 - S15 half_hour_scenario(): lambda nua gio 8h-10h -> lambda_nua_gio.csv, khung_30_phut.csv
 """
 
+import ast
 import dataclasses
 import math
 from typing import Dict, List, Optional
@@ -374,8 +375,8 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     m6 = hs.optimize_shift_staffing(model, sch["sipp_erlang_a"], slack=0, w_max=w_max, cv_day=ctx["params"]["day_cv"])
     _save(m6["trials"], "toi_uu_theo_ca.csv")
     _save(m6["top"], "toi_uu_theo_ca_top.csv")
-    if len(m6["top"]):
-        dx.save_schedules({"toi_uu_theo_ca": eval(m6["top"].iloc[0]["phu_quay"])})
+    # Khong co lich kha thi (vd smoke test) -> xoa khoa cu de lich_khuyen_nghi.json khong giu lich lan chay truoc
+    dx.save_schedules({"toi_uu_theo_ca": ast.literal_eval(m6["top"].iloc[0]["phu_quay"]) if len(m6["top"]) else None})
     print("[M6] Bien the nghi trua linh hoat 9h-16h...")
     w_max_f = b_shifts.solve_shift_scheduling(sch["toi_uu"], lunch_window=LUNCH_FLEX)["total_work_hours"]
     m6f = hs.optimize_shift_staffing(model, sch["sipp_erlang_a"], lunch_window=LUNCH_FLEX, slack=0, w_max=w_max_f,

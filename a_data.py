@@ -93,10 +93,10 @@ def fit_arrivals(df: pd.DataFrame) -> Dict:
     for h in range(HOURS):
         counts = cm[h]
         n_bar = float(counts.mean())
-        lam = n_bar / 60.0
-        se = float(np.sqrt(n_bar / n_days) / 60.0) if n_days > 0 and n_bar > 0 else 0.0
+        lam = n_bar / common.DEFAULT_HOUR_LEN
+        se = float(np.sqrt(n_bar / n_days) / common.DEFAULT_HOUR_LEN) if n_days > 0 and n_bar > 0 else 0.0
         ci_half = 1.96 * se
-        ci_t = float(t_val * counts.std(ddof=1) / np.sqrt(n_days) / 60.0) if n_days > 1 else 0.0
+        ci_t = float(t_val * counts.std(ddof=1) / np.sqrt(n_days) / common.DEFAULT_HOUR_LEN) if n_days > 1 else 0.0
 
         # Chi so phan tan D
         disp = float(counts.var(ddof=0) * n_days / n_bar) if n_bar > 0 else 0.0
@@ -351,9 +351,9 @@ def lambda_ci_table(df: pd.DataFrame) -> pd.DataFrame:
         "poisson_hw_ngay": poi_hw.values,
         "t_hw_ngay": t_hw.values,
         "ti_so_t_vs_poisson": (t_hw / poi_hw).values,
-        "lambda_phut": (means / 60.0).values,
-        "lambda_low_ci95": ((means - t_hw) / 60.0).values,
-        "lambda_high_ci95": ((means + t_hw) / 60.0).values
+        "lambda_phut": (means / common.DEFAULT_HOUR_LEN).values,
+        "lambda_low_ci95": ((means - t_hw) / common.DEFAULT_HOUR_LEN).values,
+        "lambda_high_ci95": ((means + t_hw) / common.DEFAULT_HOUR_LEN).values
     })
 
 def poisson_overdispersion(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -370,7 +370,7 @@ def poisson_overdispersion(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame
         disp = float(np.sum((x - n_bar) ** 2) / n_bar) if n_bar > 0 else 0.0
         p_val = float(stats.chi2.sf(disp, df=n_days - 1))
         rows.append({"hour": h, "label": H_LABELS[h], "n_bar": round(n_bar, 2),
-                     "lambda": round(n_bar / 60.0, 4), "D": round(disp, 2),
+                     "lambda": round(n_bar / common.DEFAULT_HOUR_LEN, 4), "D": round(disp, 2),
                      "p_value": round(p_val, 4), "nhan": poisson_label(p_val)})
     totals = cm.sum(axis=1).values.astype(float)
     mu = float(totals.mean())
