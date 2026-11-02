@@ -9,6 +9,7 @@ c_sim.py: Dong co mo phong su kien roi rac bang SimPy (Tuan 2):
 
 import os
 import atexit
+import warnings
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 from typing import List, Dict, Tuple, Optional, Callable, Sequence
@@ -243,6 +244,7 @@ def simulate(
     total_time = run_time if run_time is not None else float(len(schedule) * model.hour_len)
     hour_len = model.hour_len
     state = _CounterState()
+    n_arrived = [0]  # F11: dem khach da sinh de phat hien khach chua xu ly xong khi cat mo phong
 
     # Khoi chay tien trinh dieu phoi lich quay neu lich co su thay doi
     if len(schedule) > 1:
@@ -306,10 +308,16 @@ def simulate(
                 env, cid, h_arrival, is_vip, svc_time, patience, resource, records
             ))
             cid += 1
+            n_arrived[0] = cid
 
     env.process(arrival_generator())
     env.run(until=total_time + 1000.0) # Cho den khi giai phong het khach
-    
+    # F11: khach con cho / dang phuc vu luc cat khong co ban ghi -> bi loai khoi mau so, SL bi thoi cao
+    n_unfinished = n_arrived[0] - len(records)
+    if n_unfinished > 0:
+        warnings.warn(f"simulate: {n_unfinished}/{n_arrived[0]} khach chua xu ly xong khi cat o "
+                      f"t = {total_time + 1000.0:.0f} phut (he qua tai?); SL tinh tren khach da xong bi thoi cao")
+
     df = pd.DataFrame(records)
     if len(df) == 0:
         return pd.DataFrame(columns=RECORD_COLUMNS)
@@ -320,6 +328,8 @@ def simulate(
     if surge_policy is not None:
         df.attrs["extra_counter_min"] = state.extra_minutes
         df.attrs["n_surge"] = state.n_open
+    if n_unfinished > 0:
+        df.attrs["n_unfinished"] = n_unfinished
 
     return df
 

@@ -14,6 +14,23 @@ import c_sim as cs
 import d_experiments as dx
 
 
+def test_unfinished_customers_flagged():
+    """F11: theta = 0, ~1.800 khach trong 60 phut, 3 quay E[S] 3 phut (~1.060 khach den luc cat) -> con khach."""
+    m = Model(rates=[30.0], service=exp_service(3.0), theta=0.0, p_vip=0.0, hour_len=60.0)
+    with pytest.warns(UserWarning, match="chua xu ly xong"):
+        df = cs.simulate(m, [3], seed=7)
+    assert df.attrs["n_unfinished"] > 0
+
+
+def test_no_flag_when_all_finished():
+    import warnings
+    m = Model(rates=[1.0, 1.0], service=exp_service(3.0), theta=0.1, p_vip=0.3)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        df = cs.simulate(m, [5, 5], seed=7)
+    assert "n_unfinished" not in df.attrs
+
+
 def test_simulated_p_value():
     """S16: quan sat o trung vi -> p ~ 1; vuot moi mo phong -> p = 2/(K+1); nhat quan voi PI95."""
     import e_robustness as er
