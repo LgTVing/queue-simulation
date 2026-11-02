@@ -60,7 +60,7 @@
 
 | # | Phát hiện | Mức | Đổi kết luận? | Việc |
 |---|---|:---:|---|---|
-| 1 | M7: 253/300 lần lặp đánh giá **giống hệt** lần lặp chọn lịch nên P báo cáo lạc quan. Một dải độc lập 300 lần lặp cho 0,92 [0,884]; nhưng 2 dải độc lập × 1.000 lần lặp lệch nhau ~2,5 điểm, cho thấy 300 lần lặp là quá ít. Gộp 2.000 lần lặp độc lập: lịch 48 giờ công 0,937–0,946 (cận dưới ≥ 0,926), lịch 52 giờ công 0,968–0,989 (cận dưới ≥ 0,959) | P1 | **Không đổi kết luận** ("≥ 90% số ngày cần 48 giờ công", "≥ 95% cần 52"), nhưng số P và CI trong tài liệu phải thay bằng số đánh giá độc lập | F4, F5 |
+| 1 | M7: 253/300 lần lặp đánh giá **giống hệt** lần lặp chọn lịch nên P báo cáo lạc quan. Một dải độc lập 300 lần lặp cho 0,92 [0,884]; nhưng 2 dải độc lập × 1.000 lần lặp lệch nhau đến 2,7 điểm, cho thấy 300 lần lặp là quá ít. Gộp 2.000 lần lặp độc lập: lịch 48 giờ công 0,937–0,946 (cận dưới ≥ 0,926), lịch 52 giờ công 0,968–0,989 (cận dưới ≥ 0,959) | P1 | **Không đổi kết luận** ("≥ 90% số ngày cần 48 giờ công", "≥ 95% cần 52"), nhưng số P và CI trong tài liệu phải thay bằng số đánh giá độc lập | F4, F5 |
 | 2 | Đặc tả SLA tách khách thường (≤ 5 phút) và VIP (≤ 2 phút) ([dac_ta_mo_hinh.md:27-28](dac_ta_mo_hinh.md#L27-L28), README:55, :401) nhưng mã chỉ xét SL gộp mọi khách ([c_sim.py:754-776](../c_sim.py#L754-L776)). Theo đặc tả, Lịch 45 không đạt ở 11h–12h (khách thường 0,887–0,8997 trên 3 dải seed); Lịch 48 đạt (0,913–0,915) | P1 | Câu "Lịch 45 đạt SLA" phụ thuộc định nghĩa. **Khuyến nghị Lịch 48 vẫn đứng vững** | F6 |
 | 3 | Optimize, M6: 11/300 lần lặp đánh giá trùng lần lặp chọn lịch, trong khi `MO_TA.md` ghi "tách biệt" | P2 | Không: seed tách hẳn cho Lịch 45 giờ tệ nhất 0,914 (bảng ghi 0,924), vẫn khả thi | F4 (ghi chú) |
 | 4 | S5: 3.000 cặp (bộ bootstrap, lần lặp) chỉ dùng 640 seed khác nhau → nhiễu mô phỏng tương quan giữa các bộ, phân rã phương sai sai lệch | P2 | Chưa đo | F9 |
@@ -180,7 +180,7 @@ F6 ── M9 (tùy chọn, sau bảo vệ cũng được)
 | `[5,6,6,6,6,5,5,6,5]` (M7 quầy-giờ, mức 0,95) | 52 | 0,980 [0,957] | 0,953 [0,923] | **0,9680 [0,9593; 0,9749]** |
 | `[4,6,7,7,5,6,6,6,5]` (M7 theo ca, mức 0,95) | 52 | 0,993 [0,976] | – | **0,9885 [0,9828; 0,9923]** |
 
-Hai nửa của dải 2.000 lần lặp (20.000.000 và 21.000.000, mỗi nửa 1.000) lệch nhau 1–2,5 điểm và **cùng chiều ở mọi lịch**: nhiễu chủ yếu đến từ mẫu hệ số nhân ngày $m_d$ (CRN giữa các lịch nên cùng lệch). Vì vậy 300 lần lặp không đủ để so với ngưỡng cách 2–4 điểm.
+Hai nửa của dải 2.000 lần lặp (20.000.000 và 21.000.000, mỗi nửa 1.000) lệch nhau 0,9–2,7 điểm và **cùng chiều ở mọi lịch**: nhiễu chủ yếu đến từ mẫu hệ số nhân ngày $m_d$ (CRN giữa các lịch nên cùng lệch). Vì vậy 300 lần lặp không đủ để so với ngưỡng cách 2–4 điểm.
 
 **Quyết định Q2 (đã chốt, xem [mục 10](#10-câu-hỏi-cần-chốt)):** chọn lịch như cũ (seed `select_day`, 300 lần lặp), **xác nhận** bằng `eval_day` 2.000 lần lặp độc lập; một mức `min_p` chỉ được nêu là đạt khi **cận dưới Wilson của lần xác nhận ≥ `min_p`**. Theo số ở bảng trên, kết luận giữ nguyên: ≥ 90% số ngày cần 48 giờ công (cận dưới ≥ 0,926); ≥ 95% cần 52 giờ công (48 giờ công có cận trên ≤ 0,955 nên không khẳng định được 95%).
 

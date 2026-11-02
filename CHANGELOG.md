@@ -4,7 +4,7 @@
 
 **Kết luận không đổi:** tối thiểu 48 giờ công/ngày theo Lịch 48; ≥ 90% số ngày đạt SLA cần 48 giờ công, ≥ 95% cần 52. Chạy lại giai đoạn `optimize` và `report` (11.1 phút): mọi CSV và hình khác giống từng byte với V5.0; bản V5.0 của các tệp đổi ở `results/archive/final_v5_0/`.
 
-- **F5 (M7 xác nhận độc lập):** dải seed đánh giá cũ (50000, 300 lần lặp) trùng 253/300 lần lặp với seed chọn lịch M7 (3000), nên "đánh giá lại" thực chất chạy lại trong mẫu. Xác nhận bằng `SEED_BANDS["eval_day"]` (20.000.000, 2.000 lần lặp); thêm cột `dat_muc_danh_gia` và dòng đối chiếu Lịch 48 vào `toi_uu_xac_suat_ngay.csv`. Lựa chọn lịch không đổi; $P$ thấp hơn bản cũ 0.4–1.3 điểm ở 5/6 dòng (ví dụ lịch M7 48 giờ công 95.0% → 93.7%); Lịch 48 đạt 94.5% [93.5%, 95.5%].
+- **F5 (M7 xác nhận độc lập):** dải seed đánh giá cũ (50000, 300 lần lặp) trùng 253/300 lần lặp với seed chọn lịch M7 (3000), nên "đánh giá lại" thực chất chạy lại trong mẫu. Xác nhận bằng `SEED_BANDS["eval_day"]` (20.000.000, 2.000 lần lặp); thêm cột `dat_muc_danh_gia` và dòng đối chiếu Lịch 48 vào `toi_uu_xac_suat_ngay.csv`. Lựa chọn lịch không đổi; $P$ thấp hơn bản cũ 0.5–1.3 điểm ở 5/6 dòng (ví dụ lịch M7 48 giờ công 95.0% → 93.7%); Lịch 48 đạt 94.6% [93.5%, 95.5%] (1.891/2.000 lần lặp).
 - **F6 (định nghĩa SLA):** chốt SLA chính là SL(5 phút) trên mọi khách (khớp mã và mọi số V5). README §1.2, §11.1, `docs/dac_ta_mo_hinh.md`, báo cáo 1.2 sửa theo; tệp mới `sl_theo_nhom.csv` báo cáo SL khách thường và SL VIP ≤ 2 phút để giám sát. Riêng khách thường, Lịch 45 hụt ở 11h–12h (0.8997); Lịch 48 đạt cả ba chỉ số ở mọi giờ. `tong_hop.md` mục 4.6 mới.
 - **F4 (sổ đăng ký seed):** `common.SEED_BANDS`, `seed_range`; các module đọc từ sổ, giá trị seed giữ nguyên. `tests/test_f4_seeds.py` kiểm các cặp chọn/đánh giá không giao nhau; hai trùng lặp đã biết đánh dấu xfail có lý do (optimize/M6 11/300, S5). `MO_TA.md` ghi đúng mức trùng thay cho "tách biệt".
 - **F7:** `data/lam_sach.py` dùng đường dẫn tương đối (trước ghi cứng `d:\KHDV`); `tests/test_f7_clean.py` sinh lại và khớp `data_clean.csv` từng giá trị.
@@ -14,7 +14,7 @@
 - Checker thêm `check_class_sl` (mục 4.6), cột "Đạt mức" và dòng đối chiếu ở mục 7.10: 1.546 giá trị, 0 lệch. Báo cáo 7.2, 9.6; slide 10, Q&A 10–11; README §15.5.
 
 ### Đợt hai V5.1 (2026-11-02): F9, S16, F11, F12, O1, O2, M9, D5
-Chạy lại `optimize`, `robust`, `report` (12.3 phút); mọi CSV và hình không liên quan giống từng byte.
+Chạy lại `optimize`, `robust`, `report` (12.0 phút); mọi CSV và hình không liên quan giống từng byte.
 - **F9 (S5):** mỗi bộ bootstrap một dải seed riêng (`SEED_BANDS["nested_boot"]`, `NESTED_BOOT_STEP`); V5.0 có 640 seed khác nhau cho 3.000 cặp (bộ, lần lặp). Phương sai do tham số 94.01% → 94.19%; giờ tệ nhất ≥ 90% ở 45/50 → 43/50 bộ.
 - **S16 (S6):** p-value hai phía lấy từ chính 1.000 bộ mô phỏng (cùng phân phối với PI95), Holm như cũ; p cũ giữ ở cột `raw_p_value_nhi_thuc`. Sau Holm không giờ nào khác biệt có ý nghĩa (V5.0: 4 giờ, kể cả hai giờ nằm trong PI95).
 - **M9:** `scope="regular"` cho `is_schedule_feasible` / `optimize_schedule` (`rep_stats` thêm `sl_reg`); tối ưu theo SLA riêng khách thường: 47 quầy-giờ `[4, 6, 6, 6, 5, 5, 5, 5, 5]`, vẫn 48 giờ công → `toi_uu_sla_khach_thuong.csv`, `tong_hop.md` mục 7.14.

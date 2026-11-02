@@ -555,7 +555,7 @@ Số liệu từ `results/final_v5/` (Anonymous Bank, 14 ngày, 9.836 khách; th
 ### 15.5 Bổ sung V5: giờ công, xác suất đạt SLA ngày, tăng quầy theo hàng chờ
 
 - **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. Ở 44 giờ công không cách nào đạt SLA; ở 48 giờ công có 33/94 cách đạt, tốt nhất là Lịch 48 (4 ca 8h + 4 ca 4h). **Kết luận: tối thiểu 48 giờ công/ngày, xếp theo Lịch 48.**
-- **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công (Lịch 48: 94,5% [93,5%; 95,5%], xác nhận bằng 2.000 lần lặp với dải seed độc lập, V5.1); ≥ 95% số ngày cần 52 giờ công.
+- **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công (Lịch 48: 94,6% [93,5%; 95,5%], xác nhận bằng 2.000 lần lặp với dải seed độc lập, V5.1); ≥ 95% số ngày cần 52 giờ công.
 - **SL theo nhóm khách (V5.1):** SLA chính tính trên mọi khách. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả SL mọi khách, SL khách thường và SL VIP (≤ 2 phút) ở mọi giờ (`sl_theo_nhom.csv`). Tối ưu lại với SLA riêng khách thường cần 47 quầy-giờ nhưng vẫn 48 giờ công (M9, `toi_uu_sla_khach_thuong.csv`).
 - **Trang demo SIPP (V5.1):** mở `docs/demo/sipp.html` bằng trình duyệt (chạy offline) để tính lịch Erlang C / Erlang-A theo giờ với tham số tùy chọn; với tham số train cho đúng `bang_sipp.csv` (44 / 47 quầy-giờ).
 - **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút: trung bình 46,17 quầy-giờ mở, đạt SLA ở 97,3% số ngày (Lịch 48 cố định: 94,0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.

@@ -8,7 +8,7 @@
 - **Thành viên C (Lê Văn C):** Mô phỏng SimPy, kiểm chứng ba tầng, tối ưu hóa lịch quầy, phân tích độ nhạy
 
 **Thời gian hoàn thành:** Tháng 10/2026  
-**Phiên bản số liệu:** V5, đóng băng tại `results/final_v5/` ngày 2026-10-30 (`python main.py --stage all --reps-scale 1.0`, 15.1 phút). Mọi số của V4 giữ nguyên; V5 thêm tối ưu theo giờ công (M6), chọn lịch theo xác suất đạt SLA ngày (M7), mở thêm quầy theo hàng chờ (M8) và bốn phân tích thống kê bổ sung (S12–S15). Bảng số chi tiết và nguồn từng con số: [`tong_hop.md`](../tong_hop.md).
+**Phiên bản số liệu:** V5, đóng băng tại `results/final_v5/` ngày 2026-10-30 (`python main.py --stage all --reps-scale 1.0`, 15.1 phút). Mọi số của V4 giữ nguyên; V5 thêm tối ưu theo giờ công (M6), chọn lịch theo xác suất đạt SLA ngày (M7), mở thêm quầy theo hàng chờ (M8) và bốn phân tích thống kê bổ sung (S12–S15). **Cập nhật V5.1 (2026-11-02, `docs/KE_HOACH_V5_1.md`):** M7 xác nhận bằng dải seed độc lập, SL theo nhóm khách và tối ưu theo SLA khách thường (M9), seed riêng cho bootstrap S5, p-value ngoài mẫu S6 từ phân phối mô phỏng; kết luận 48 giờ công theo Lịch 48 không đổi (`CHANGELOG.md` mục v5.1). Bảng số chi tiết và nguồn từng con số: [`tong_hop.md`](../tong_hop.md).
 
 ---
 
@@ -347,7 +347,7 @@ Lịch khả thi khi đạt tiêu chí danh định theo giờ **và** cận dư
 | 90% | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 93.7% [92.5%, 94.7%] | `[4, 6, 6, 6, 5, 5, 5, 6, 5]` | 48 / 52 |
 | 95% | `[4, 6, 7, 7, 5, 6, 6, 6, 5]` | 52 | 98.9% [98.3%, 99.2%] | `[5, 6, 6, 6, 6, 5, 5, 6, 5]` | 50 / 52 |
 
-Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công: trên cùng dải xác nhận, **Lịch 48 đạt 94.5% [93.5%, 95.5%]**, không kém lịch M7 và có giờ tệ nhất danh định tốt hơn, nên Lịch 48 là lịch duy nhất được khuyến nghị. $\ge 95\%$ số ngày cần **52 giờ công** (ở 48 giờ công cận trên chỉ 95.5%). Lịch tìm trong không gian quầy-giờ thường không phủ đúng bằng ca và tốn thêm giờ công.
+Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công: trên cùng dải xác nhận, **Lịch 48 đạt 94.6% [93.5%, 95.5%]**, không kém lịch M7 và có giờ tệ nhất danh định tốt hơn, nên Lịch 48 là lịch duy nhất được khuyến nghị. $\ge 95\%$ số ngày cần **52 giờ công** (ở 48 giờ công cận trên chỉ 95.5%). Lịch tìm trong không gian quầy-giờ thường không phủ đúng bằng ca và tốn thêm giờ công.
 
 ### 9.7 Mở thêm quầy trong ngày theo hàng chờ (M8, `chinh_sach_tang_quay.csv`)
 
