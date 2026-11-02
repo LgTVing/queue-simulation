@@ -36,6 +36,7 @@ if sys.platform.startswith("win"):
 import common
 from common import H_LABELS, out_path, scaled
 import a_data
+import c_sim
 import chay_kiem_chung
 import d_experiments as dx
 import e_robustness
@@ -150,8 +151,11 @@ def main(argv=None):
     for st in stages:
         print(f"\n>>> GIAI DOAN: {st.upper()}")
         t0 = time.time()
+        hit0, miss0 = c_sim.CACHE_STATS["hit"], c_sim.CACHE_STATS["miss"]
         STAGE_FUNCS[st](ctx)
         log_stage(st, (time.time() - t0) / 60.0)
+        print(f"  [O1] bo nho dem run_reps: {c_sim.CACHE_STATS['hit'] - hit0} lan trung, "
+              f"{c_sim.CACHE_STATS['miss'] - miss0} lan chay")
     if "report" in stages:
         g_report.write_mo_ta()  # cap nhat thoi gian chay cua giai doan report
     print_recommendation()

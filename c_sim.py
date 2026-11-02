@@ -8,7 +8,10 @@ c_sim.py: Dong co mo phong su kien roi rac bang SimPy (Tuan 2):
 """
 
 import os
+import copy
 import atexit
+import pickle
+import hashlib
 import warnings
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
@@ -483,6 +486,19 @@ def _rep_stats_post(df: pd.DataFrame, schedule: List[int], hour_len: float, t_st
     return rep_stats(df, schedule, hour_len, t_start=t_start)
 
 
+# O1: bo nho dem ket qua run_reps. Ket qua tat dinh theo (model, lich, so lan lap, seed, tuy chon) nen
+# cung tham so thi dung lai; khoa = bam noi dung pickle (model khac noi dung -> khoa khac -> chay lai).
+# QS_CACHE=0 tat bo nho dem.
+CACHE_ON = os.environ.get("QS_CACHE", "1") != "0"
+_RUN_CACHE: Dict[str, Dict] = {}
+CACHE_STATS = {"hit": 0, "miss": 0}
+
+
+def clear_run_cache() -> None:
+    _RUN_CACHE.clear()
+    CACHE_STATS.update(hit=0, miss=0)
+
+
 def run_reps(
     model: Model,
     schedule: List[int],
@@ -500,7 +516,21 @@ def run_reps(
     day_cv > 0: ap dung bien dong he so nhan ngay.
     keep_reps: tra them ma tran SL theo gio tung lan lap (n_reps x H) va SL ngay
         tung lan lap, dung cho hieu so theo cap (CRN) va xac suat gio te nhat.
+    Ket qua cung tham so duoc dung lai tu bo nho dem (O1); tra ban sao sau nen noi goi sua thoai mai.
     """
+    args = (model, list(schedule), n_reps, run_time, warm_up, seed_base, day_cv, drain_policy, keep_reps)
+    if not CACHE_ON:
+        return _run_reps(*args)
+    key = hashlib.sha1(pickle.dumps(args, protocol=4)).hexdigest()
+    if key in _RUN_CACHE:
+        CACHE_STATS["hit"] += 1
+    else:
+        CACHE_STATS["miss"] += 1
+        _RUN_CACHE[key] = _run_reps(*args)
+    return copy.deepcopy(_RUN_CACHE[key])
+
+
+def _run_reps(model, schedule, n_reps, run_time, warm_up, seed_base, day_cv, drain_policy, keep_reps) -> Dict:
     reps_data = []
     hourly_reps = [[] for _ in range(len(schedule))]
 

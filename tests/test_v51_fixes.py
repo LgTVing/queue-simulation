@@ -31,6 +31,26 @@ def test_no_flag_when_all_finished():
     assert "n_unfinished" not in df.attrs
 
 
+def test_run_cache_identical_and_isolated(monkeypatch):
+    """O1: bat / tat bo nho dem cho ket qua bang nhau; lan trung cache tra ban sao doc lap."""
+    m, sched = _loaded(), [5, 6, 5]
+    monkeypatch.setattr(cs, "CACHE_ON", False)
+    ref = cs.run_reps(m, sched, n_reps=6, seed_base=9, keep_reps=True)
+    monkeypatch.setattr(cs, "CACHE_ON", True)
+    a = cs.run_reps(m, sched, n_reps=6, seed_base=9, keep_reps=True)
+    a["hourly"][0]["sl_mean"] = -1.0
+    a["rep_sl_day"][:] = -1.0
+    b = cs.run_reps(_loaded(), sched, n_reps=6, seed_base=9, keep_reps=True)  # model moi, cung noi dung
+    assert cs.CACHE_STATS == {"hit": 1, "miss": 1}
+    for k, v in ref.items():
+        if isinstance(v, np.ndarray):
+            np.testing.assert_array_equal(v, b[k])
+        else:
+            assert v == b[k], k
+    c = cs.run_reps(m, sched, n_reps=6, seed_base=10, keep_reps=True)  # seed khac -> chay lai
+    assert cs.CACHE_STATS["miss"] == 2 and c["sl_mean"] != -1.0
+
+
 def test_simulated_p_value():
     """S16: quan sat o trung vi -> p ~ 1; vuot moi mo phong -> p = 2/(K+1); nhat quan voi PI95."""
     import e_robustness as er

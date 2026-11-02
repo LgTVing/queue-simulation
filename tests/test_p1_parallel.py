@@ -57,6 +57,7 @@ def _model():
 
 def test_run_reps_parallel_identical(monkeypatch):
     sched = [4, 5, 4]
+    monkeypatch.setattr(cs, "CACHE_ON", False)  # O1: lan goi thu hai phai chay that, khong lay tu bo nho dem
     monkeypatch.setattr(cs, "N_WORKERS", 1)
     serial = cs.run_reps(_model(), sched, n_reps=12, seed_base=500, keep_reps=True)
     monkeypatch.setattr(cs, "N_WORKERS", 3)
