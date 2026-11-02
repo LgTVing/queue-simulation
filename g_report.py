@@ -99,7 +99,12 @@ def _num(s) -> float:
     return v / 100.0 if m.group(2) == "%" else v
 
 def _read(path: str) -> Optional[pd.DataFrame]:
-    return pd.read_csv(path) if os.path.exists(path) else None
+    if not os.path.exists(path):
+        return None
+    try:
+        return pd.read_csv(path)
+    except pd.errors.EmptyDataError:  # vd toi_uu_theo_ca_top.csv khi M6 khong tim thay lich (smoke test)
+        return pd.DataFrame()
 
 def _row(df: Optional[pd.DataFrame], col: str, key) -> Optional[pd.Series]:
     if df is None:

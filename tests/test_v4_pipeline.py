@@ -62,7 +62,8 @@ def test_results_consistency():
 @pytest.mark.slow
 def test_pipeline_smoke(tmp_path):
     """T1-i: main.py --stage all --reps-scale 0.02 chay het, sinh bang so sanh va MO_TA.md."""
-    env = dict(os.environ, QS_RESULTS_DIR=str(tmp_path))
+    # O2: QS_MAX_W_LEVELS gioi han so muc gio cong M6/M7 duyet (3 lan lap -> khong lich nao kha thi)
+    env = dict(os.environ, QS_RESULTS_DIR=str(tmp_path), QS_MAX_W_LEVELS="2")
     r = subprocess.run([sys.executable, os.path.join(BASE_DIR, "main.py"), "--stage", "all", "--reps-scale", "0.02"],
                        cwd=BASE_DIR, env=env, capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, r.stderr[-3000:]

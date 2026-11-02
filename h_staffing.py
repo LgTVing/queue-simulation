@@ -14,6 +14,7 @@ kem do ben: bien dong ngay (CV ngay) va nhu cau +10%.
 """
 
 import ast
+import os
 from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
@@ -27,6 +28,11 @@ SEED_SELECT = SEED_BANDS["select"][0]           # trung seed chon lich cua optim
 SEED_EVAL = SEED_BANDS["eval"][0]               # trung seed danh gia chinh sach
 SEED_ROBUST = SEED_BANDS["robust_day"][0]       # bien dong ngay cho top-k
 SEED_ROBUST_DEMAND = SEED_BANDS["robust_demand"][0]  # nhu cau +10% cho top-k
+
+# O2: gioi han so muc gio cong duyet trong M6 / M7 theo ca. Chi smoke test dat (QS_MAX_W_LEVELS=2): voi
+# rat it lan lap, CI qua rong nen khong lich nao kha thi va vong lap duyet toi hang chuc nghin lich phu.
+# 0 / khong dat = khong gioi han (hanh vi cu, ket qua khong doi).
+MAX_W_LEVELS = int(os.environ.get("QS_MAX_W_LEVELS") or 0)
 
 
 def coverage_vectors(W: int, lower: List[int], lunch_window: Tuple[int, int] = (3, 5)) -> Dict[tuple, List[int]]:
@@ -75,7 +81,10 @@ def optimize_shift_staffing(model: Model, sipp: List[int], lunch_window: Tuple[i
     lower = [max(0, s - slack) for s in sipp]
     w = 4 * int(np.ceil(sum(lower) / 4))
     rows = []
-    while w <= w_max:
+    n_levels = 0
+    found = False
+    while w <= w_max and not (MAX_W_LEVELS and n_levels >= MAX_W_LEVELS):
+        n_levels += 1
         cands = coverage_vectors(w, lower, lunch_window)
         found = False
         for cov, x in sorted(cands.items()):
@@ -95,7 +104,8 @@ def optimize_shift_staffing(model: Model, sipp: List[int], lunch_window: Tuple[i
     trials = pd.DataFrame(rows)
     if not found:
         # Chi xay ra khi so lan lap qua nho (vd smoke test): CI qua rong, khong lich nao kha thi
-        print(f"  [canh bao] M6: khong co lich kha thi voi gio cong <= {w_max}")
+        print(f"  [canh bao] M6: khong co lich kha thi voi gio cong <= {min(w, w_max)}"
+              + (f" (gioi han QS_MAX_W_LEVELS={MAX_W_LEVELS})" if MAX_W_LEVELS else ""))
         return {"W": None, "trials": trials, "top": pd.DataFrame()}
     feas_rows = trials[(trials["gio_cong"] == w) & (trials["kha_thi"] == "Y")]
     feas_rows = feas_rows.sort_values("sl_gio_te_nhat_low", ascending=False).head(top_k)
@@ -203,7 +213,9 @@ def optimize_p_day_shifts(model: Model, sipp: List[int], cv_day: float, min_p: f
     dung o W nho nhat co lich dat, chon lich co P cao nhat.
     """
     w = w_start
-    while w <= w_max:
+    n_levels = 0
+    while w <= w_max and not (MAX_W_LEVELS and n_levels >= MAX_W_LEVELS):
+        n_levels += 1
         cands = coverage_vectors(w, sipp, lunch_window)
         # Sang loc: P uoc luong bang n_screen lan lap (dai seed rieng), giu top_screen roi danh gia day du
         screened = []
