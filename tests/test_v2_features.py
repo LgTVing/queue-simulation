@@ -11,14 +11,7 @@ import pytest
 import b_shifts
 from common import Model, exp_service
 import c_sim as cs
-
-def poisson_label(p):
-    if p < 0.01:
-        return "Bác bỏ (mạnh)"
-    elif p < 0.05:
-        return "Bác bỏ (nhẹ)"
-    else:
-        return "Chưa bác bỏ"
+from a_data import poisson_label  # T4: kiem ham that, khong kiem ban sao
 
 def test_poisson_labels_strict():
     """Kiem tra quy tac gan nhan Poisson khong bao gio nhan sai cho p < 0.05."""
@@ -131,6 +124,9 @@ def test_holm_bonferroni_adjustment():
     for r, a in zip(raw_p, adj_p):
         assert a >= r
         assert a <= 1.0
+    # Gia tri tinh tay: 0.01*4, max(0.03*3, 0.04), max(0.04*2, 0.09), 0.80*1
+    np.testing.assert_allclose(adj_p, [0.04, 0.09, 0.09, 0.80])
+    assert list(reject) == [True, False, False, False]
 
 def test_early_hour_predictor_correlation():
     """Kiem tra tuong quan giua so luong khach 8h-10h va tong luu luong ngay tren du lieu 14 ngay."""
