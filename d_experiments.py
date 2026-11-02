@@ -37,9 +37,10 @@ plt.rcParams.update({
     "grid.alpha": 0.4
 })
 
-# Seed: bo chon lich (toi uu) tach biet bo danh gia cuoi (tranh selection bias, M5)
-SEED_SELECT = 1000
-SEED_EVAL = 50000
+# Seed: bo chon lich (toi uu) va bo danh gia cuoi (M5); dai lay tu common.SEED_BANDS (F4).
+# Luu y: 2 dai trung 11/300 lan lap (giu de khong doi so V5, KE_HOACH_V5_1 F4).
+SEED_SELECT = common.SEED_BANDS["select"][0]
+SEED_EVAL = common.SEED_BANDS["eval"][0]
 
 SCHEDULES_FILE = "lich_khuyen_nghi.json"
 

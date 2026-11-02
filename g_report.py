@@ -308,7 +308,11 @@ def write_mo_ta() -> str:
         f"- **Môi trường:** Python {sys.version.split()[0]}, SimPy {simpy.__version__}, NumPy {numpy.__version__}, "
         f"SciPy {scipy.__version__}, pandas {pandas.__version__}, Matplotlib {matplotlib.__version__}",
         f"- **Lệnh tái lập:** `python main.py --stage all --reps-scale {log.get('reps_scale', common.REPS_SCALE)}`",
-        f"- **Seed:** chọn lịch `seed_base={dx.SEED_SELECT}`, đánh giá cuối `seed_base={dx.SEED_EVAL}` (tách biệt để tránh selection bias)",
+        f"- **Seed:** chọn lịch `seed_base={dx.SEED_SELECT}`, đánh giá cuối `seed_base={dx.SEED_EVAL}` "
+        f"(bước {common.SEED_STEP}; hai dải trùng "
+        f"{len(set(common.seed_range('select')) & set(common.seed_range('eval')))}/{common.SEED_BANDS['eval'][1]} lần lặp, "
+        f"giữ để không đổi số V5); M7 đánh giá độc lập `seed_base={common.SEED_BANDS['eval_day'][0]}` "
+        f"({common.SEED_BANDS['eval_day'][1]} lần lặp). Sổ đăng ký: `common.SEED_BANDS`",
         "- **Mô hình chính:** NHPP theo giờ (F2), phục vụ thực nghiệm lấy mẫu từ train (M3), bỏ về mũ θ, "
         "VIP ưu tiên không ngắt, xả hàng giữ số quầy giờ cuối (F1)",
     ]

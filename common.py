@@ -25,6 +25,30 @@ BASELINE_C = 6
 # He so nhan so lan lap (--reps-scale); 0.1 de chay nhanh khi phat trien
 REPS_SCALE = 1.0
 
+# =============================================================================
+# SO DANG KY DAI SEED (F4, docs/KE_HOACH_V5_1.md)
+# =============================================================================
+# Lan lap i cua c_sim.run_reps dung seed_base + SEED_STEP * i. Moi dai: (seed_base, so lan lap toi da).
+# Cap "chon lich / danh gia" cua cung mot thi nghiem khong duoc giao nhau (tests/test_f4_seeds.py).
+# Dai chung giua cac cau hinh khac nhau la CRN (co y), khong phai loi.
+SEED_STEP = 1000
+SEED_BANDS = {
+    "select": (1000, 60),             # optimize_schedule, Pha 3, M1-M3, S12, S15, M6 chon lich
+    "eval": (50000, 300),             # danh gia chinh sach, M6 xac nhan. Trung 11/300 voi "select";
+                                      # giu de khong doi so V5 (KE_HOACH_V5_1 F4, phuong an A)
+    "robust_day": (81000, 300),       # M6 do ben: bien dong ngay
+    "robust_demand": (131000, 150),   # M6 do ben: nhu cau +10%
+    "select_day": (3000, 300),        # M7 chon lich co bien dong ngay
+    "screen_day": (503000, 100),      # M7 sang loc
+    "eval_day": (20_000_000, 2000),   # M7 danh gia doc lap (F5)
+}
+
+
+def seed_range(name: str, n: Optional[int] = None) -> range:
+    """Cac seed thuc te cua dai `name` khi chay n lan lap (mac dinh so lan lap toi da)."""
+    base, n_max = SEED_BANDS[name]
+    return range(base, base + SEED_STEP * (n_max if n is None else n), SEED_STEP)
+
 def set_reps_scale(scale: float) -> None:
     """Dat he so nhan so lan lap cho toan bo pipeline."""
     global REPS_SCALE

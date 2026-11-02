@@ -17,13 +17,15 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
-from common import Model, TARGET_SLA, scaled
+from common import Model, TARGET_SLA, SEED_BANDS, scaled
 import b_shifts
 import c_sim as sim
 
-SEED_SELECT = 1000      # trung seed chon lich cua optimize_schedule
-SEED_EVAL = 50000       # trung seed danh gia chinh sach
-SEED_ROBUST = 81000     # bien dong ngay va nhu cau +10% cho top-k (dai seed moi)
+# Dai seed lay tu common.SEED_BANDS (F4)
+SEED_SELECT = SEED_BANDS["select"][0]           # trung seed chon lich cua optimize_schedule
+SEED_EVAL = SEED_BANDS["eval"][0]               # trung seed danh gia chinh sach
+SEED_ROBUST = SEED_BANDS["robust_day"][0]       # bien dong ngay cho top-k
+SEED_ROBUST_DEMAND = SEED_BANDS["robust_demand"][0]  # nhu cau +10% cho top-k
 
 
 def coverage_vectors(W: int, lower: List[int], lunch_window: Tuple[int, int] = (3, 5)) -> Dict[tuple, List[int]]:
@@ -114,7 +116,7 @@ def _confirm(model: Model, cov: List[int], r, cv_day: float) -> Dict:
         out["P_SL_ngay_ge90"] = float(np.mean(np.asarray(bd["rep_sl_day"]) >= TARGET_SLA))
     m_up = Model(rates=[x * 1.1 for x in model.rates], service=model.service, theta=model.theta,
                  p_vip=model.p_vip, hour_len=model.hour_len, mean_svc=model.mean_svc, cs2_svc=model.cs2_svc)
-    up = sim.run_reps(m_up, cov, n_reps=scaled(150), seed_base=SEED_ROBUST + 50000)
+    up = sim.run_reps(m_up, cov, n_reps=scaled(150), seed_base=SEED_ROBUST_DEMAND)
     out["nhu_cau_110_gio_te_nhat_low"] = min(h["sl_ci95_low"] for h in up["hourly"])
     return out
 
@@ -126,7 +128,10 @@ def _confirm(model: Model, cov: List[int], r, cv_day: float) -> Dict:
 # (b) can duoi Wilson cua P(SL_ngay >= 90%) >= min_p, uoc luong bang 300 lan lap co he so
 # nhan ngay (CV ngay). Moi lan lap co m_d rieng nen cac lan lap doc lap, Wilson hop le.
 
-SEED_SELECT_DAY = 3000  # dai seed chon lich co bien dong ngay (tach khoi seed danh gia 50000)
+SEED_SELECT_DAY = SEED_BANDS["select_day"][0]   # chon lich co bien dong ngay
+SEED_SCREEN_DAY = SEED_BANDS["screen_day"][0]   # sang loc
+# Danh gia doc lap dung SEED_BANDS["eval_day"] (F5). Dai 50000 cu trung 253/300 lan lap voi
+# SEED_SELECT_DAY (cung model, lich, CV ngay -> lan chay giong het), xem KE_HOACH_V5_1 F5.
 
 
 # Bo nho dem: cung model, lich, so lan lap, seed -> ket qua tat dinh, nen dung lai giua cac muc min_p
@@ -203,7 +208,7 @@ def optimize_p_day_shifts(model: Model, sipp: List[int], cv_day: float, min_p: f
         screened = []
         for cov, x in sorted(cands.items()):
             if _nominal_ok(model, list(cov)):
-                p_s = p_day(model, list(cov), cv_day, n_reps=n_screen, seed=SEED_SELECT_DAY + 500000)["p"]
+                p_s = p_day(model, list(cov), cv_day, n_reps=n_screen, seed=SEED_SCREEN_DAY)["p"]
                 screened.append((p_s, cov, x))
         screened.sort(key=lambda t: -t[0])
         best = None

@@ -18,7 +18,7 @@ import simpy
 import matplotlib.pyplot as plt
 
 from common import (
-    Model, HOURS, H_LABELS, TARGET_SLA, WAIT_THRESHOLD, WAIT_THRESHOLD_VIP,
+    Model, HOURS, H_LABELS, TARGET_SLA, WAIT_THRESHOLD, WAIT_THRESHOLD_VIP, SEED_STEP,
     mean_ci, exp_service, lognorm_service
 )
 import b_theory as th
@@ -505,7 +505,7 @@ def run_reps(
         t_start = 0.0
 
     jobs = [dict(model=model, schedule=schedule, run_time=run_time, warm_up=warm_up,
-                 seed=seed_base + i * 1000, day_cv=day_cv, drain_policy=drain_policy)
+                 seed=seed_base + i * SEED_STEP, day_cv=day_cv, drain_policy=drain_policy)
             for i in range(n_reps)]
     for st in map_sim(jobs, _rep_stats_post, (schedule, eff_hour_len, t_start)):
         reps_data.append(st)
