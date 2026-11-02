@@ -389,6 +389,32 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     p7 = p_day_levels(ctx, sch)
     _save(p7, "toi_uu_xac_suat_ngay.csv")
     fig_m7(p7)
+    print("[M9] Toi uu theo SLA rieng khach thuong...")
+    _save(regular_sla_scenario(ctx, dx.load_schedules()), "toi_uu_sla_khach_thuong.csv")
+
+
+def regular_sla_scenario(ctx: Dict, sch: Dict[str, List[int]]) -> pd.DataFrame:
+    """
+    M9: toi uu 2 pha voi rang buoc SL(5 phut) RIENG khach thuong (scope="regular", seed chon lich) thay cho
+    SL moi khach; danh gia lich do, Lich 45 va Lich 48 bang seed danh gia (300 lan lap) theo ca hai dinh nghia,
+    kem gio cong xep ca MILP (nghi trua 11h-14h, ca 8h + 4h).
+    """
+    model = ctx["model"]
+    sched_reg = dx.optimize(model, scope="regular")["schedule"]
+    print(f"  • M9: lich toi uu theo SLA khach thuong {sched_reg} = {sum(sched_reg)} q-h")
+    rows = []
+    for name, s in (("Lich 45 (SLA moi khach)", sch["toi_uu"]), ("Toi uu SLA khach thuong", sched_reg),
+                    ("Lich 48", sch["ben_vung"])):
+        res = dx.evaluate(model, s)
+        row = sim.summary_row(name, s, res)
+        worst_reg = min(res["hourly"], key=lambda x: x["sl_reg_ci95_low"])
+        row.update({"gio_te_nhat_khach_thuong": worst_reg["hour"],
+                    "sl_khach_thuong_gio_te_nhat_low": worst_reg["sl_reg_ci95_low"],
+                    "dat_sla_khach_thuong": "Y" if sim.is_schedule_feasible(res, scope="regular")[0] else "N",
+                    "gio_cong_ca": b_shifts.solve_shift_scheduling(list(s))["total_work_hours"]})
+        rows.append(row)
+    dx.save_schedules({"toi_uu_khach_thuong": sched_reg})
+    return pd.DataFrame(rows)
 
 
 SEED_EVAL_DAY, N_EVAL_DAY = SEED_BANDS["eval_day"]  # F5: dai danh gia doc lap voi seed chon lich M7

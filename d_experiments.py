@@ -153,10 +153,10 @@ def history_frame(history: List[Dict]) -> pd.DataFrame:
         "kha_thi": "Y" if h["feasible"] else "N"
     } for h in history])
 
-def optimize(model: Model, max_p_ab: Optional[float] = None) -> Dict:
-    """Toi uu 2 pha voi bo seed chon lich."""
+def optimize(model: Model, max_p_ab: Optional[float] = None, scope: str = "all") -> Dict:
+    """Toi uu 2 pha voi bo seed chon lich; scope = "regular" rang buoc SL rieng khach thuong (M9)."""
     return sim.optimize_schedule(model, target_sla=TARGET_SLA, n_reps=scaled(60),
-                                 seed_base=SEED_SELECT, max_p_ab=max_p_ab)
+                                 seed_base=SEED_SELECT, max_p_ab=max_p_ab, scope=scope)
 
 def evaluate(model: Model, sched: List[int], n_reps: int = 300, **kw) -> Dict:
     """Danh gia cuoi voi bo seed danh gia (doc lap voi bo seed chon lich)."""

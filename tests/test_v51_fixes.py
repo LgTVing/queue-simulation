@@ -74,6 +74,22 @@ def test_class_sl_gop_matches_rep_stats(seed):
     assert list(mat[0]) == [h["sl"] for h in cs.rep_stats(df, sched)["hourly"]]
 
 
+@pytest.mark.parametrize("seed", range(3))
+def test_rep_stats_sl_reg_matches_class_table(seed):
+    """M9: sl_reg cua rep_stats trung SL khach thuong cua bang F6."""
+    sched = [5, 6, 5]
+    df = cs.simulate(_loaded(), sched, seed=seed)
+    assert [h["sl_reg"] for h in cs.rep_stats(df, sched)["hourly"]] == list(dx._post_class_sl(df, sched)[1])
+
+
+def test_feasible_scope_regular():
+    """M9: scope="regular" xet sl_reg_ci95_low; mac dinh xet SL moi khach."""
+    res = {"hourly": [{"hour": 0, "sl_ci95_low": 0.93, "sl_reg_ci95_low": 0.89},
+                      {"hour": 1, "sl_ci95_low": 0.95, "sl_reg_ci95_low": 0.92}], "p_ab_mean": 0.0, "p_ab_ci_half": 0.0}
+    assert cs.is_schedule_feasible(res) == (True, [])
+    assert cs.is_schedule_feasible(res, scope="regular") == (False, [0])
+
+
 def test_class_sl_regular_not_above_all():
     sched = [5, 6, 5]
     mats = np.stack([dx._post_class_sl(cs.simulate(_loaded(), sched, seed=100 + s), sched) for s in range(20)])

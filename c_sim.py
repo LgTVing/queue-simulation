@@ -407,7 +407,8 @@ def rep_stats(
         in_h = hour_arr == h
         n_h = np.count_nonzero(in_h)
         if n_h == 0:
-            hourly.append({"hour": h, "sl": 1.0, "sl_vip": 1.0, "wq": 0.0, "p_ab": 0.0, "util": float(util_h)})
+            hourly.append({"hour": h, "sl": 1.0, "sl_vip": 1.0, "sl_reg": 1.0, "wq": 0.0, "p_ab": 0.0,
+                           "util": float(util_h)})
             continue
 
         served_h = served_mask[in_h]
@@ -416,6 +417,9 @@ def rep_stats(
         sl_h = np.count_nonzero(served_h & (wait_h <= wait_thresh)) / n_h
         n_h_vip = np.count_nonzero(vip_h)
         sl_h_vip = (np.count_nonzero(vip_h & served_h & (wait_h <= wait_thresh_vip)) / n_h_vip) if n_h_vip > 0 else np.nan
+        # M9: SL rieng khach thuong (cung nguong voi SLA chinh)
+        n_h_reg = n_h - n_h_vip
+        sl_h_reg = (np.count_nonzero(~vip_h & served_h & (wait_h <= wait_thresh)) / n_h_reg) if n_h_reg > 0 else np.nan
         wq_h = wait_h.mean()
         p_ab_h = np.count_nonzero(~served_h) / n_h
 
@@ -423,6 +427,7 @@ def rep_stats(
             "hour": h,
             "sl": float(sl_h),
             "sl_vip": float(sl_h_vip) if not np.isnan(sl_h_vip) else np.nan,
+            "sl_reg": float(sl_h_reg) if not np.isnan(sl_h_reg) else np.nan,
             "wq": float(wq_h),
             "p_ab": float(p_ab_h),
             "util": float(util_h)
@@ -606,7 +611,9 @@ def _run_reps(model, schedule, n_reps, run_time, warm_up, seed_base, day_cv, dra
             m_vip_h, ci_vip_h, (low_vip_h, _) = mean_ci(sl_vip_h)
         else:
             m_vip_h, ci_vip_h, low_vip_h = np.nan, np.nan, np.nan
-        
+        sl_reg_h = [x["sl_reg"] for x in h_list if not np.isnan(x["sl_reg"])]
+        m_reg_h, _, (low_reg_h, _) = mean_ci(sl_reg_h) if sl_reg_h else (np.nan, np.nan, (np.nan, np.nan))
+
         hourly_summary.append({
             "hour": h,
             "c": schedule[h],
@@ -616,6 +623,8 @@ def _run_reps(model, schedule, n_reps, run_time, warm_up, seed_base, day_cv, dra
             "sl_ci_half": round(ci_sl_h, 4),
             "sl_vip_mean": round(m_vip_h, 4) if not np.isnan(m_vip_h) else np.nan,
             "sl_vip_ci95_low": round(low_vip_h, 4) if not np.isnan(low_vip_h) else np.nan,
+            "sl_reg_mean": round(m_reg_h, 4) if not np.isnan(m_reg_h) else np.nan,
+            "sl_reg_ci95_low": round(low_reg_h, 4) if not np.isnan(low_reg_h) else np.nan,
             "wq_mean": round(m_wq_h, 4),
             "wq_ci_half": round(ci_wq_h, 4),
             "p_ab_mean": round(m_ab_h, 4),
@@ -791,23 +800,29 @@ def welch_curve(
 # 5. THUAT TOAN TOI UU LICH QUAY DUA TREN MO PHONG (SIMULATION OPTIMIZATION)
 # =============================================================================
 
+SLA_SCOPES = {"all": "sl_ci95_low", "regular": "sl_reg_ci95_low"}
+
+
 def is_schedule_feasible(
     eval_res: Dict,
     target_sla: float = TARGET_SLA,
-    max_p_ab: Optional[float] = None
+    max_p_ab: Optional[float] = None,
+    scope: str = "all"
 ) -> Tuple[bool, List[int]]:
     """
     Kiem tra lich co thoa man SLA (feasible) khong:
     Dung can duoi CI95 cua SL theo tung gio: sl_ci95_low >= target_sla.
+    scope (M9): "all" = SL moi khach (SLA chinh, mac dinh); "regular" = SL rieng khach thuong.
     max_p_ab (M2): neu khac None, them rang buoc can tren CI95 cua ti le bo ve
     toan ngay <= max_p_ab; khi vi pham, gio co ti le bo ve cao nhat duoc
     dua vao danh sach vi pham (de pha 1 tang quay o gio do).
     Tra ve (feasible, danh sach cac gio bi vi pham).
     """
+    col = SLA_SCOPES[scope]
     violated = []
     for h_info in eval_res["hourly"]:
         h = h_info["hour"]
-        if h_info["sl_ci95_low"] < target_sla:
+        if h_info[col] < target_sla:
             violated.append(h)
     if max_p_ab is not None and eval_res["p_ab_mean"] + eval_res["p_ab_ci_half"] > max_p_ab:
         worst_ab = max(eval_res["hourly"], key=lambda x: x["p_ab_mean"])["hour"]
@@ -822,7 +837,8 @@ def optimize_schedule(
     n_reps: int = 60,
     c_cap: int = 15,
     seed_base: int = 1000,
-    max_p_ab: Optional[float] = None
+    max_p_ab: Optional[float] = None,
+    scope: str = "all"
 ) -> Dict:
     """
     Thuat toan toi uu lich quay 2 pha dua tren mo phong SimPy:
@@ -833,11 +849,12 @@ def optimize_schedule(
     - Pha 2 (Reduction/Pruning): Thu giam 1 quay o tung gio (bat dau tu gio nhieu quay nhat).
       Giu nguyen giam neu toan bo lich van dat SLA (feasible).
     max_p_ab: rang buoc ti le bo ve toan ngay (M2), None = khong rang buoc.
+    scope: SL dung lam rang buoc (M9, xem is_schedule_feasible); lich su van ghi gio te nhat theo SL moi khach.
     Tra ve: {"schedule": optimal_schedule, "history": history, "eval": eval_final,
              "feasible": lich cuoi co dat tieu chi kha thi (F10; False khi Pha 1 het buoc / cham c_cap)}
     """
     def feasible(res):
-        return is_schedule_feasible(res, target_sla, max_p_ab)
+        return is_schedule_feasible(res, target_sla, max_p_ab, scope)
 
     if initial_schedule is None:
         import b_theory as th
