@@ -7,9 +7,14 @@ import os
 import pandas as pd
 import numpy as np
 
-def clean_data():
-    raw_path = os.path.join(r"d:\KHDV", "data", "raw", "September1999.txt")
-    clean_path = os.path.join(r"d:\KHDV", "data", "clean", "data_clean.csv")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RAW_PATH = os.path.join(BASE_DIR, "data", "raw", "September1999.txt")
+CLEAN_PATH = os.path.join(BASE_DIR, "data", "clean", "data_clean.csv")
+
+def clean_data(raw_path=None, clean_path=None):
+    # F7: duong dan tuong doi theo repo (truoc day ghi cung d:\KHDV)
+    raw_path = raw_path or RAW_PATH
+    clean_path = clean_path or CLEAN_PATH
 
     print(f"Dang doc du lieu tho tu: {raw_path}")
     df = pd.read_csv(raw_path, sep="\t", encoding="latin1", low_memory=False)
