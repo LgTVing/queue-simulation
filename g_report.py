@@ -176,7 +176,11 @@ def _v5_rows() -> List[tuple]:
         ]
     p7 = _read(os.path.join(R, "toi_uu_xac_suat_ngay.csv"))
     if p7 is not None:
-        for r in p7.dropna(subset=["lich"]).itertuples():
+        ref = p7[p7["khong_gian"] == f_scenarios.REF_P_DAY].dropna(subset=["lich"])
+        if len(ref):
+            rows.append(("P(SL ngay >= 90%) seed danh gia, Lich 48 doi chieu (M7)", None,
+                         float(ref.iloc[0]["P_ngay_danh_gia"]), "M7 (F5): cung dai seed xac nhan doc lap"))
+        for r in p7.dropna(subset=["lich", "min_p"]).itertuples():
             label = f"P(SL ngay >= 90%) >= {r.min_p:.0%}, {r.khong_gian}"
             rows += [
                 (f"Lich nho nhat dat {label} (M7)", None, r.lich, "M7"),

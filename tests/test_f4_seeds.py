@@ -12,6 +12,7 @@ from common import SEED_BANDS, SEED_STEP, seed_range
 import c_sim as cs
 import d_experiments as dx
 import h_staffing as hs
+import f_scenarios as fs
 
 
 def test_module_constants_from_registry():
@@ -19,6 +20,7 @@ def test_module_constants_from_registry():
     assert (hs.SEED_SELECT, hs.SEED_EVAL) == (dx.SEED_SELECT, dx.SEED_EVAL)
     assert hs.SEED_SELECT_DAY == SEED_BANDS["select_day"][0]
     assert hs.SEED_SCREEN_DAY == SEED_BANDS["screen_day"][0]
+    assert (fs.SEED_EVAL_DAY, fs.N_EVAL_DAY) == SEED_BANDS["eval_day"]  # F5
 
 
 def test_seed_range_matches_run_reps(monkeypatch):

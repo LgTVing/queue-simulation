@@ -594,7 +594,10 @@ def check_p_day(ck: TableChecker):
         ck.errors.append(f"7.10: tai lieu co {len(rows)} dong, toi_uu_xac_suat_ngay.csv co {len(p)}")
     for (_, r), cells in zip(p.iterrows(), rows):
         lab = f"7.10 {r['min_p']} {r['khong_gian']}"
-        ck.expect(lab + " min_p", cells[0], r["min_p"] * 100)
+        if pd.notna(r["min_p"]):
+            ck.expect(lab + " min_p", cells[0], r["min_p"] * 100)
+        elif "Lịch 48" not in cells[1]:  # dong doi chieu Lich 48 (F5): khong co muc P
+            ck.errors.append(f"{lab}: dong doi chieu phai ghi 'Lịch 48' o cot khong gian, gap '{cells[1]}'")
         _check_lich(ck, lab, cells[2], r["lich"])
         ck.expect(lab + " quay_gio", cells[3], r["quay_gio"])
         ck.expect(lab + " gio cong", cells[4], r["gio_cong_ca"])

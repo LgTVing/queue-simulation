@@ -27,7 +27,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from common import Model, HOURS, H_LABELS, TARGET_SLA, scaled, out_path, empirical_service, weibull_patience
+from common import (Model, HOURS, H_LABELS, TARGET_SLA, SEED_BANDS, scaled, out_path, empirical_service,
+                    weibull_patience)
 import a_data
 import b_theory as th
 import c_sim as sim
@@ -389,15 +390,25 @@ def run_scenarios_optimize(ctx: Dict) -> None:
     fig_m7(p7)
 
 
+SEED_EVAL_DAY, N_EVAL_DAY = SEED_BANDS["eval_day"]  # F5: dai danh gia doc lap voi seed chon lich M7
+REF_P_DAY = "doi chieu"                            # khong_gian cua dong Lich 48 doi chieu
+
+
 def p_day_levels(ctx: Dict, sch: Dict[str, List[int]], levels=(0.80, 0.90, 0.95)) -> pd.DataFrame:
     """
     M7: voi moi muc min_p, lich nho nhat co can duoi Wilson P(SL_ngay >= 90%) >= min_p
-    (bien dong ngay CV train), trong khong gian quay-gio va theo ca; danh gia lai bang seed
-    danh gia 50000 (300 lan lap) va 14 ngay thuc te.
+    (bien dong ngay CV train), trong khong gian quay-gio va theo ca; xac nhan bang dai seed
+    doc lap eval_day (N_EVAL_DAY lan lap, F5) va 14 ngay thuc te. Mot muc chi duoc neu la dat
+    khi can duoi Wilson cua lan xac nhan >= min_p (cot dat_muc_danh_gia).
+    Them dong doi chieu Lich 48 (sch["ben_vung"]) cung seed xac nhan de so theo cap.
     """
     import e_robustness as er
     model, cv = ctx["model"], ctx["params"]["day_cv"]
     rows, pols = [], {}
+
+    def confirm(lich: List[int]) -> Dict:
+        return hs.p_day(model, lich, cv, n_reps=N_EVAL_DAY, seed=SEED_EVAL_DAY)
+
     for mp in levels:
         found = {"quay-gio": (hs.optimize_p_day_counters(model, sch["toi_uu"], cv, mp)["schedule"], ""),
                  "theo ca": None}
@@ -408,16 +419,25 @@ def p_day_levels(ctx: Dict, sch: Dict[str, List[int]], levels=(0.80, 0.90, 0.95)
             if lich is None:
                 rows.append({"min_p": mp, "khong_gian": space, "lich": None})
                 continue
-            ev = hs.p_day(model, lich, cv, seed=dx.SEED_EVAL)
+            ev = confirm(lich)
             gc = b_shifts.solve_shift_scheduling(lich)["total_work_hours"]
             pols[f"{space} p>={mp:.2f}"] = lich
             rows.append({"min_p": mp, "khong_gian": space, "lich": str(lich), "quay_gio": sum(lich), "gio_cong_ca": gc,
                          "phuong_an_ca": ca, "P_ngay_danh_gia": ev["p"], "P_ngay_danh_gia_low95": ev["low"],
-                         "P_ngay_danh_gia_high95": ev["high"]})
+                         "P_ngay_danh_gia_high95": ev["high"], "dat_muc_danh_gia": "Y" if ev["low"] >= mp else "N"})
+    # Doi chieu Lich 48 cung seed xac nhan; them CUOI pols de seed 14 ngay cua cac lich tren khong doi
+    lich48 = list(sch["ben_vung"])
+    ev = confirm(lich48)
+    pols[f"{REF_P_DAY} Lich 48"] = lich48
+    rows.append({"min_p": np.nan, "khong_gian": REF_P_DAY, "lich": str(lich48), "quay_gio": sum(lich48),
+                 "gio_cong_ca": b_shifts.solve_shift_scheduling(lich48)["total_work_hours"],
+                 "phuong_an_ca": "Lich 48", "P_ngay_danh_gia": ev["p"], "P_ngay_danh_gia_low95": ev["low"],
+                 "P_ngay_danh_gia_high95": ev["high"], "dat_muc_danh_gia": "-"})
     _, summ = er.fourteen_days(model, ctx["df_all"], pols, ctx["n_day_mean"])
     ok = summ.set_index("chinh_sach")["so_ngay_dat"]
     out = pd.DataFrame(rows)
-    out["so_ngay_dat_14"] = [ok.get(f"{r.khong_gian} p>={r.min_p:.2f}") for r in out.itertuples()]
+    out["so_ngay_dat_14"] = [ok.get(f"{REF_P_DAY} Lich 48" if r.khong_gian == REF_P_DAY else f"{r.khong_gian} p>={r.min_p:.2f}")
+                             for r in out.itertuples()]
     return out
 
 def run_scenarios_robust(ctx: Dict) -> None:
