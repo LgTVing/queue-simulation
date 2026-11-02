@@ -793,7 +793,8 @@ def optimize_schedule(
     - Pha 2 (Reduction/Pruning): Thu giam 1 quay o tung gio (bat dau tu gio nhieu quay nhat).
       Giu nguyen giam neu toan bo lich van dat SLA (feasible).
     max_p_ab: rang buoc ti le bo ve toan ngay (M2), None = khong rang buoc.
-    Tra ve: {"schedule": optimal_schedule, "history": history, "eval": eval_final}
+    Tra ve: {"schedule": optimal_schedule, "history": history, "eval": eval_final,
+             "feasible": lich cuoi co dat tieu chi kha thi (F10; False khi Pha 1 het buoc / cham c_cap)}
     """
     def feasible(res):
         return is_schedule_feasible(res, target_sla, max_p_ab)
@@ -871,10 +872,14 @@ def optimize_schedule(
                 
     # Danh gia lai lich cuoi cung
     final_eval = run_reps(model, sched, n_reps=n_reps, seed_base=seed_base)
+    final_feas, final_viol = feasible(final_eval)
+    if not final_feas:
+        print(f"  [canh bao] optimize_schedule: lich {sched} khong kha thi (gio vi pham {final_viol})")
     return {
         "schedule": sched,
         "history": history,
-        "eval": final_eval
+        "eval": final_eval,
+        "feasible": final_feas
     }
 
 def local_search_phase3(

@@ -8,6 +8,7 @@ b_theory.py: Mo hinh giai tich ly thuyet hang doi:
 """
 
 import math
+import warnings
 from typing import Dict, List, Optional
 import numpy as np
 import scipy.linalg as la
@@ -172,5 +173,8 @@ def sipp_schedule(
                 found = True
                 break
         if not found:
+            # F10: khong im lang khi khong tim thay c trong 40 gia tri
+            warnings.warn(f"sipp_schedule: lam={lam:.4f} khong dat SL >= {target} voi c <= {c_start + 39}; "
+                          f"dung c = {c_start + 5}")
             schedule.append(c_start + 5)
     return schedule
