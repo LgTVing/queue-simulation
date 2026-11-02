@@ -50,12 +50,13 @@ Một điểm giao dịch có khách đến ngẫu nhiên, xếp hàng và đư�
 
 ### 1.2 Cam kết dịch vụ dùng trong dự án
 
-| Nhóm khách | Cam kết |
-|---|---|
-| Khách thường | ≥ 90% khách được phục vụ trong ≤ 5 phút kể từ lúc vào hàng |
-| Khách VIP (nếu có) | ≥ 90% khách được phục vụ trong ≤ 2 phút |
+| Chỉ số | Vai trò | Ngưỡng |
+|---|---|---|
+| SL(5 phút) của **mọi khách đến** (VIP và thường) | **SLA chính**, ràng buộc khi tối ưu: trong từng khung giờ, cận dưới CI95 ≥ 90% | ≥ 90% khách được phục vụ trong ≤ 5 phút kể từ lúc vào hàng |
+| SL(5 phút) riêng khách thường | Giám sát (báo cáo, không ràng buộc) | ≥ 90% |
+| SL(2 phút) riêng khách VIP | Giám sát (báo cáo, không ràng buộc) | ≥ 90% |
 
-Định nghĩa chính xác: **SL(t) = P(khách được phục vụ và thời gian chờ ≤ t)**, tính trên **mọi khách đến**. Khách bỏ về được tính là không đạt. Đây là định nghĩa bảo thủ, cần ghi rõ trong báo cáo.
+Định nghĩa chính xác: **SL(t) = P(khách được phục vụ và thời gian chờ ≤ t)**, tính trên **mọi khách đến**. Khách bỏ về được tính là không đạt. Đây là định nghĩa bảo thủ, cần ghi rõ trong báo cáo. Hai chỉ số giám sát nằm ở `results/final_v5/sl_theo_nhom.csv` (V5.1, F6): riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h, Lịch 48 đạt ở mọi giờ.
 
 ### 1.3 Mục tiêu cụ thể
 
@@ -398,7 +399,7 @@ Lưu ý: ở tầng 3, sai lệch phản ánh cả sai số xấp xỉ của cô
 ### 11.1 Thuật toán tối ưu dựa trên mô phỏng
 
 1. Khởi tạo bằng lịch SIPP từ lý thuyết.
-2. **Pha 1 (tăng):** chạy mô phỏng với CRN. Giờ nào vi phạm SLA (cận dưới CI95 của `SL` thường hoặc `SL` VIP dưới mục tiêu) thì tăng 1 quầy. Lặp đến khi mọi giờ đạt.
+2. **Pha 1 (tăng):** chạy mô phỏng với CRN. Giờ nào vi phạm SLA (cận dưới CI95 của `SL` mọi khách dưới mục tiêu) thì tăng 1 quầy. Lặp đến khi mọi giờ đạt.
 3. **Pha 2 (giảm):** thử bớt 1 quầy ở từng giờ (bắt đầu từ giờ đang nhiều quầy nhất). Giữ lại nếu toàn bộ lịch vẫn đạt SLA.
 4. Đánh giá lịch cuối bằng nhiều lần lặp mới với seed khác.
 
@@ -553,7 +554,8 @@ Số liệu từ `results/final_v5/` (Anonymous Bank, 14 ngày, 9.836 khách; th
 ### 15.5 Bổ sung V5: giờ công, xác suất đạt SLA ngày, tăng quầy theo hàng chờ
 
 - **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. Ở 44 giờ công không cách nào đạt SLA; ở 48 giờ công có 33/94 cách đạt, tốt nhất là Lịch 48 (4 ca 8h + 4 ca 4h). **Kết luận: tối thiểu 48 giờ công/ngày, xếp theo Lịch 48.**
-- **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công; ≥ 95% số ngày cần 52 giờ công.
+- **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công (Lịch 48: 94,5% [93,5%; 95,5%], xác nhận bằng 2.000 lần lặp với dải seed độc lập, V5.1); ≥ 95% số ngày cần 52 giờ công.
+- **SL theo nhóm khách (V5.1):** SLA chính tính trên mọi khách. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả SL mọi khách, SL khách thường và SL VIP (≤ 2 phút) ở mọi giờ (`sl_theo_nhom.csv`).
 - **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút: trung bình 46,17 quầy-giờ mở, đạt SLA ở 97,3% số ngày (Lịch 48 cố định: 94,0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.
 - **Kiểm tra giả định (S12, S15):** kiên nhẫn Weibull khớp dữ liệu tốt hơn mũ nhưng lịch tối ưu vẫn 45 quầy-giờ; λ theo nửa giờ chỉ khác rõ ở 8h–9h và không đổi tổng quầy-giờ; nghỉ trưa linh hoạt 9h–16h vẫn cần 48 giờ công.
 - **Ngày phục vụ chậm như ngày 10:** không lịch nào giữ được giờ tệ nhất ≥ 90%; mở thêm quầy nâng giờ tệ nhất từ 0,82 lên 0,87.

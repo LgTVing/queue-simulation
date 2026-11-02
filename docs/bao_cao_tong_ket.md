@@ -34,8 +34,8 @@
 Mở ít quầy thì khách chờ lâu và bỏ về; mở nhiều quầy thì tốn chi phí và quầy rảnh. Câu hỏi: **số quầy tối thiểu theo từng khung giờ để đạt cam kết dịch vụ là bao nhiêu, và kết luận đó bền đến đâu?**
 
 ### 1.2 Cam kết dịch vụ
-1. **Khách thường:** $SL = P(\text{được phục vụ và } W_q \le 5\text{ phút}) \ge 90\%$.
-2. **Khách ưu tiên (VIP, khoảng 35% khách):** $P(W_q \le 2\text{ phút}) \ge 90\%$ (theo dõi, không dùng làm ràng buộc chọn lịch).
+1. **SLA chính, tính trên mọi khách đến (VIP và thường):** $SL = P(\text{được phục vụ và } W_q \le 5\text{ phút}) \ge 90\%$. Đây là ràng buộc duy nhất khi chọn lịch, vì Erlang C, Erlang-A và SIPP không tách nhóm khách.
+2. **Hai chỉ số giám sát (không ràng buộc):** $SL(5)$ riêng khách thường và $P(W_q \le 2\text{ phút})$ riêng khách VIP (khoảng 35% khách), báo cáo ở `sl_theo_nhom.csv` (V5.1). Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả ba chỉ số ở mọi giờ.
 3. **Khách bỏ về tính là không đạt.** Mẫu số là mọi khách đến:
    $$SL = \frac{\text{Số khách được phục vụ với } W_q \le 5}{\text{Tổng số khách đến}}$$
 4. **Tiêu chí khả thi của lịch:** cận dưới CI95 của SL **ở mọi giờ** $\ge 0.90$.
@@ -242,7 +242,7 @@ Với $c \approx a + \beta\sqrt a$, $\beta$ gần như không đổi (0.57–0.6
 5. **Hiệu suất theo giờ** tính theo thời gian bận thực tế giao với khung giờ (F3).
 
 ### 7.2 Số ngẫu nhiên chung (CRN) và tách seed
-$\text{seed}_i = \text{seed}_{\text{base}} + 1000 i$. Các chính sách so sánh trên cùng chuỗi khách. **Chọn lịch dùng seed 1000 (60 lần lặp); đánh giá dùng seed 50000 (300 lần lặp)** để tránh thiên lệch chọn lựa.
+$\text{seed}_i = \text{seed}_{\text{base}} + 1000 i$. Các chính sách so sánh trên cùng chuỗi khách. **Chọn lịch dùng seed 1000 (60 lần lặp); đánh giá dùng seed 50000 (300 lần lặp)** để tránh thiên lệch chọn lựa. Hai dải này trùng 11/300 lần lặp (giữ để không đổi số V5; đánh giá lại bằng dải seed tách hẳn cho Lịch 45 giờ tệ nhất 0.914, vẫn khả thi). Mọi dải seed khai báo trong `common.SEED_BANDS`, có test kiểm tra không giao nhau (V5.1).
 
 ### 7.3 Khởi động (Welch)
 Ở hệ dừng tải cao ($\rho = 0.9$), thời gian chờ ổn định sau khoảng 200 khách: các thí nghiệm kiểm chứng hệ dừng bỏ 500 phút đầu. Mô phỏng ngày làm việc **không** cắt warm-up vì chi nhánh thực sự mở cửa với hệ thống trống.
@@ -339,15 +339,15 @@ Câu hỏi quản lý là ít giờ công nhân viên nhất mà vẫn đạt SL
 
 ### 9.6 Chọn lịch theo xác suất đạt SLA ngày (M7, `toi_uu_xac_suat_ngay.csv`)
 
-Lịch khả thi khi đạt tiêu chí danh định theo giờ **và** cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$ (300 lần lặp có hệ số nhân ngày, $CV$ 14.0%) không nhỏ hơn mức $P$ tối thiểu. Đánh giá lại bằng seed 50000:
+Lịch khả thi khi đạt tiêu chí danh định theo giờ **và** cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$ (300 lần lặp có hệ số nhân ngày, $CV$ 14.0%, seed chọn 3000) không nhỏ hơn mức $P$ tối thiểu. Lịch tìm được **xác nhận bằng dải seed độc lập** (20.000.000, 2.000 lần lặp, V5.1); một mức chỉ được nêu là đạt khi cận dưới Wilson của lần xác nhận không nhỏ hơn mức đó. (V5.0 đánh giá lại bằng seed 50000, trùng 253/300 lần lặp với seed chọn lịch.)
 
-| Mức $P$ tối thiểu | Lịch nhỏ nhất theo ca | Giờ công | $P$ seed đánh giá | Lịch nhỏ nhất theo quầy-giờ | Quầy-giờ / giờ công |
+| Mức $P$ tối thiểu | Lịch nhỏ nhất theo ca | Giờ công | $P$ xác nhận độc lập (Wilson 95%) | Lịch nhỏ nhất theo quầy-giờ | Quầy-giờ / giờ công |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| 80% | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 95.0% | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 45 / 48 |
-| 90% | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 95.0% | `[4, 6, 6, 6, 5, 5, 5, 6, 5]` | 48 / 52 |
-| 95% | `[4, 6, 7, 7, 5, 6, 6, 6, 5]` | 52 | 99.3% | `[5, 6, 6, 6, 6, 5, 5, 6, 5]` | 50 / 52 |
+| 80% | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 93.7% [92.5%, 94.7%] | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 45 / 48 |
+| 90% | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 93.7% [92.5%, 94.7%] | `[4, 6, 6, 6, 5, 5, 5, 6, 5]` | 48 / 52 |
+| 95% | `[4, 6, 7, 7, 5, 6, 6, 6, 5]` | 52 | 98.9% [98.3%, 99.2%] | `[5, 6, 6, 6, 6, 5, 5, 6, 5]` | 50 / 52 |
 
-Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công (Lịch 48 với 94.7% không khác biệt có ý nghĩa so với lịch M7 và có giờ tệ nhất danh định tốt hơn); $\ge 95\%$ số ngày cần **52 giờ công**. Lịch tìm trong không gian quầy-giờ thường không phủ đúng bằng ca và tốn thêm giờ công.
+Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công: trên cùng dải xác nhận, **Lịch 48 đạt 94.5% [93.5%, 95.5%]**, không kém lịch M7 và có giờ tệ nhất danh định tốt hơn, nên Lịch 48 là lịch duy nhất được khuyến nghị. $\ge 95\%$ số ngày cần **52 giờ công** (ở 48 giờ công cận trên chỉ 95.5%). Lịch tìm trong không gian quầy-giờ thường không phủ đúng bằng ca và tốn thêm giờ công.
 
 ### 9.7 Mở thêm quầy trong ngày theo hàng chờ (M8, `chinh_sach_tang_quay.csv`)
 

@@ -147,7 +147,7 @@
   - Có biến động ngày: $P(SL_{\text{ngày}} \ge 90\%)$ = 85.7% (Lịch 45) và 95.0% (Lịch 48).
   - Nhu cầu +10%: giờ tệ nhất Lịch 45 còn **87.9%**, Lịch 48 còn **90.9%**.
   - Lịch 45 đạt SL đến khoảng **803 khách/ngày** (trung bình train là 687).
-  - **Chọn lịch theo xác suất đạt SLA ngày (M7):** đạt SLA ở $\ge 90\%$ số ngày cần **48 giờ công**; $\ge 95\%$ số ngày cần **52 giờ công**.
+  - **Chọn lịch theo xác suất đạt SLA ngày (M7):** đạt SLA ở $\ge 90\%$ số ngày cần **48 giờ công** (Lịch 48: 94.5% [93.5%, 95.5%], xác nhận độc lập 2.000 lần lặp); $\ge 95\%$ số ngày cần **52 giờ công**.
 - **Thời lượng:** 1:30 | **Người trình bày:** Thành viên C
 
 ---
@@ -230,3 +230,9 @@
 
 9. **Các giả định (kiên nhẫn mũ, λ cố định trong giờ) có làm sai kết luận không?**
    *Trả lời:* Đã kiểm tra cả hai. Kiên nhẫn Weibull khớp dữ liệu tốt hơn nhưng lịch tối ưu vẫn 45 quầy-giờ. λ theo nửa giờ chỉ khác rõ ở 8h–9h và cũng không đổi tổng quầy-giờ. Nghỉ trưa linh hoạt 9h–16h không giảm được giờ công dưới 48.
+
+10. **SLA tính gộp mọi khách hay riêng khách thường? Nếu riêng thì Lịch 45 còn đạt không?**
+   *Trả lời:* SLA chính tính trên mọi khách đến, vì Erlang C, Erlang-A và SIPP không tách nhóm khách. Riêng khách thường (VIP được ưu tiên nên khách thường chờ lâu hơn), Lịch 45 hụt ở 11h–12h (cận dưới 0.8997); Lịch 48 đạt cả SL mọi khách (0.9327), SL khách thường (0.9133) và SL VIP ≤ 2 phút (0.9425) ở mọi giờ. Khuyến nghị Lịch 48 không phụ thuộc cách định nghĩa (`sl_theo_nhom.csv`).
+
+11. **Xác suất đạt SLA theo ngày có bị đánh giá trên chính dữ liệu đã dùng để chọn lịch không?**
+   *Trả lời:* Ở V5.0 có: dải seed đánh giá trùng 253/300 lần lặp với dải chọn lịch. V5.1 xác nhận lại bằng dải seed độc lập 2.000 lần lặp: Lịch 48 đạt 94.5% [93.5%, 95.5%] số ngày, nên kết luận "≥ 90% số ngày cần 48 giờ công, ≥ 95% cần 52" không đổi; các số $P$ của M7 thấp hơn bản cũ 0.4–1.3 điểm ở 5/6 dòng.

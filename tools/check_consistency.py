@@ -97,7 +97,7 @@ def check_numeric_consistency():
         "toi_uu_rang_buoc_bo_ve.csv", "gio_te_nhat.csv", "doi_chieu_v4_v5.csv", "params.json", "pytest_log.txt",
         "toi_uu_theo_ca.csv", "toi_uu_theo_ca_top.csv", "toi_uu_xac_suat_ngay.csv", "chinh_sach_tang_quay.csv",
         "toi_uu_theo_ca_linh_hoat.csv", "toi_uu_theo_ca_linh_hoat_top.csv", "kien_nhan_weibull_fit.csv",
-        "kien_nhan_weibull.csv", "lambda_nua_gio.csv", "khung_30_phut.csv",
+        "kien_nhan_weibull.csv", "lambda_nua_gio.csv", "khung_30_phut.csv", "sl_theo_nhom.csv",
     ]
     missing = [f for f in required if not os.path.exists(os.path.join(RESULTS, f))]
     if missing:
@@ -110,7 +110,7 @@ def check_numeric_consistency():
     checker = TableChecker(md)
     for check in (check_decision_table, check_data_summary, check_lambda_table, check_erlang_table,
                   check_distribution_fits, check_verification, check_policy_table, check_cv_sensitivity,
-                  check_fourteen_days, check_out_of_sample, check_sensitivity, check_service_dist,
+                  check_fourteen_days, check_class_sl, check_out_of_sample, check_sensitivity, check_service_dist,
                   check_cost_table, check_phase3, check_patience, check_abandon_constraint,
                   check_shift_staffing, check_p_day, check_surge, check_forecast, check_weibull,
                   check_half_hour):
@@ -603,7 +603,29 @@ def check_p_day(ck: TableChecker):
         ck.expect(lab + " gio cong", cells[4], r["gio_cong_ca"])
         for idx, c in enumerate(("P_ngay_danh_gia", "P_ngay_danh_gia_low95", "P_ngay_danh_gia_high95")):
             ck.expect(lab + " " + c, cells[5], r[c] * 100, idx)
-        ck.expect(lab + " 14 ngay", cells[6], r["so_ngay_dat_14"])
+        dat = {"Y": "Đạt", "N": "Không", "-": "–"}[r["dat_muc_danh_gia"]]
+        ck.n_checked += 1
+        if cells[6] != dat:
+            ck.errors.append(f"{lab} dat muc: tai lieu '{cells[6]}', CSV '{dat}'")
+        ck.expect(lab + " 14 ngay", cells[7], r["so_ngay_dat_14"])
+
+
+def check_class_sl(ck: TableChecker):
+    """4.6 (F6): gio te nhat (can duoi CI95) cua SL moi khach, khach thuong, VIP theo chinh sach."""
+    s = _csv("sl_theo_nhom.csv")
+    groups = list(s.groupby("chinh_sach", sort=False))
+    rows = [c for c in ck.rows("### 4.6")[1:] if len(c) == 6]
+    if len(rows) != len(groups):
+        ck.errors.append(f"4.6: tai lieu co {len(rows)} dong, sl_theo_nhom.csv co {len(groups)} chinh sach")
+    for (name, g), cells in zip(groups, rows):
+        lab = f"4.6 {name}"
+        _check_lich(ck, lab, cells[1], g["lich_quay"].iloc[0])
+        for col, key in ((2, "gop"), (3, "thuong"), (5, "vip")):
+            w = g.loc[g[f"sl_{key}_ci95_low"].idxmin()]
+            ck.expect(f"{lab} {key}", cells[col], w[f"sl_{key}_ci95_low"])
+            if f"({w['khung_gio']})" not in cells[col].replace(" ", ""):
+                ck.errors.append(f"{lab} {key}: gio te nhat tai lieu '{cells[col]}', CSV {w['khung_gio']}")
+        ck.expect(f"{lab} so gio thuong < 90%", cells[4], int((g["sl_thuong_ci95_low"] < 0.90).sum()))
 
 
 def check_surge(ck: TableChecker):

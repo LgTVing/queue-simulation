@@ -1,5 +1,18 @@
 # NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG)
 
+## v5.1 — Sửa sau rà soát mã (2026-11-02, `docs/KE_HOACH_V5_1.md`)
+
+**Kết luận không đổi:** tối thiểu 48 giờ công/ngày theo Lịch 48; ≥ 90% số ngày đạt SLA cần 48 giờ công, ≥ 95% cần 52. Chạy lại giai đoạn `optimize` và `report` (11.1 phút): mọi CSV và hình khác giống từng byte với V5.0; bản V5.0 của các tệp đổi ở `results/archive/final_v5_0/`.
+
+- **F5 (M7 xác nhận độc lập):** dải seed đánh giá cũ (50000, 300 lần lặp) trùng 253/300 lần lặp với seed chọn lịch M7 (3000), nên "đánh giá lại" thực chất chạy lại trong mẫu. Xác nhận bằng `SEED_BANDS["eval_day"]` (20.000.000, 2.000 lần lặp); thêm cột `dat_muc_danh_gia` và dòng đối chiếu Lịch 48 vào `toi_uu_xac_suat_ngay.csv`. Lựa chọn lịch không đổi; $P$ thấp hơn bản cũ 0.4–1.3 điểm ở 5/6 dòng (ví dụ lịch M7 48 giờ công 95.0% → 93.7%); Lịch 48 đạt 94.5% [93.5%, 95.5%].
+- **F6 (định nghĩa SLA):** chốt SLA chính là SL(5 phút) trên mọi khách (khớp mã và mọi số V5). README §1.2, §11.1, `docs/dac_ta_mo_hinh.md`, báo cáo 1.2 sửa theo; tệp mới `sl_theo_nhom.csv` báo cáo SL khách thường và SL VIP ≤ 2 phút để giám sát. Riêng khách thường, Lịch 45 hụt ở 11h–12h (0.8997); Lịch 48 đạt cả ba chỉ số ở mọi giờ. `tong_hop.md` mục 4.6 mới.
+- **F4 (sổ đăng ký seed):** `common.SEED_BANDS`, `seed_range`; các module đọc từ sổ, giá trị seed giữ nguyên. `tests/test_f4_seeds.py` kiểm các cặp chọn/đánh giá không giao nhau; hai trùng lặp đã biết đánh dấu xfail có lý do (optimize/M6 11/300, S5). `MO_TA.md` ghi đúng mức trùng thay cho "tách biệt".
+- **F7:** `data/lam_sach.py` dùng đường dẫn tương đối (trước ghi cứng `d:\KHDV`); `tests/test_f7_clean.py` sinh lại và khớp `data_clean.csv` từng giá trị.
+- **F8:** gỡ dữ liệu thô Anonymous Bank khỏi repo công khai (điều khoản chỉ cho phép dùng, kèm thông báo và ghi nguồn); `data/raw/README.md` hướng dẫn tải. Giữ `data_clean.csv` kèm ghi nguồn.
+- **F10:** `optimize_schedule` trả thêm `feasible`; `sipp_schedule` cảnh báo khi dùng giá trị dự phòng.
+- **T4:** `test_poisson_labels_strict` kiểm `a_data.poisson_label` thật (trước kiểm bản sao); test Holm–Bonferroni kiểm giá trị.
+- Checker thêm `check_class_sl` (mục 4.6), cột "Đạt mức" và dòng đối chiếu ở mục 7.10: 1.546 giá trị, 0 lệch. Báo cáo 7.2, 9.6; slide 10, Q&A 10–11; README §15.5.
+
 ## v5.0 — Đóng băng `results/final_v5/` (2026-10-30, `docs/KE_HOACH_V5.md`)
 
 **Kết luận mới:** tối thiểu **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (M6). Đạt SLA ở ≥ 95% số ngày cần 52 giờ công (M7). Có 1 người dự phòng: Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút (M8). Kết luận vững khi đổi kiên nhẫn sang Weibull (S12), λ theo nửa giờ (S15) hay nghỉ trưa linh hoạt 9h–16h (M6). Mọi số của V4 giữ nguyên.

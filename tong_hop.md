@@ -334,6 +334,22 @@ Mô phỏng 40 lần lặp/ngày với $m_d = N_d / 686.7$, Student-t CI ($df=39
 | 13 | Test | 728 | 0.9248 | [0.918, 0.932] | **Đạt** | 0.9507 | [0.945, 0.956] | **Đạt** | 0.9680 | **Đạt** |
 | **Tổng kết** | - | **TB 702.6** | **12/14 ngày (85.7%)** | **Wilson 95%: [60.1%, 96.0%]** | - | **14/14 ngày (100.0%)** | **Wilson 95%: [78.5%, 100.0%]** | - | **14/14 ngày (100.0%)** | **Wilson 95%: [78.5%, 100.0%]** |
 
+### 4.6 SL theo nhóm khách: SLA chính và hai chỉ số giám sát (F6, V5.1)
+
+SLA chính (ràng buộc khi tối ưu) là $SL(5)$ của **mọi khách đến**, vì Erlang C, Erlang-A và SIPP không tách nhóm khách. Hai chỉ số giám sát: $SL(5)$ riêng khách thường và $SL(2)$ riêng khách VIP. Cùng 300 lần lặp và seed đánh giá `50000` với mục 4.1 nên cột SL mọi khách trùng cột "Giờ tệ nhất" ở đó (`results/final_v5/sl_theo_nhom.csv`). Mỗi ô là cận dưới CI95 của giờ tệ nhất theo chỉ số đó.
+
+| Chính sách | Lịch | Mọi khách $\le 5$ phút (SLA chính) | Khách thường $\le 5$ phút | Số giờ khách thường $< 90\%$ | VIP $\le 2$ phút |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Mốc cơ sở 6 quầy | `[6, 6, 6, 6, 6, 6, 6, 6, 6]` | 0.9494 (10h-11h) | 0.9324 (10h-11h) | 0 | 0.9658 (10h-11h) |
+| SIPP (Erlang C) | `[4, 6, 6, 6, 5, 5, 5, 5, 5]` | 0.9276 (14h-15h) | 0.9056 (14h-15h) | 0 | 0.9424 (14h-15h) |
+| SIPP (Erlang-A) | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` | 0.9044 (16h-17h) | 0.8775 (16h-17h) | 2 | 0.9158 (16h-17h) |
+| Lịch 45 (tối ưu mô phỏng) | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 0.9236 (11h-12h) | 0.8997 (11h-12h) | 1 | 0.9420 (8h-9h) |
+| **Lịch 48** (bền vững +10%) | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | 0.9327 (15h-16h) | 0.9133 (15h-16h) | 0 | 0.9425 (8h-9h) |
+| Theo ca 8h (MILP) | `[8, 8, 8, 6, 5, 5, 8, 8, 8]` | 0.9462 (12h-13h) | 0.9312 (12h-13h) | 0 | 0.9548 (13h-14h) |
+
+- VIP được ưu tiên nên SL khách thường thấp hơn SL mọi khách 1.5–2.7 điểm ở giờ tệ nhất; SL VIP ($\le 2$ phút) không giờ nào dưới 90%.
+- **Riêng khách thường, Lịch 45 hụt ở 11h-12h** (cận dưới 0.8997, kiểm thêm trên hai dải seed độc lập: 0.8867 và 0.8932). **Lịch 48 đạt cả ba chỉ số ở mọi giờ**, nên khuyến nghị chính không phụ thuộc cách định nghĩa SLA.
+
 ---
 
 ## 5. ĐÁNH GIÁ NGOÀI MẪU VỚI KHOẢNG DỰ BÁO 95% (PI95) VÀ HOLM-BONFERRONI (S6, M4)
@@ -544,19 +560,21 @@ Nghỉ trưa linh hoạt mở rộng không gian xếp ca (231 độ phủ ở 4
 
 ### 7.10 Chọn lịch theo xác suất đạt SLA ngày khi có biến động ngày (M7)
 
-Lịch ở các mục trên được chọn trong kịch bản danh định, độ bền chỉ kiểm tra sau. M7 đưa biến động ngày vào tiêu chí chọn: lịch khả thi khi (a) đạt tiêu chí danh định theo giờ và (b) cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$, ước lượng bằng 300 lần lặp có hệ số nhân ngày ($CV$ 14.0%, seed chọn `3000`), không nhỏ hơn mức $P$ tối thiểu. Tìm trong hai không gian: quầy-giờ (tham lam hai pha như thuật toán chính) và theo ca (khung M6). Lịch tìm được đánh giá lại bằng seed `50000` và 14 ngày thực tế (`results/final_v5/toi_uu_xac_suat_ngay.csv`):
+Lịch ở các mục trên được chọn trong kịch bản danh định, độ bền chỉ kiểm tra sau. M7 đưa biến động ngày vào tiêu chí chọn: lịch khả thi khi (a) đạt tiêu chí danh định theo giờ và (b) cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$, ước lượng bằng 300 lần lặp có hệ số nhân ngày ($CV$ 14.0%, seed chọn `3000`), không nhỏ hơn mức $P$ tối thiểu. Tìm trong hai không gian: quầy-giờ (tham lam hai pha như thuật toán chính) và theo ca (khung M6). Lịch tìm được **xác nhận bằng dải seed độc lập** (`20000000`, 2.000 lần lặp, V5.1) và 14 ngày thực tế; một mức chỉ được nêu là đạt khi cận dưới Wilson của lần xác nhận không nhỏ hơn mức đó (`results/final_v5/toi_uu_xac_suat_ngay.csv`). V5.0 đánh giá lại bằng seed `50000` (300 lần lặp), trùng 253/300 lần lặp với seed chọn lịch; số V5.0 cao hơn số xác nhận 0.4–1.3 điểm ở 5/6 dòng (bản cũ ở `results/archive/final_v5_0/`).
 
-| Mức $P$ tối thiểu | Không gian tìm kiếm | Lịch nhỏ nhất | Quầy-giờ mở | Giờ công ca | $P(SL_{\text{ngày}} \ge 90\%)$ seed đánh giá (Wilson 95%) | Ngày thực tế đạt (/14) |
-|:---:|---|:---:|:---:|:---:|:---:|:---:|
-| 80% | quầy-giờ | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 45 | 48 | 85.7% [81.2%, 89.2%] | 12 |
-| 80% | theo ca | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 48 | 95.0% [91.9%, 96.9%] | 14 |
-| 90% | quầy-giờ | `[4, 6, 6, 6, 5, 5, 5, 6, 5]` | 48 | 52 | 95.3% [92.3%, 97.2%] | 14 |
-| 90% | theo ca | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 48 | 95.0% [91.9%, 96.9%] | 14 |
-| 95% | quầy-giờ | `[5, 6, 6, 6, 6, 5, 5, 6, 5]` | 50 | 52 | 98.0% [95.7%, 99.1%] | 14 |
-| 95% | theo ca | `[4, 6, 7, 7, 5, 6, 6, 6, 5]` | 52 | 52 | 99.3% [97.6%, 99.8%] | 14 |
+| Mức $P$ tối thiểu | Không gian tìm kiếm | Lịch nhỏ nhất | Quầy-giờ mở | Giờ công ca | $P(SL_{\text{ngày}} \ge 90\%)$ xác nhận độc lập (Wilson 95%) | Đạt mức | Ngày thực tế đạt (/14) |
+|:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| 80% | quầy-giờ | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` | 45 | 48 | 86.1% [84.5%, 87.5%] | Đạt | 12 |
+| 80% | theo ca | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 48 | 93.7% [92.5%, 94.7%] | Đạt | 14 |
+| 90% | quầy-giờ | `[4, 6, 6, 6, 5, 5, 5, 6, 5]` | 48 | 52 | 94.2% [93.0%, 95.1%] | Đạt | 14 |
+| 90% | theo ca | `[4, 5, 6, 6, 5, 5, 6, 6, 5]` | 48 | 48 | 93.7% [92.5%, 94.7%] | Đạt | 14 |
+| 95% | quầy-giờ | `[5, 6, 6, 6, 6, 5, 5, 6, 5]` | 50 | 52 | 96.8% [95.9%, 97.5%] | Đạt | 14 |
+| 95% | theo ca | `[4, 6, 7, 7, 5, 6, 6, 6, 5]` | 52 | 52 | 98.9% [98.3%, 99.2%] | Đạt | 14 |
+| – | đối chiếu: **Lịch 48** | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | 48 | 48 | 94.5% [93.5%, 95.5%] | – | 14 |
 
-- **Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công.** Lịch M7 `[4, 5, 6, 6, 5, 5, 6, 6, 5]` (95.0%) và Lịch 48 (94.7%, mục 7.9) không khác biệt có ý nghĩa; Lịch 48 có giờ tệ nhất danh định tốt hơn rõ (cận dưới 0.9273 so với 0.9064 ở seed chọn lịch, `toi_uu_theo_ca.csv`) nên vẫn là khuyến nghị.
-- **Đạt SLA ở $\ge 95\%$ số ngày cần 52 giờ công** (thêm 1 ca 4h).
+- **Đạt SLA ở $\ge 90\%$ số ngày cần 48 giờ công.** Trên cùng dải seed xác nhận, Lịch 48 (94.5%) không kém lịch M7 `[4, 5, 6, 6, 5, 5, 6, 6, 5]` (93.7%); lịch M7 được chọn vì $P$ cao trên chính các lần lặp chọn lịch. Lịch 48 còn có giờ tệ nhất danh định tốt hơn rõ (cận dưới 0.9273 so với 0.9064 ở seed chọn lịch, `toi_uu_theo_ca.csv`), nên **Lịch 48 là lịch duy nhất được khuyến nghị** cho mức 90%.
+- **Đạt SLA ở $\ge 95\%$ số ngày cần 52 giờ công** (thêm 1 ca 4h). Ở 48 giờ công cận trên chỉ 95.5% (Lịch 48), không khẳng định được mức 95%.
+- $P$ là xác suất có điều kiện trên mô hình (CV ngày 14.0%, tham số train); bất định tham số (mục 3.3) không nằm trong khoảng tin cậy này. Hai nửa 1.000 lần lặp của dải xác nhận lệch nhau 1–2.5 điểm, cùng chiều ở mọi lịch (nhiễu do mẫu hệ số nhân ngày), nên 300 lần lặp không đủ để so với ngưỡng cách vài điểm.
 - Trong không gian quầy-giờ, lịch tìm được thường không phủ đúng bằng ca: ở mức 90% lịch 48 quầy-giờ cần 52 giờ công. Chọn lịch theo quầy-giờ rồi mới xếp ca dễ tốn thêm giờ công; cần tìm thẳng trong không gian ca.
 - Mức 80% trong không gian theo ca bắt đầu tìm từ 48 giờ công vì 44 giờ công không đạt tiêu chí danh định (mục 7.9).
 
@@ -667,13 +685,15 @@ Tại `results/final_v5/doi_chieu_v4_v5.csv` (cột V4 đọc trực tiếp từ
 | Lịch tối ưu khi λ 8h–10h theo nửa giờ | - | 45 quầy-giờ | S15: tổng không đổi |
 | Thời gian chạy pipeline | 33.3 phút | 15.1 phút | P1, P2 (đã gồm M6–M8, S12, S15) |
 
+**V5.1 (2026-11-02, `docs/KE_HOACH_V5_1.md`):** chạy lại giai đoạn `optimize` và `report`; mọi CSV và hình khác giống từng byte với V5.0. Chỉ đổi: `toi_uu_xac_suat_ngay.csv` (F5: xác nhận M7 bằng dải seed độc lập 2.000 lần lặp, thêm cột `dat_muc_danh_gia` và dòng đối chiếu Lịch 48; lựa chọn lịch không đổi, $P$ giảm 0.4–1.3 điểm ở 5/6 dòng, mục 7.10), các dòng M7 của `doi_chieu_v4_v5.csv`, và tệp mới `sl_theo_nhom.csv` (F6, mục 4.6). Kết luận 48 / 52 giờ công không đổi. Bản V5.0 của các tệp đổi ở `results/archive/final_v5_0/`.
+
 ---
 
 ## 9. TỔNG KẾT KIỂM THỬ VÀ TRẠNG THÁI BÀN GIAO
 
-1. **Kiểm thử tự động:** **84 ca kiểm thử** trong `tests/` chạy thành công trong 557 giây (9.3 phút, gồm smoke test toàn pipeline) (log tại `results/final_v5/pytest_log.txt`). V5 thêm test cho chạy song song giống tuần tự (P1), checker số trong báo cáo/slide/README (T2), M6 (cả nghỉ trưa linh hoạt), chính sách tăng quầy (M8), bảng đối chiếu V4 → V5 (R4), các trường mở rộng của `Model` (giá trị tương đương mặc định cho kết quả giống hệt) và S12–S15. Smoke test toàn pipeline (`--reps-scale 0.02`) đánh dấu `slow`.
+1. **Kiểm thử tự động:** **102 ca kiểm thử** trong `tests/`: 100 pass và 2 xfail có lý do (hai trùng lặp seed đã biết, `tests/test_f4_seeds.py`), trong 635 giây (10.6 phút, gồm smoke test toàn pipeline) (log tại `results/final_v5/pytest_log.txt`). V5.1 thêm test sổ đăng ký seed (F4), tái lập làm sạch dữ liệu (F7), cờ khả thi (F10), SL theo nhóm khách (F6) và kiểm hàm `poisson_label` thật (T4). V5 thêm test cho chạy song song giống tuần tự (P1), checker số trong báo cáo/slide/README (T2), M6 (cả nghỉ trưa linh hoạt), chính sách tăng quầy (M8), bảng đối chiếu V4 → V5 (R4), các trường mở rộng của `Model` (giá trị tương đương mặc định cho kết quả giống hệt) và S12–S15. Smoke test toàn pipeline (`--reps-scale 0.02`) đánh dấu `slow`.
 2. **Pipeline:** `python main.py --stage all` chạy 6 giai đoạn trong 15.1 phút (`thoi_gian_chay.json`; V4: 33.3 phút). Mục tiêu 10 phút của P1 đạt được với phạm vi V4 cộng M6–M8 (9.9 phút); thêm S12, S15 và biến thể M6 nâng lên 15.1 phút. Các lần lặp chạy song song (`c_sim.map_sim`), số tiến trình đặt bằng biến môi trường `QS_WORKERS` (mặc định `min(CPU − 1, 8)`; `QS_WORKERS=1` chạy tuần tự, cho kết quả giống hệt). `results/final_v5/MO_TA.md` sinh tự động, liệt kê nguồn của từng tệp.
-3. **Kiểm tra nhất quán:** `tools/check_consistency.py` quét thuật ngữ không có căn cứ, đối chiếu số trong các bảng chính của tài liệu này (1, 2.1, 2.2, 2.4, 2.5, 3.1, 4.1, 4.2, 4.4, 4.5, 5, 7.1–7.6, 7.9–7.13) với `data/clean/data_clean.csv` và CSV trong `results/final_v5/`, và đối chiếu số trong báo cáo, slide, README (T2). CI (`.github/workflows/ci.yml`) chạy test không `slow` và checker mỗi lần push.
+3. **Kiểm tra nhất quán:** `tools/check_consistency.py` quét thuật ngữ không có căn cứ, đối chiếu số trong các bảng chính của tài liệu này (1, 2.1, 2.2, 2.4, 2.5, 3.1, 4.1, 4.2, 4.4–4.6, 5, 7.1–7.6, 7.9–7.13) với `data/clean/data_clean.csv` và CSV trong `results/final_v5/`, và đối chiếu số trong báo cáo, slide, README (T2). CI (`.github/workflows/ci.yml`) chạy test không `slow` và checker mỗi lần push.
 
 ---
 
@@ -690,3 +710,5 @@ Tại `results/final_v5/doi_chieu_v4_v5.csv` (cột V4 đọc trực tiếp từ
 9. **Chính sách tăng quầy (M8) cần 1 người dự phòng:** chi phí người này không tính trong quầy-giờ mở; quy tắc chỉ có lợi khi người dự phòng làm việc khác lúc không mở quầy (mục 7.11).
 10. **Ngày phục vụ chậm như ngày 10:** không chính sách nào (kể cả Lịch 48 và mở thêm 1 quầy) giữ được giờ tệ nhất $\ge 90\%$; cần thêm hơn 1 quầy dự phòng ở buổi chiều (mục 7.11).
 11. **Khung giờ 60 phút:** chỉ 8h–9h có λ khác rõ giữa hai nửa giờ và không làm đổi tổng số quầy-giờ (mục 7.13); các khung ngắn hơn 30 phút chưa xét.
+12. **SLA tính trên mọi khách:** khách thường chờ lâu hơn vì VIP được ưu tiên. Riêng khách thường, Lịch 45 không đạt 90% ở 11h-12h; Lịch 48 đạt (mục 4.6). Tối ưu với SLA riêng cho khách thường chưa làm (M9 trong `docs/KE_HOACH_V5_1.md`).
+13. **Seed đánh giá chính sách trùng một phần seed chọn lịch:** 11/300 lần lặp (mục 4.1, 7.9), giữ để không đổi số V5. Đánh giá lại bằng dải seed tách hẳn cho Lịch 45 giờ tệ nhất 0.914 (vẫn khả thi). M7 đã chuyển sang dải xác nhận độc lập ở V5.1 (mục 7.10). Bootstrap lồng nhau (mục 3.3) còn dùng lại seed giữa các bộ, phần phương sai do tham số có thể bị ước lượng thấp (F9, chưa sửa).

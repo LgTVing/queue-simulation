@@ -13,23 +13,23 @@
 
 | Mã | Việc | Ưu tiên | Người gợi ý | Trạng thái | Commit |
 |---|---|:---:|---|:---:|---|
-| F4 | Sổ đăng ký dải seed + test không giao nhau | **P1** | Thọ | [ ] | |
-| F5 | Đánh giá M7 bằng seed độc lập | **P1** | Quang | [ ] | |
-| F6 | Chốt định nghĩa SLA, thêm bảng SL theo nhóm khách | **P1** | Thọ + cả nhóm | [ ] | |
-| F7 | Sửa đường dẫn cứng `data/lam_sach.py` + test tái lập | P2 | Vinh | [ ] | |
-| F8 | Kiểm tra điều khoản phân phối lại dữ liệu thô | P2 | Vinh | [ ] | |
-| T4 | Sửa test `poisson_label` kiểm bản sao | P2 | Vinh | [ ] | |
+| F4 | Sổ đăng ký dải seed + test không giao nhau | **P1** | Thọ | [x] | `b503b66` |
+| F5 | Đánh giá M7 bằng seed độc lập | **P1** | Quang | [x] | `47328f7` |
+| F6 | Chốt định nghĩa SLA, thêm bảng SL theo nhóm khách | **P1** | Thọ + cả nhóm | [x] | `f4f19ba` |
+| F7 | Sửa đường dẫn cứng `data/lam_sach.py` + test tái lập | P2 | Vinh | [x] | `788a845` |
+| F8 | Kiểm tra điều khoản phân phối lại dữ liệu thô | P2 | Vinh | [x] gỡ dữ liệu thô; [ ] **gửi email cho người quản lý dữ liệu** | `0478ead` |
+| T4 | Sửa test `poisson_label` kiểm bản sao | P2 | Vinh | [x] | `8e46bd7` |
 | F9 | Seed bootstrap lồng nhau S5 | P2 | Quang | [ ] | |
 | S16 | p-value ngoài mẫu S6 từ phân phối mô phỏng | P2 | Vinh | [ ] | |
-| F10 | Cờ khả thi cho bộ tối ưu và SIPP | P2 | Thọ | [ ] | |
+| F10 | Cờ khả thi cho bộ tối ưu và SIPP | P2 | Thọ | [x] | `06de1cc` |
 | F11 | Đếm khách chưa xử lý xong khi cắt mô phỏng | P3 | Thọ | [ ] | |
 | F12 | Dọn nợ kỹ thuật nhỏ | P3 | cả nhóm | [ ] | |
 | T5 | Bộ test bổ sung | P2 | theo mảng | [ ] | |
 | O1 | Bộ nhớ đệm kết quả `run_reps` | P3 | Thọ | [ ] | |
 | O2 | Rút thời gian smoke test | P3 | Thọ | [ ] | |
 | M9 | Tùy chọn tối ưu theo SLA khách thường | P3 (tùy chọn) | Thọ | [ ] | |
-| R5 | Chạy lại, cập nhật `final_v5` thành v5.1 | **P1** | Vinh | [ ] | |
-| D7 | Cập nhật tài liệu theo v5.1 | **P1** | theo mảng | [ ] | |
+| R5 | Chạy lại, cập nhật `final_v5` thành v5.1 | **P1** | Vinh | [x] chạy `optimize` + `report`; `doi_chieu_v5_v5_1.csv` thay bằng mục 8 `tong_hop.md` và `results/archive/final_v5_0/` | `results(R5)` |
+| D7 | Cập nhật tài liệu theo v5.1 | **P1** | theo mảng | [x] | `docs(D7)` |
 | D5 | Trang HTML demo SIPP (đã có trong `PHAN_CONG.md`) | P2 | Quang | [ ] | |
 | D6 | Slide thật và tập dượt (đã có trong `PHAN_CONG.md`) | P1 | Vinh, Thọ | [ ] | |
 

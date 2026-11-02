@@ -22,10 +22,13 @@ Mô hình mô phỏng sự kiện rời rạc (*Discrete-Event Simulation - DES*
 $$SL(t) = P(\text{Khách được phục vụ VÀ thời gian chờ } \le t)$$
 tính trên **toàn bộ khách đến hệ thống**. Khách hàng mất kiên nhẫn bỏ về được tính là vi phạm SLA ($SL = 0$).
 
-| Đối tượng khách hàng | Ngưỡng thời gian chờ $t$ | Mục tiêu cam kết ($SL$) | Tiêu chí đánh giá thống kê |
+| Chỉ số | Ngưỡng thời gian chờ $t$ | Mục tiêu ($SL$) | Vai trò |
 |---|---|---|---|
-| Khách thường (`vip = 0`) | $\le 5.0$ phút | $\ge 90.0\%$ | Cận dưới khoảng tin cậy 95% ($CI_{low} \ge 90\%$) |
-| Khách ưu tiên / VIP (`vip = 1`) | $\le 2.0$ phút | $\ge 90.0\%$ | Cận dưới khoảng tin cậy 95% ($CI_{low} \ge 90\%$) |
+| Mọi khách đến (VIP và thường) | $\le 5.0$ phút | $\ge 90.0\%$ | **SLA chính**: ràng buộc khi tối ưu, cận dưới CI95 theo từng giờ ($CI_{low} \ge 90\%$) |
+| Riêng khách thường (`vip = 0`) | $\le 5.0$ phút | $\ge 90.0\%$ | Giám sát: báo cáo ở `sl_theo_nhom.csv`, không ràng buộc |
+| Riêng khách ưu tiên / VIP (`vip = 1`) | $\le 2.0$ phút | $\ge 90.0\%$ | Giám sát: báo cáo ở `sl_theo_nhom.csv`, không ràng buộc |
+
+Lý do chọn SL gộp làm SLA chính (V5.1, F6 trong `docs/KE_HOACH_V5_1.md`): công thức Erlang C, Erlang-A và lịch SIPP không tách nhóm khách, nên chuỗi lý thuyết → kiểm chứng → tối ưu chỉ nhất quán với định nghĩa gộp. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 (khuyến nghị cuối) đạt cả ba chỉ số ở mọi giờ.
 
 ---
 
