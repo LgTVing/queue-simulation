@@ -15,9 +15,9 @@
 | data | 1.0 | 0.1 | 2026-10-30T08:20:23 |
 | theory | 1.0 | 0.0 | 2026-10-30T08:20:23 |
 | verify | 1.0 | 0.2 | 2026-10-30T08:20:37 |
-| optimize | 1.0 | 11.1 | 2026-11-02T12:52:35 |
-| robust | 1.0 | 5.0 | 2026-10-30T08:35:24 |
-| report | 1.0 | 0.0 | 2026-11-02T12:56:35 |
+| optimize | 1.0 | 8.3 | 2026-11-02T13:42:13 |
+| robust | 1.0 | 3.7 | 2026-11-02T13:46:01 |
+| report | 1.0 | 0.0 | 2026-11-02T13:51:14 |
 
 ## Danh mục tệp
 
@@ -72,6 +72,7 @@
 | [`theo_14_ngay_tong_hop.csv`](theo_14_ngay_tong_hop.csv) | robust / S7 | So ngay dat SLA va Wilson CI |
 | [`thoi_gian_chay.json`](thoi_gian_chay.json) | report | Thoi gian chay va he so so lan lap tung giai doan |
 | [`toi_uu_rang_buoc_bo_ve.csv`](toi_uu_rang_buoc_bo_ve.csv) | optimize / M2 | Toi uu voi rang buoc ti le bo ve, SL o nguong 2/3/5 phut |
+| [`toi_uu_sla_khach_thuong.csv`](toi_uu_sla_khach_thuong.csv) | optimize / M9 | Lich toi uu khi SLA tinh rieng khach thuong, so voi Lich 45 va Lich 48 (seed danh gia, gio cong xep ca) |
 | [`toi_uu_theo_ca.csv`](toi_uu_theo_ca.csv) | optimize / M6 | Moi lich phu theo ca da thu (gio cong, phuong an ca, SL, can duoi gio te nhat) |
 | [`toi_uu_theo_ca_linh_hoat.csv`](toi_uu_theo_ca_linh_hoat.csv) | optimize / M6 | Nhu toi_uu_theo_ca.csv voi nghi trua linh hoat 9h-16h |
 | [`toi_uu_theo_ca_linh_hoat_top.csv`](toi_uu_theo_ca_linh_hoat_top.csv) | optimize / M6 | Top-5 lich kha thi, nghi trua linh hoat 9h-16h |

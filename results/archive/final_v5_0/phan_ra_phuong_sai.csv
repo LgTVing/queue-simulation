@@ -1,0 +1,10 @@
+﻿chi_so,gia_tri,ci_low,ci_high
+SL toan ngay danh nghia (R=60),0.942354570668263,0.937665592985349,0.947043548351177
+SL gio te nhat danh nghia (R=60),0.9225107901849084,,
+Phuong sai tong qua cac bo bootstrap,9.548006793592476e-05,,
+Phuong sai do nhieu mo phong (Within / R),5.7232693957897345e-06,,
+Phuong sai do bat dinh tham so (Between),8.975679854013503e-05,,
+Ti le phuong sai do bat dinh tham so (%),94.00579668666498,,
+Ti le phuong sai do nhieu mo phong (%),5.994203313335024,,
+Xac suat SL toan ngay >= 90%,1.0,0.9286524008666414,1.0
+Xac suat SL gio te nhat >= 90%,0.9,0.7863976856252035,0.9565242350681096
