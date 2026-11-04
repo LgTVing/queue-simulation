@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143e36">
+  <title>Quầy · Demo mô phỏng hàng đợi</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23143e36'/%3E%3Cpath d='M10 25V15m10 10V10m10 15V18' stroke='%23e2edb5' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><div class="topbar-inner">
+    <a class="brand" href="/" aria-label="Quầy, trang chủ"><span class="brand-mark" aria-hidden="true">▥</span> quầy<span class="brand-dot">.</span></a>
+    <span class="course">KHOA HỌC DỊCH VỤ <span>/</span> UET · VNU</span>
+    <span class="engine"><span class="live-dot"></span> SimPy · V5</span>
+  </div></header>
+  <main class="shell">
+    <section class="intro"><div><p class="eyebrow">PHÒNG THỬ NGHIỆM DỊCH VỤ</p><h1>Một lịch quầy. Cả ngày vận hành.</h1><p class="intro-copy">Thử thay đổi số quầy và lượng khách để tìm điểm cân bằng giữa chờ đợi và nguồn lực.</p></div><div class="hours-badge"><span aria-hidden="true">◷</span><div><strong>08:00 — 17:00</strong><span>9 khung giờ giao dịch</span></div></div></section>
+    <div class="workspace">
+      <aside class="controls panel">
+        <div class="panel-heading"><h2>Thiết lập kịch bản</h2><button id="reset" class="text-button" type="button">Đặt lại</button></div>
+        <form id="scenario-form">
+          <label class="field-label" for="preset">Lịch mở quầy</label>
+          <select id="preset" name="preset"></select>
+          <p id="preset-description" class="hint preset-description"></p>
+          <div class="section-label"><span>Số quầy theo giờ</span><span id="counter-total" class="mini-badge"></span></div>
+          <div id="schedule-grid" class="schedule-grid"></div>
+          <p class="hint schedule-hint">Có thể sửa trực tiếp từng khung giờ.</p>
+          <div class="divider"></div>
+          <div class="section-label"><label for="demand">Lượng khách</label><output id="demand-value" for="demand">100%</output></div>
+          <input id="demand" type="range" min="50" max="200" step="5" value="100">
+          <div class="range-labels"><span>Ít hơn · 50%</span><span>Đông hơn · 200%</span></div>
+          <p id="expected-arrivals" class="arrival-estimate"></p>
+          <label class="field-label" for="reps">Số ngày chạy thử</label>
+          <select id="reps"><option value="30">Nhanh · 30 ngày</option><option value="100" selected>Cân bằng · 100 ngày</option><option value="300">Chi tiết · 300 ngày</option></select>
+          <label class="check-row"><input id="compare" type="checkbox" checked><span>So sánh với 6 quầy cố định</span></label>
+          <details class="advanced"><summary>Tùy chọn thêm</summary><label class="check-row"><input id="variability" type="checkbox"><span>Cho lượng khách dao động giữa các ngày</span></label><label class="field-label" for="seed">Seed ngẫu nhiên</label><input id="seed" type="number" min="0" max="2147483647" step="1" value="50000" required><p class="hint">Giữ cùng seed để lặp lại một kết quả.</p></details>
+          <button id="run" class="run-button" type="submit"><span id="run-label">Chạy mô phỏng</span><span class="run-arrow" aria-hidden="true">↗</span></button>
+          <p id="run-note" class="run-note">Dùng bộ máy mô phỏng và dữ liệu V5.</p>
+        </form>
+      </aside>
+      <section class="results" aria-label="Kết quả mô phỏng" aria-busy="false">
+        <div class="results-heading"><div><p class="eyebrow">KẾT QUẢ CHẠY THỬ</p><h2>Chất lượng phục vụ</h2></div><span id="result-tag" class="result-tag">Sẵn sàng</span></div>
+        <div id="error" class="error-message" role="alert" hidden></div>
+        <p id="status" class="status-line" role="status" aria-live="polite">Chọn một kịch bản để bắt đầu.</p>
+        <div class="metrics">
+          <article class="metric-card metric-primary"><div class="metric-title">Được phục vụ trong 5 phút <span aria-hidden="true">↗</span></div><div id="sl-value" class="metric-value">—</div><p id="sl-detail">Mục tiêu SLA ≥ 90%</p><div id="sl-delta" class="metric-delta"></div></article>
+          <article class="metric-card"><div class="metric-title">Thời gian chờ trung bình</div><div class="metric-value"><span id="wait-value">—</span> <small>phút</small></div><p id="wait-detail">Tính trên mọi khách đến</p><div id="wait-delta" class="metric-delta"></div></article>
+          <article class="metric-card"><div class="metric-title">Khách bỏ về</div><div id="abandon-value" class="metric-value">—</div><p id="abandon-detail">Rời hàng trước khi được phục vụ</p><div id="abandon-delta" class="metric-delta"></div></article>
+        </div>
+        <div id="verdict" class="verdict neutral"><span id="verdict-icon" class="verdict-icon" aria-hidden="true">i</span><div><strong id="verdict-title">Một ngày tốt cần mọi giờ đều tốt.</strong><p id="verdict-copy">Lịch được đánh giá theo cận dưới khoảng tin cậy 95% của mức phục vụ ở từng giờ.</p></div></div>
+        <section class="panel chart-panel"><div class="chart-heading"><div><h3>Mức phục vụ theo giờ</h3><p>Khung giờ nào đang chịu áp lực?</p></div><div class="chart-legend"><span><i class="legend-scenario"></i>Lịch đang thử</span><span id="baseline-legend"><i class="legend-baseline"></i>6 quầy cố định</span></div></div><div id="chart" class="chart-wrap"><p class="empty-chart">Biểu đồ sẽ xuất hiện sau khi chạy mô phỏng.</p></div><p class="chart-note">Thanh mảnh biểu diễn khoảng tin cậy 95%. Đường nét đứt là mục tiêu 90%.</p></section>
+        <div class="secondary-stats"><div><span>Nguồn lực mở quầy</span><strong id="hours-value">—</strong></div><div><span>Hiệu suất sử dụng quầy</span><strong id="util-value">—</strong></div><div><span>VIP được phục vụ trong 2 phút</span><strong id="vip-value">—</strong></div></div>
+        <section class="panel table-panel"><div class="panel-heading"><h3>Chi tiết từng khung giờ</h3><button id="download" type="button" class="download-button" disabled>↓ Tải CSV</button></div><div class="table-scroll"><table><caption class="sr-only">Số quầy và kết quả mô phỏng theo từng khung giờ</caption><thead><tr><th>Khung giờ</th><th>Quầy</th><th>Chờ TB</th><th>Bỏ về</th><th>Mức phục vụ</th><th>SLA giờ¹</th></tr></thead><tbody id="hourly-body"><tr><td colspan="6" class="empty-table">Chưa có kết quả.</td></tr></tbody></table></div><p class="table-note">¹ Đạt khi cận dưới CI95 của mức phục vụ ≥ 90%. Khách bỏ về được tính là không đạt SLA.</p></section>
+      </section>
+    </div>
+    <footer><span>Mô phỏng hàng đợi · Khoa học dịch vụ</span><span>Dữ liệu Anonymous Bank / Technion · Quy đổi tổng đài thành quầy giao dịch.</span></footer>
+  </main>
+</body>
+</html>
