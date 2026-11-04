@@ -7,6 +7,22 @@
 
 ## Chạy nhanh trong 3 lệnh
 
+### Giao diện demo
+
+```bash
+pip install -r requirements.txt
+python demo.py
+```
+
+Mở **http://127.0.0.1:8000**. Chọn lịch quầy có sẵn hoặc sửa 9 khung giờ,
+điều chỉnh lượng khách từ 50% đến 200%, rồi bấm **Chạy mô phỏng**.
+Giao diện hiển thị thời gian chờ, tỷ lệ bỏ về, mức phục vụ, khoảng tin cậy
+và kết quả theo giờ; có so sánh với 6 quầy cố định và tải CSV.
+Tùy chọn thêm cho phép thay seed và bật dao động lượng khách giữa các ngày.
+
+
+### Pipeline và kiểm thử
+
 ```bash
 pip install -r requirements-dev.txt          # thư viện đã ghim phiên bản (Python 3.12)
 pytest -q                                    # kiểm thử tự động
