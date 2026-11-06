@@ -6,69 +6,113 @@
 <title>Máy tính SIPP</title>
 <style>
   :root {
-    --bg: #fafaf8; --surface: #ffffff; --ink: #1b1b1a; --muted: #5c5b57; --line: #e3e2dd;
-    --accent: #2a63c4; --accent-soft: #e4ecfa; --c-bar: #9a9890; --a-bar: #2a63c4; --warn: #b4441b;
+    --bg: #f4f6fb; --surface: #ffffff; --ink: #172036; --muted: #62708a; --line: #e2e7f0;
+    --accent: #3b6ef5; --accent2: #7c4dff; --accent-soft: #e9efff; --c-bar: #b8c2d6; --a-bar: #3b6ef5;
+    --warn: #d4501f; --shadow: 0 1px 2px rgba(23,32,54,.05), 0 8px 24px rgba(23,32,54,.06);
+    --hero: linear-gradient(135deg, #3b6ef5 0%, #7c4dff 100%);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #161615; --surface: #1f1f1d; --ink: #ecebe6; --muted: #a5a39c; --line: #34332f;
-      --accent: #7aa6f0; --accent-soft: #23314a; --c-bar: #77756e; --a-bar: #7aa6f0; --warn: #f08a5d;
+      --bg: #0f1423; --surface: #171d31; --ink: #e8ecf8; --muted: #93a0bd; --line: #262e47;
+      --accent: #7c9cff; --accent2: #a58bff; --accent-soft: #212b4d; --c-bar: #4a5576; --a-bar: #7c9cff;
+      --warn: #ff9166; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+      --hero: linear-gradient(135deg, #2a3f8f 0%, #4a2f9e 100%);
     }
   }
   :root[data-theme="dark"] {
-    --bg: #161615; --surface: #1f1f1d; --ink: #ecebe6; --muted: #a5a39c; --line: #34332f;
-    --accent: #7aa6f0; --accent-soft: #23314a; --c-bar: #77756e; --a-bar: #7aa6f0; --warn: #f08a5d;
+    --bg: #0f1423; --surface: #171d31; --ink: #e8ecf8; --muted: #93a0bd; --line: #262e47;
+    --accent: #7c9cff; --accent2: #a58bff; --accent-soft: #212b4d; --c-bar: #4a5576; --a-bar: #7c9cff;
+    --warn: #ff9166; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    --hero: linear-gradient(135deg, #2a3f8f 0%, #4a2f9e 100%);
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 20px; }
-  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
-  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-  section { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
-  h2 { font-size: 15px; margin: 0 0 12px; }
-  label { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 8px 0; font-size: 14px; }
-  label span small { color: var(--muted); display: block; font-size: 12px; }
-  input { width: 96px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px;
-          background: var(--bg); color: var(--ink); font: inherit; text-align: right; }
-  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .rates { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
-  .rates label input { width: 76px; }
+         font: 15px/1.55 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 20px 16px 56px; }
+  .hero { position: relative; background: var(--hero); color: #fff; border-radius: 18px; padding: 28px 28px 26px;
+          margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -60px; top: -80px; width: 260px; height: 260px;
+                 border-radius: 50%; background: rgba(255,255,255,.1); }
+  .hero::before { content: ""; position: absolute; right: 120px; bottom: -110px; width: 200px; height: 200px;
+                  border-radius: 50%; background: rgba(255,255,255,.07); }
+  .hero > * { position: relative; z-index: 1; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+           background: rgba(255,255,255,.18); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -.01em; max-width: 720px; }
+  .sub { margin: 0; max-width: 720px; opacity: .92; }
+  .sub code { background: rgba(255,255,255,.18); color: #fff; }
+  code { background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 5px; font-size: .9em; }
+  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+            min-width: 0; box-shadow: var(--shadow); }
+  .side { position: sticky; top: 16px; }
+  @media (max-width: 900px) { .side { position: static; } }
+  h2 { font-size: 13px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  label { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 10px 0; font-size: 14px; font-weight: 500; }
+  label span small { color: var(--muted); display: block; font-size: 12px; font-weight: 400; }
+  input { width: 100px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px;
+          background: var(--bg); color: var(--ink); font: inherit; text-align: right; transition: border-color .15s, box-shadow .15s; }
+  input:hover { border-color: var(--accent); }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .rates { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .rates label { margin: 6px 0; }
+  .rates label input { width: 74px; padding: 5px 8px; }
   @media (max-width: 440px) { .rates { grid-template-columns: 1fr; } }
-  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-  button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
-           color: var(--ink); font: inherit; cursor: pointer; }
-  button:hover { border-color: var(--accent); }
-  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-  @media (max-width: 520px) { .kpis { grid-template-columns: 1fr; } }
-  .kpi { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
-  .kpi b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
-  .kpi span { color: var(--muted); font-size: 13px; }
-  .tablewrap { overflow-x: auto; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  button { padding: 8px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg);
+           color: var(--ink); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; }
+  button:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { color: #fff; filter: brightness(1.08); }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 560px) { .kpis { grid-template-columns: 1fr; } }
+  .kpi { border-radius: 14px; padding: 14px 16px; background: var(--accent-soft); border: 1px solid transparent; }
+  .kpi:nth-child(2) { background: var(--bg); border-color: var(--line); }
+  .kpi:nth-child(3) { background: color-mix(in srgb, var(--accent2) 14%, var(--surface)); }
+  .kpi b { display: block; font-size: 32px; line-height: 1.15; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .kpi span { color: var(--muted); font-size: 13px; font-weight: 500; }
+  .chart { margin-bottom: 20px; padding: 16px 16px 10px; border: 1px solid var(--line); border-radius: 14px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .cols { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; height: 160px; align-items: end; }
+  .col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; min-width: 0; }
+  .pair { display: flex; gap: 3px; align-items: flex-end; width: 100%; justify-content: center; flex: 1; }
+  .pair div { width: 40%; max-width: 22px; border-radius: 5px 5px 0 0; position: relative; min-height: 2px; transition: height .3s; }
+  .pair .bc { background: var(--c-bar); } .pair .ba { background: linear-gradient(180deg, var(--accent2), var(--a-bar)); }
+  .pair div em { position: absolute; top: -17px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--ink); }
+  .col small { margin-top: 6px; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
   table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
-  th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-  th { color: var(--muted); font-weight: 600; font-size: 12.5px; }
-  th:first-child, td:first-child { text-align: left; }
-  tfoot td { font-weight: 600; border-bottom: none; }
-  .bars { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 6px; }
-  .bars i { display: inline-block; width: 6px; height: 12px; border-radius: 1px; background: var(--a-bar); }
+  th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: var(--bg); }
+  th:first-child, td:first-child { text-align: left; font-weight: 600; }
+  tbody tr:hover { background: var(--accent-soft); }
+  tbody td:nth-child(6) { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+  tfoot td { font-weight: 700; border-bottom: none; background: var(--bg); }
+  .bars { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 8px; }
+  .bars i { display: inline-block; width: 5px; height: 12px; border-radius: 2px; background: var(--a-bar); }
   .c .bars i { background: var(--c-bar); }
   .note { color: var(--muted); font-size: 13px; margin: 14px 0 0; }
   .note strong { color: var(--ink); }
-  .warn { color: var(--warn); }
-  .theme { float: right; font-size: 13px; padding: 4px 10px; }
+  .callout { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px; }
+  .warn { color: var(--warn); font-weight: 500; }
+  .theme { position: absolute; top: 16px; right: 18px; z-index: 2; background: rgba(255,255,255,.18); color: #fff;
+           border-color: rgba(255,255,255,.35); padding: 5px 12px; font-size: 13px; }
+  .theme:hover { color: #fff; background: rgba(255,255,255,.3); border-color: #fff; }
 </style>
 </head>
 <body>
 <main>
-  <button class="theme" id="theme" type="button" aria-label="Đổi giao diện sáng / tối">Sáng / tối</button>
+  <header class="hero">
+  <button class="theme" id="theme" type="button" aria-label="Đổi giao diện sáng / tối">&#9728; / &#9790;</button>
+  <span class="badge">Demo SIPP</span>
   <h1>Máy tính SIPP: số quầy tối thiểu theo giờ</h1>
   <p class="sub">Erlang C (không bỏ về) và Erlang-A (có bỏ về), mỗi khung giờ coi như một hệ dừng. Tính ngay trên trình duyệt bằng công thức của <code>b_theory.py</code>.</p>
+  </header>
 
   <div class="grid">
-    <section aria-labelledby="h-in">
+    <section class="side" aria-labelledby="h-in">
       <h2 id="h-in">Tham số</h2>
       <label><span>Hệ số nhu cầu<small>1,10 = nhu cầu +10%</small></span><input id="mult" type="number" step="0.05" min="0.1" value="1"></label>
       <label><span>Thời gian phục vụ TB E[S]<small>phút</small></span><input id="es" type="number" step="0.01" min="0.1"></label>
@@ -78,7 +122,7 @@
       <h2 style="margin-top:16px">Tốc độ đến λ (khách/phút)</h2>
       <div class="rates" id="rates"></div>
       <div class="btns">
-        <button type="button" id="reset">Tham số train V5</button>
+        <button type="button" class="primary" id="reset">Tham số train V5</button>
         <button type="button" id="plus10">Nhu cầu +10%</button>
       </div>
       <p class="note">Mặc định: λ theo giờ, E[S] = 2,92 phút, θ = 0,1087/phút ước lượng trên 10 ngày train (<code>results/final_v5/params.json</code>). Khớp <code>bang_sipp.csv</code>.</p>
@@ -91,6 +135,10 @@
         <div class="kpi"><span>Quầy-giờ, Erlang C</span><b id="k-c">–</b></div>
         <div class="kpi"><span>Tỉ lệ bỏ về TB, Erlang-A</span><b id="k-ab">–</b></div>
       </div>
+      <div class="chart">
+        <div class="legend"><span><i style="background:var(--c-bar)"></i>Erlang C</span><span><i style="background:var(--a-bar)"></i>Erlang-A</span><span>Số quầy theo khung giờ</span></div>
+        <div class="cols" id="chart"></div>
+      </div>
       <div class="tablewrap">
         <table>
           <thead>
@@ -102,7 +150,7 @@
         </table>
       </div>
       <p class="note" id="warn"></p>
-      <p class="note"><strong>Đọc kết quả thế nào:</strong> SIPP bỏ qua quán tính giữa các giờ (khách tồn từ giờ trước) và coi phục vụ có phân phối mũ, nên chỉ là lịch khởi đầu. Mô phỏng SimPy với dữ liệu thật cho lịch tối ưu 45 quầy-giờ, và khuyến nghị cuối là <strong>Lịch 48</strong> <code>[4, 6, 6, 6, 5, 5, 6, 5, 5]</code> (48 giờ công, 4 ca 8h + 4 ca 4h); xem <code>tong_hop.md</code> mục 1, 4.1, 7.9.</p>
+      <p class="note callout"><strong>Đọc kết quả thế nào:</strong> SIPP bỏ qua quán tính giữa các giờ (khách tồn từ giờ trước) và coi phục vụ có phân phối mũ, nên chỉ là lịch khởi đầu. Mô phỏng SimPy với dữ liệu thật cho lịch tối ưu 45 quầy-giờ, và khuyến nghị cuối là <strong>Lịch 48</strong> <code>[4, 6, 6, 6, 5, 5, 6, 5, 5]</code> (48 giờ công, 4 ca 8h + 4 ca 4h); xem <code>tong_hop.md</code> mục 1, 4.1, 7.9.</p>
     </section>
   </div>
 </main>
@@ -154,6 +202,12 @@
               "<td>" + pct(ea.p_ab) + "</td><td>" + pct(ea.util) + "</td></tr>";
     });
     $("rows").innerHTML = html;
+    var mx = Math.max.apply(null, sa.concat(sc).map(function (o) { return o.c; })) || 1, ch = "";
+    LABELS.forEach(function (lab, h) {
+      ch += '<div class="col"><div class="pair"><div class="bc" style="height:' + (sc[h].c / mx * 85) + '%"><em>' + sc[h].c +
+            '</em></div><div class="ba" style="height:' + (sa[h].c / mx * 85) + '%"><em>' + sa[h].c + '</em></div></div><small>' + lab.replace("h-", "-") + '</small></div>';
+    });
+    $("chart").innerHTML = ch;
     $("f-a").textContent = totA; $("f-c").textContent = totC;
     $("k-a").textContent = totA; $("k-c").textContent = totC;
     $("k-ab").textContent = lamTot > 0 ? pct(abArr / lamTot) : "–";
