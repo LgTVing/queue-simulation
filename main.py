@@ -1,18 +1,29 @@
 """
-main.py: Chuong trinh chinh chay toan bo quy trinh du an (Tuan 3 - Toan dien):
-1. Doc du lieu thuc te, tach train/test va uoc luong tham so he thong
-2. Tinh toan giai tich ly thuyet (Erlang C, Erlang-A, SIPP)
-3. Chay kiem chung 3 tang SimPy voi ly thuyet va 2 kiem tra doc lap
-4. Thuc thi cac thi nghiem mo rong: Toi uu hoa, So sanh chinh sach, Do nhay,
-   Chi phi (k), Ca lam viec (MILP), Do bat dinh tham so, Ngoai mau
-5. Xuat bang Quyet dinh cuoi cung va Danh gia Cong nop bai Tuan 3
+main.py: Chuong trinh chinh chay toan bo pipeline du an theo giai doan:
+  data     - doc du lieu, tach train/test, uoc luong tham so (params.json),
+             S1, T1, S10, M4 (dieu tra 15h-16h, uoc luong so nhan vien thuc te)
+  theory   - lich SIPP Erlang C / Erlang-A
+  verify   - kiem chung mo phong 3 tang + M/G/1 P-K + M/G/6
+  optimize - toi uu lich, Pha 3, lich ben vung, xep ca, so sanh chinh sach, F1,
+             kich ban M1 (kien nhan), M2 (rang buoc bo ve), M3 (phuc vu thuc nghiem vs Gamma),
+             M6 (toi uu theo gio cong ca), M7 (lich theo muc P(SL ngay >= 90%))
+  robust   - do nhay, S2-S9, S11, M5 (on dinh gio te nhat), M8 (tang quay theo hang cho)
+  report   - doi_chieu_v4_v5.csv, MO_TA.md
+  all      - chay lan luot tat ca giai doan
+
+Vi du:
+  python main.py --stage all
+  python main.py --stage optimize --reps-scale 0.1   # chay nhanh khi phat trien
+Moi ket qua ghi vao results/<common.RESULTS_VERSION>/.
 """
 
 import sys
 import os
 import json
+import time
+import argparse
+import datetime
 import pandas as pd
-import numpy as np
 
 # Thiet lap ma hoa UTF-8 cho console tren Windows
 if sys.platform.startswith("win"):
@@ -23,114 +34,131 @@ if sys.platform.startswith("win"):
         pass
 
 import common
+from common import H_LABELS, out_path, scaled
 import a_data
-import b_theory as th
-import c_sim as sim
+import c_sim
 import chay_kiem_chung
-import d_experiments
+import d_experiments as dx
+import e_robustness
+import f_scenarios
+import g_report
 
-def main():
-    print("=" * 75)
-    print("   DU AN MO PHONG HANG DOI VA XAC DINH SO QUAY TOI UU (BÁO CÁO TỔNG KẾT)")
-    print("=" * 75)
-    
-    # -------------------------------------------------------------------------
-    # BUOC 1: XU LY DU LIEU THUC TE VA UOC LUONG THAM SO (THANH VIEN A)
-    # -------------------------------------------------------------------------
-    print("\n>>> BƯỚC 1: Xử lý dữ liệu thực tế và Ước lượng tham số...")
-    df = a_data.load_log("data/clean/data_clean.csv")
-    df_train, df_test = a_data.split_train_test(df, train_ratio=0.7)
-    print(f"  • Tổng số bản ghi làm sạch: {len(df):,} dòng (14 ngày làm việc tiêu chuẩn)")
-    print(f"  • Tập ước lượng (Train):   {len(df_train):,} dòng ({df_train['day'].nunique()} ngày)")
-    print(f"  • Tập kiểm tra (Test):     {len(df_test):,} dòng ({df_test['day'].nunique()} ngày)")
-    
-    params = a_data.estimate_all(df_train, plot=False, output_dir="docs")
-    print(f"  • E[S] ước lượng: {params['service']['mean']:.2f} phút (cv={params['service']['cv']:.2f}, cs²={params['service']['cs2']:.2f})")
-    print(f"  • Phân phối dịch vụ tối ưu: {params['service']['kieu'].upper()} (AIC thấp nhất)")
-    print(f"  • Tốc độ bỏ về θ: {params['theta']:.4f} (Kiên nhẫn TB: {params['mean_patience']:.1f} phút)")
-    print(f"  • Tỉ lệ khách VIP: {params['p_vip']*100:.1f}%")
-    print("  -> Tệp cấu hình: docs/params.json (Phiên bản v2.0)")
-    
-    # -------------------------------------------------------------------------
-    # BUOC 2: TINH TOAN GIAI TICH LY THUYET VA BANG QUYET DINH SIPP (THANH VIEN B)
-    # -------------------------------------------------------------------------
-    print("\n>>> BƯỚC 2: Tính toán giải tích Lý thuyết (Erlang C, Erlang-A, SIPP)...")
-    rates = params["rates_per_min"]
-    es = params["service"]["mean"]
-    mu = 1.0 / es
-    theta = params["theta"]
-    
-    sched_c = th.sipp_schedule(rates, mu, 0.0, target=0.90, use_erlang_a=False)
-    sched_a = th.sipp_schedule(rates, mu, theta, target=0.90, use_erlang_a=True)
-    
-    print("  • Lịch quầy theo giờ Erlang C: ", sched_c, f"=> Tổng: {sum(sched_c)} quầy-giờ")
-    print("  • Lịch quầy theo giờ Erlang-A: ", sched_a, f"=> Tổng: {sum(sched_a)} quầy-giờ")
-    print(f"  • Tiết kiệm so với lịch hằng số (6 quầy = 54 q-h): -{(54-sum(sched_a))/54*100:.1f}% chi phí nhân sự")
-    
-    # -------------------------------------------------------------------------
-    # BUOC 3: KIEM CHUNG MO PHONG SIMPY 3 TANG VA KIEM TRA DOC LAP (THANH VIEN C)
-    # -------------------------------------------------------------------------
-    print("\n>>> BƯỚC 3: Kiểm chứng mô phỏng SimPy 3 tầng và 2 kiểm tra độc lập...")
-    kc_path = os.path.join("results", "final_v1", "kiem_chung.csv")
-    if os.path.exists(kc_path):
-        df_kc = pd.read_csv(kc_path)
-    elif os.path.exists("ket_qua_kiem_chung.csv"):
-        df_kc = pd.read_csv("ket_qua_kiem_chung.csv")
-    else:
-        df_kc = chay_kiem_chung.run_all_verification()
-        
-    print(df_kc[["kiem_chung", "chi_so", "ly_thuyet", "mo_phong", "ci95", "sai_lech_pct", "dat", "muc_xap_xi"]].to_string(index=False))
-    
-    # -------------------------------------------------------------------------
-    # BUOC 4: TOI UU, SO SANH CHINH SACH & CAC THI NGHIEM MO RONG (TUAN 3)
-    # -------------------------------------------------------------------------
-    print("\n>>> BƯỚC 4: Thực thi hệ thống thí nghiệm Tuần 3 và Đóng băng số liệu...")
-    d_experiments.run_all_week3()
-    
-    # -------------------------------------------------------------------------
-    # BUOC 5: TONG KET BANG QUYET DINH CUOI CUNG (PHU LUC 14.1)
-    # -------------------------------------------------------------------------
-    comp_csv = os.path.join("results", "final_v1", "so_sanh_chinh_sach.csv")
-    df_comp = pd.read_csv(comp_csv)
-    
-    opt_row = df_comp[df_comp["chinh_sach"].str.contains("Sim-Optimized")].iloc[0]
-    rob_row = df_comp[df_comp["chinh_sach"].str.contains("Bền vững")].iloc[0]
-    shift_row = df_comp[df_comp["chinh_sach"].str.contains("Theo ca")].iloc[0]
-    
+STAGES = ["data", "theory", "verify", "optimize", "robust", "report"]
+
+def save(df: pd.DataFrame, name: str) -> None:
+    df.to_csv(out_path(name), index=False, encoding="utf-8-sig")
+    print(f"  -> {name}")
+
+def stage_data(ctx):
+    df_all, df_train, df_test, p = ctx["df_all"], ctx["df_train"], ctx["df_test"], ctx["params"]
+    print(f"  • Tong so ban ghi: {len(df_all):,} | Train: {len(df_train):,} ({df_train['day'].nunique()} ngay)"
+          f" | Test: {len(df_test):,} ({df_test['day'].nunique()} ngay)")
+    print(f"  • E[S] = {p['service']['mean']:.4f} phut, cs² = {p['service']['cs2']:.4f} "
+          f"(Gamma cs² = {p['service']['gamma_cs2']:.4f}); theta = {p['theta']:.4f} "
+          f"(kien nhan TB {p['mean_patience']:.1f} phut); p_vip = {p['p_vip']:.4f}; CV ngay = {p['day_cv']:.4f}")
+    save(a_data.lambda_ci_table(df_all), "khoang_tin_cay_lambda.csv")
+    hourly, over = a_data.poisson_overdispersion(df_all)
+    save(hourly, "kiem_dinh_poisson.csv")
+    save(over, "qua_phan_tan_ngay.csv")
+    save(a_data.service_fit_details(ctx["svc_train"], B=scaled(300, 20)), "kiem_dinh_phan_phoi_chi_tiet.csv")
+    save(a_data.patience_km(df_train, p["theta"]), "patience_km.csv")
+    save(a_data.cluster_bootstrap_params(df_train, B=scaled(1000, 50)), "cluster_bootstrap_params.csv")
+    # M4: khung 15h-16h (gio 7) va so nhan vien thuc te uoc luong tu so phien chong lan
+    save(a_data.investigate_hour(df_train, df_test, hour=7), "dieu_tra_15h_16h.csv")
+    conc = a_data.estimate_concurrency(df_all)
+    conc["tap"] = conc["day"].map(lambda d: "Train" if d in set(df_train["day"]) else "Test")
+    save(conc, "nhan_vien_uoc_luong.csv")
+    by_hour = conc.groupby(["hour", "tap"])[["max_dong_thoi", "tb_dong_thoi"]].mean().unstack("tap")
+    by_hour.columns = [f"{a}_{b}" for a, b in by_hour.columns]
+    by_hour.insert(0, "khung_gio", H_LABELS)
+    save(by_hour.reset_index(), "nhan_vien_uoc_luong_theo_gio.csv")
+
+def stage_theory(ctx):
+    dx.run_theory(ctx)
+
+def stage_verify(ctx):
+    chay_kiem_chung.run_all_verification()
+
+def stage_optimize(ctx):
+    dx.run_optimize(ctx)
+    f_scenarios.run_scenarios_optimize(ctx)
+
+def stage_robust(ctx):
+    e_robustness.run_robust(ctx)
+    f_scenarios.run_scenarios_robust(ctx)
+
+def stage_report(ctx):
+    g_report.run_report(ctx)
+
+STAGE_FUNCS = {
+    "data": stage_data, "theory": stage_theory, "verify": stage_verify,
+    "optimize": stage_optimize, "robust": stage_robust, "report": stage_report,
+}
+
+def log_stage(stage: str, minutes: float) -> None:
+    """Ghi thoi gian chay tung giai doan vao thoi_gian_chay.json."""
+    path = out_path(g_report.RUN_LOG)
+    log = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            log = json.load(f)
+    log.setdefault("stages", {})[stage] = {
+        "phut": round(minutes, 2), "reps_scale": common.REPS_SCALE,
+        "luc": datetime.datetime.now().isoformat(timespec="seconds")}
+    log["reps_scale"] = common.REPS_SCALE
+    log["tong_phut"] = round(sum(s["phut"] for s in log["stages"].values()), 2)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(log, f, indent=2, ensure_ascii=False)
+
+def print_recommendation() -> None:
+    """Bang quyet dinh: chi in so lieu doc tu CSV vua ghi."""
+    path = os.path.join(common.RESULTS_DIR, "so_sanh_chinh_sach.csv")
+    if not os.path.exists(path):
+        return
+    comp = pd.read_csv(path).set_index("chinh_sach")
+    opt, rob = comp.loc["Toi uu mo phong"], comp.loc["Ben vung (+10% nhu cau)"]
+    base_qh = common.BASELINE_C * common.HOURS
     print("\n" + "=" * 75)
-    print("                    BẢNG QUYẾT ĐỊNH CUỐI CÙNG (FINAL RECOMMENDATION)")
+    print("                    BANG QUYET DINH (doc tu so_sanh_chinh_sach.csv)")
     print("=" * 75)
-    print(f"  • Khung giờ làm việc:                      8:00 - 17:00 (9 khung giờ)")
-    print(f"  • Lịch quầy tối ưu khuyến nghị:            {opt_row['lich_quay']}")
-    print(f"  • Tổng quầy-giờ nhân sự:                   {opt_row['quay_gio']} quầy-giờ")
-    print(f"  • Mức phục vụ SL toàn ngày:                {opt_row['sl_toan_ngay']}")
-    print(f"  • Mức phục vụ SL giờ tệ nhất (low CI95):   {opt_row['sl_gio_te_nhat_low']}")
-    print(f"  • Tỉ lệ khách bỏ về trung bình:            {opt_row['ti_le_bo_ve']}")
-    print(f"  • So với lịch hằng số (54 q-h):            Tiết kiệm 18.5% quầy-giờ (-10 q-h)")
-    print(f"  • Lịch bền vững dự phòng (+10% nhu cầu):   {rob_row['lich_quay']} ({rob_row['quay_gio']} q-h, +4 q-h)")
-    print(f"  • Xác suất đạt SLA khi tham số dao động:   100.0% (SL toàn ngày), 38.0% (giờ tệ nhất với lịch bền vững)")
-    print(f"  • Lịch ca làm việc khả thi (Hỗn hợp 8h+4h): {opt_row['lich_quay']} (44 q-h, không tốn thêm chi phí)")
-    print(f"  • Lịch ca làm việc thuần 8h (Full-time):   52 - 64 q-h (tốn thêm +18.2% đến +45.5%)")
-    print(f"  • Điều kiện áp dụng:                       Hệ thống bốc số tự động 1 hàng chung, quầy đa năng")
-    
-    # -------------------------------------------------------------------------
-    # BUOC 6: DANH GIA CONG NOP BAI TUAN 3
-    # -------------------------------------------------------------------------
-    print("\n" + "=" * 75)
-    print(">>> ĐÁNH GIÁ CỔNG NỘP BÀI TUẦN 3:")
-    print("  [x] Bước 0: Sửa triệt để lỗi hiệu suất rho (0.7517 +- 0.0047, lệch +0.23%, ĐẠT)")
-    print("  [x] Kiểm tra độc lập: M/G/1 Pollaczek-Khinchine chính xác (13.87 +- 1.54 vs 14.625, ĐẠT)")
-    print("  [x] Kiểm tra độc lập: M/G/6 cv=1.5 lặp 60 lần (lệch ổn định -17%, Allen-Cunneen overestimate)")
-    print("  [x] Tối ưu hóa: Thuật toán 2 pha hội tụ tại lịch [4, 5, 6, 5, 5, 5, 5, 5, 4] (44 q-h)")
-    print("  [x] So sánh chính sách: Đánh giá 300 lần lặp với seed mới, đầy đủ CI95")
-    print("  [x] Phân tích độ nhạy: Nhu cầu (90%-130%), E[S] (+0%,+10%,+20%), theta (x0.5, 1.0, 1.5)")
-    print("  [x] Hàm chi phí & Ca làm: MILP giải tối ưu cho ca 4h, 8h và hỗn hợp linh hoạt")
-    print("  [x] Bất định tham số: 50 bộ bootstrap, xác suất đạt SLA toàn ngày 100.0%")
-    print("  [x] Kiểm tra ngoài mẫu: Khảo sát trên 4 ngày test (2.969 cuộc gọi), KS 2-sample")
-    print("  [x] Đóng băng dữ liệu: Toàn bộ bảng CSV và biểu đồ đồ họa lưu tại results/final_v1/")
-    print("  [x] Kiểm thử tự động: tests/test_sim.py và tests/test_theory.py (12/12 PASSED)")
-    print("  ==> KẾT LUẬN: ĐẠT 100% TIÊU CHÍ CỔNG NỘP BÀI, HOÀN TẤT TUẦN 3 XUẤT SẮC!")
+    print(f"  • Lich toi uu:                 {opt['lich_quay']} ({opt['quay_gio']} quay-gio)")
+    print(f"  • SL toan ngay:                {opt['sl_toan_ngay']:.4f} ± {opt['sl_ci_half']:.4f}")
+    print(f"  • SL gio te nhat (can duoi):   {opt['sl_gio_te_nhat_low']:.4f} ({H_LABELS[int(opt['gio_te_nhat'])]})")
+    print(f"  • Ti le bo ve:                 {opt['ti_le_bo_ve'] * 100:.2f}% ± {opt['ti_le_bo_ve_ci_half'] * 100:.2f}%")
+    print(f"  • Wq TB:                       {opt['wq_phut']:.4f} phut | rho = {opt['hieu_suat_rho'] * 100:.2f}%")
+    print(f"  • So voi moc {common.BASELINE_C} quay ({base_qh} q-h): "
+          f"{(base_qh - opt['quay_gio']) / base_qh * 100:+.1f}% quay-gio tiet kiem")
+    print(f"  • Lich ben vung (+10%):        {rob['lich_quay']} ({rob['quay_gio']} q-h, SL {rob['sl_toan_ngay']:.4f})")
+    m1 = os.path.join(common.RESULTS_DIR, "do_nhay_kien_nhan.csv")
+    if os.path.exists(m1):
+        k = pd.read_csv(m1)
+        print(f"  • Theo kien nhan (M1):         {int(k['quay_gio'].min())}–{int(k['quay_gio'].max())} q-h "
+              f"(kien nhan {k['kien_nhan_TB_phut'].iloc[0]:.1f} phut -> vo cung)")
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Pipeline mo phong hang doi va xac dinh so quay toi uu")
+    parser.add_argument("--stage", default="all", choices=["all"] + STAGES)
+    parser.add_argument("--reps-scale", type=float, default=1.0,
+                        help="He so nhan so lan lap/so kich ban (vd 0.1 de chay nhanh)")
+    args = parser.parse_args(argv)
+    common.set_reps_scale(args.reps_scale)
+
+    stages = STAGES if args.stage == "all" else [args.stage]
     print("=" * 75)
+    print(f"  PIPELINE {common.RESULTS_VERSION} | giai doan: {', '.join(stages)} | reps-scale = {common.REPS_SCALE}")
+    print("=" * 75)
+    ctx = dx.load_context(estimate="data" in stages)
+    for st in stages:
+        print(f"\n>>> GIAI DOAN: {st.upper()}")
+        t0 = time.time()
+        hit0, miss0 = c_sim.CACHE_STATS["hit"], c_sim.CACHE_STATS["miss"]
+        STAGE_FUNCS[st](ctx)
+        log_stage(st, (time.time() - t0) / 60.0)
+        print(f"  [O1] bo nho dem run_reps: {c_sim.CACHE_STATS['hit'] - hit0} lan trung, "
+              f"{c_sim.CACHE_STATS['miss'] - miss0} lan chay")
+    if "report" in stages:
+        g_report.write_mo_ta()  # cap nhat thoi gian chay cua giai doan report
+    print_recommendation()
 
 if __name__ == "__main__":
     main()

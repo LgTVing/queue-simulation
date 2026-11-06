@@ -1,0 +1,5 @@
+﻿cach_to_chuc,sl_pct
+1 Hàng chung (M/M/6 - Lý thuyết),96.53886899377144
+6 Hàng riêng ngẫu nhiên (Lý thuyết),50.55695273496672
+6 Hàng riêng ngẫu nhiên (SimPy),50.695913595368005
+6 Hàng riêng chọn ngắn nhất (JSQ - SimPy),81.09924000440577

@@ -12,13 +12,15 @@
 - **Đơn vị cung cấp:** Trung tâm Nghiên cứu Kỹ thuật Dịch vụ (SEE Center), Viện Công nghệ Technion (Israel).
 - **Tài liệu tham chiếu:** *Statistical Analysis of a Telephone Call Center: A Queueing-Science Perspective* (Brown, Gans, Mandelbaum, Sakov, Shen, Zeltyn, Zhao - JASA 2005).
 - **Địa chỉ truy cập chính thức:** `https://see-center.iem.technion.ac.il/databases/AnonymousBank/`
-- **File tài liệu mô tả gốc:** [`AnonymousBank.pdf`](file:///d:/KHDV/data/raw/AnonymousBank.pdf)
-- **File dữ liệu sử dụng:** `September1999.txt` (Tháng 9/1999, dung lượng thô 3.19 MB, gồm 31.371 cuộc gọi).
+- **File tài liệu mô tả gốc:** `AnonymousBank.pdf`, tải tại `https://see-center.iem.technion.ac.il/databases/AnonymousBank/Data/` (hướng dẫn trong [`data/raw/README.md`](../data/raw/README.md)).
+- **File dữ liệu sử dụng:** `September1999.txt` (Tháng 9/1999, dung lượng thô 3.19 MB, gồm 31.371 cuộc gọi), giải nén từ `AnonymousBank.rar`.
 
 ### Điều kiện sử dụng và bản quyền
-Dữ liệu được cấp quyền sử dụng tự do cho mục đích nghiên cứu và học thuật với hai điều kiện bắt buộc:
-1. Gửi thông báo sử dụng tới Giáo sư Avi Mandelbaum (`avim@ie.technion.ac.il`). *(Xem mẫu email tại mục 11.1 của TUAN_1_HUONG_DAN.md)*.
+Tài liệu gốc ghi: *"The data is free for use. If used, please notify Avi Mandelbaum, at avim@ie.technion.ac.il and do acknowledge the data source in any of your work."* Hai điều kiện bắt buộc:
+1. Gửi thông báo sử dụng tới Giáo sư Avi Mandelbaum (`avim@ie.technion.ac.il`). *(Xem mẫu email tại mục 11.1 của docs/lich_su/TUAN_1_HUONG_DAN.md)*.
 2. Trích dẫn đầy đủ nguồn dữ liệu và tài liệu trong báo cáo và slide thuyết trình.
+
+Điều khoản không nói về việc phân phối lại, nên từ V5.1 (F8, `docs/KE_HOACH_V5_1.md`) **repo không chứa dữ liệu thô**; người dùng tự tải từ trang chính thức. Repo chỉ giữ tập đã làm sạch `data/clean/data_clean.csv` (9.836 bản ghi, đủ để chạy pipeline, test và CI), kèm ghi nguồn: *Anonymous Bank call-center data, SEE Center, Technion – Israel Institute of Technology*. Nếu người quản lý dữ liệu không đồng ý giữ tập đã làm sạch, gỡ cả tệp này.
 
 ---
 
@@ -68,7 +70,7 @@ Tệp dữ liệu phân tách bằng tab (`\t`), mã hóa `latin1`, gồm 17 tr�
 4. **Khung giờ làm việc chuẩn (Bank Daytime Hours):**
    - Lọc các cuộc gọi đến từ **8:00 sáng đến 17:00 chiều** (tương đương 9 khung giờ: $h = 0, 1, \dots, 8$).
 5. **Chọn ngày làm việc tiêu chuẩn (Standard Workdays):**
-   - Tại Israel, tuần làm việc chính từ Chủ Nhật đến Thứ Năm (Thứ Sáu làm nửa buổi, Thứ Bảy nghỉ lễ Sabbath). Trong tháng 9/1999 có một số ngày lễ lớn (Rosh Hashanah, Yom Kippur) lượng khách giảm đột biến.
+   - Lịch làm việc ở Israel khác Việt Nam (có ngày làm nửa buổi trước Sabbath và ngày nghỉ Sabbath); các ngày này bị loại khi lọc ngày tiêu chuẩn. Trong tháng 9/1999 có một số ngày lễ lớn (Rosh Hashanah, Yom Kippur) lượng khách giảm đột biến.
    - Lọc ra 14 ngày làm việc tiêu chuẩn đầy đủ có lượng khách trên 1.300 cuộc/ngày: `990901`, `990902`, `990905`, `990906`, `990907`, `990908`, `990909`, `990913`, `990914`, `990915`, `990916`, `990921`, `990922`, `990923`.
 6. **Quy đổi đơn vị:**
    - Đổi toàn bộ thời gian chờ (`q_time`) và thời gian phục vụ (`ser_time`) từ **giây sang phút** (chia 60.0).

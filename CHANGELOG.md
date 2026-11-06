@@ -1,4 +1,179 @@
-# NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG v1 -> v2)
+# NHẬT KÝ THAY ĐỔI VÀ HIỆU CHỈNH KHOA HỌC (CHANGELOG)
+
+## v5.1 — Sửa sau rà soát mã (2026-11-02, `docs/KE_HOACH_V5_1.md`)
+
+**Kết luận không đổi:** tối thiểu 48 giờ công/ngày theo Lịch 48; ≥ 90% số ngày đạt SLA cần 48 giờ công, ≥ 95% cần 52. Chạy lại giai đoạn `optimize` và `report` (11.1 phút): mọi CSV và hình khác giống từng byte với V5.0; bản V5.0 của các tệp đổi ở `results/archive/final_v5_0/`.
+
+- **F5 (M7 xác nhận độc lập):** dải seed đánh giá cũ (50000, 300 lần lặp) trùng 253/300 lần lặp với seed chọn lịch M7 (3000), nên "đánh giá lại" thực chất chạy lại trong mẫu. Xác nhận bằng `SEED_BANDS["eval_day"]` (20.000.000, 2.000 lần lặp); thêm cột `dat_muc_danh_gia` và dòng đối chiếu Lịch 48 vào `toi_uu_xac_suat_ngay.csv`. Lựa chọn lịch không đổi; $P$ thấp hơn bản cũ 0.5–1.3 điểm ở 5/6 dòng (ví dụ lịch M7 48 giờ công 95.0% → 93.7%); Lịch 48 đạt 94.6% [93.5%, 95.5%] (1.891/2.000 lần lặp).
+- **F6 (định nghĩa SLA):** chốt SLA chính là SL(5 phút) trên mọi khách (khớp mã và mọi số V5). README §1.2, §11.1, `docs/dac_ta_mo_hinh.md`, báo cáo 1.2 sửa theo; tệp mới `sl_theo_nhom.csv` báo cáo SL khách thường và SL VIP ≤ 2 phút để giám sát. Riêng khách thường, Lịch 45 hụt ở 11h–12h (0.8997); Lịch 48 đạt cả ba chỉ số ở mọi giờ. `tong_hop.md` mục 4.6 mới.
+- **F4 (sổ đăng ký seed):** `common.SEED_BANDS`, `seed_range`; các module đọc từ sổ, giá trị seed giữ nguyên. `tests/test_f4_seeds.py` kiểm các cặp chọn/đánh giá không giao nhau; hai trùng lặp đã biết đánh dấu xfail có lý do (optimize/M6 11/300, S5). `MO_TA.md` ghi đúng mức trùng thay cho "tách biệt".
+- **F7:** `data/lam_sach.py` dùng đường dẫn tương đối (trước ghi cứng `d:\KHDV`); `tests/test_f7_clean.py` sinh lại và khớp `data_clean.csv` từng giá trị.
+- **F8:** gỡ dữ liệu thô Anonymous Bank khỏi repo công khai (điều khoản chỉ cho phép dùng, kèm thông báo và ghi nguồn); `data/raw/README.md` hướng dẫn tải. Giữ `data_clean.csv` kèm ghi nguồn.
+- **F10:** `optimize_schedule` trả thêm `feasible`; `sipp_schedule` cảnh báo khi dùng giá trị dự phòng.
+- **T4:** `test_poisson_labels_strict` kiểm `a_data.poisson_label` thật (trước kiểm bản sao); test Holm–Bonferroni kiểm giá trị.
+- Checker thêm `check_class_sl` (mục 4.6), cột "Đạt mức" và dòng đối chiếu ở mục 7.10: 1.546 giá trị, 0 lệch. Báo cáo 7.2, 9.6; slide 10, Q&A 10–11; README §15.5.
+
+### Đợt hai V5.1 (2026-11-02): F9, S16, F11, F12, O1, O2, M9, D5
+Chạy lại `optimize`, `robust`, `report` (12.0 phút); mọi CSV và hình không liên quan giống từng byte.
+- **F9 (S5):** mỗi bộ bootstrap một dải seed riêng (`SEED_BANDS["nested_boot"]`, `NESTED_BOOT_STEP`); V5.0 có 640 seed khác nhau cho 3.000 cặp (bộ, lần lặp). Phương sai do tham số 94.01% → 94.19%; giờ tệ nhất ≥ 90% ở 45/50 → 43/50 bộ.
+- **S16 (S6):** p-value hai phía lấy từ chính 1.000 bộ mô phỏng (cùng phân phối với PI95), Holm như cũ; p cũ giữ ở cột `raw_p_value_nhi_thuc`. Sau Holm không giờ nào khác biệt có ý nghĩa (V5.0: 4 giờ, kể cả hai giờ nằm trong PI95).
+- **M9:** `scope="regular"` cho `is_schedule_feasible` / `optimize_schedule` (`rep_stats` thêm `sl_reg`); tối ưu theo SLA riêng khách thường: 47 quầy-giờ `[4, 6, 6, 6, 5, 5, 5, 5, 5]`, vẫn 48 giờ công → `toi_uu_sla_khach_thuong.csv`, `tong_hop.md` mục 7.14.
+- **D5:** `docs/demo/sipp.html` + `sipp_math.js` (Erlang C / Erlang-A / SIPP trên trình duyệt, offline); `tests/test_d5_demo.py` chạy JS bằng Node, khớp `b_theory` đến 1e-9 và tái tạo `bang_sipp.csv`.
+- **O1:** bộ nhớ đệm `run_reps` theo nội dung tham số (`QS_CACHE=0` tắt): `optimize` dùng lại 284/1.994 lần đánh giá, 11.1 → 8.3 phút (đã gồm M9).
+- **O2:** `QS_MAX_W_LEVELS` (chỉ smoke test) giới hạn số mức giờ công M6/M7 duyệt: smoke test 10–13 phút → 84 giây.
+- **F11:** cảnh báo và `df.attrs["n_unfinished"]` khi còn khách chưa xử lý xong lúc cắt mô phỏng. **F12:** `ast.literal_eval` thay `eval`, hằng số thay số cứng, nhãn Train/Test theo `split_train_test`, `save_schedules` xóa khóa cũ.
+- Checker thêm `check_nested` (mục 3.3), `check_regular_sla` (mục 7.14): 1.593 giá trị, 0 lệch.
+
+## v5.0 — Đóng băng `results/final_v5/` (2026-10-30, `docs/KE_HOACH_V5.md`)
+
+**Kết luận mới:** tối thiểu **48 giờ công/ngày**, xếp 4 ca 8h + 4 ca 4h theo Lịch 48 `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (M6). Đạt SLA ở ≥ 95% số ngày cần 52 giờ công (M7). Có 1 người dự phòng: Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút (M8). Kết luận vững khi đổi kiên nhẫn sang Weibull (S12), λ theo nửa giờ (S15) hay nghỉ trưa linh hoạt 9h–16h (M6). Mọi số của V4 giữ nguyên.
+
+### S12–S15, M6 nghỉ trưa linh hoạt, M8 ngày 10, hình M6–M8 (2026-10-30)
+- `Model` thêm `patience`, `sub_rates`, `service_by_hour` (mặc định `None`, kết quả và chuỗi số ngẫu nhiên không đổi; test giá trị tương đương mặc định cho DataFrame giống hệt).
+- **S12:** `a_data.fit_patience_weibull` (MLE có kiểm duyệt): $k = 0.855$, $\lambda = 12.04$, AIC 3337.8 so với 3356.5 của mũ, $LR = 20.7$ ($p = 5.3 \times 10^{-6}$). Tối ưu lại với kiên nhẫn Weibull vẫn ra Lịch 45 → `kien_nhan_weibull_fit.csv`, `kien_nhan_weibull.csv`.
+- **S13:** dự báo sớm fit trên 10 ngày train: $\hat V = 90.9 + 4.20 N$, $r_{train} = 0.907$, RMSE test 63.9; vẫn bỏ lỡ 2/2 ngày hụt. `du_bao_som_hoi_quy.csv` đổi cột (`r_train`, `p_train`, `rmse_train`, `rmse_test`, `so_ngay_bo_lo`), `danh_gia_chinh_sach_du_bao_14ngay.csv` đổi `V_du_bao`.
+- **S14:** cột `P_thuc_te_moi_gio_boot_low95/high95` (cluster bootstrap 200 kịch bản, B = 2000) trong `chi_so_ky_vong_dieu_kien.csv`, `do_nhay_cv_ngay.csv`; Lịch 45 [25.4%, 32.3%] so với Wilson [27.8%, 30.1%]. Các cột cũ giữ nguyên.
+- **S15:** `a_data.half_hour_rates` (Binomial + Holm): chỉ 8h–9h khác rõ (0.87 → 1.11 khách/phút). Mô phỏng λ nửa giờ ở 8h–10h: tổng quầy-giờ tối ưu vẫn 45 → `lambda_nua_gio.csv`, `khung_30_phut.csv`.
+- **M6 nghỉ trưa 9h–16h:** 231 độ phủ ở 48 giờ công (99 khả thi), 44 giờ công vẫn không khả thi → `toi_uu_theo_ca_linh_hoat*.csv`. Sửa đếm số ca 8h/4h (`h_staffing.shift_counts`).
+- **M8 ngày 10:** phục vụ ×1.29 ở 14h–17h; giờ tệ nhất Lịch 48 0.8193, Lịch 45 + mở thêm quầy 0.8748: không chính sách nào đạt. `chinh_sach_tang_quay.csv` thêm 4 cột, cột cũ giữ nguyên.
+- Hình `fig_m6_gio_cong.png`, `fig_m7_muc_tin_cay.png`, `fig_m8_tang_quay.png`.
+- `doi_chieu_v4_v5.csv` thêm dòng S12–S15, M6 biến thể, ngày 10. Checker thêm `check_forecast`, `check_weibull`, `check_half_hour`, cột ngày 10, bootstrap ở mục 1 và 4.2, bảng biến thể 7.9 (1.502 giá trị, 0 lệch). Pipeline 15.1 phút. `pytest -q` 84 pass.
+- Tài liệu: `tong_hop.md` (mục 1, 2.5, 4.2, 4.4, 7.9, 7.11, 7.12–7.13 mới, 8–10), báo cáo (4.3, 9.3, 9.5, 9.7, 9.8 mới, 10.3–10.4), slide (4, 13, Q&A 9), README §15.5, `TONG_HOP_SO_LIEU_CHI_TIET.md`.
+
+### R4 — Đóng băng V5 (2026-10-30)
+- `common.RESULTS_VERSION = "final_v5"`; `python main.py --stage all --reps-scale 1.0` chạy 17.2 phút (máy đang tải việc khác; lần chạy thử khi máy rảnh 9.9 phút). `diff -rq results/final_v4 results/final_v5`: mọi CSV và hình của V4 giống từng byte; khác ở `MO_TA.md`, `thoi_gian_chay.json`, `params.json` (ngày chốt), `lich_khuyen_nghi.json` (thêm khóa `toi_uu_theo_ca`), 4 tệp mới của M6–M8 và `doi_chieu_v3_v4.csv` → `doi_chieu_v4_v5.csv`.
+- `g_report.py`: `metrics(R)` đọc cùng bộ chỉ số từ một thư mục kết quả bất kỳ; `doi_chieu_v4_v5.csv` so 17 chỉ số V4 (đều chênh 0, dòng nào khác sẽ được gắn cờ "KHAC V4 NGOAI Y MUON") và thêm các dòng M6 (giờ công, lịch theo ca), M7 (lịch theo mức P), M8 (chính sách khuyến nghị so với Lịch 48 cố định).
+- `f_scenarios.recommended_surge`: chọn chính sách M8 theo quy tắc (ít người dự phòng nhất → P ≥ Lịch 48 và 14/14 ngày → quầy-giờ TB nhỏ nhất) thay cho gõ cứng.
+- `tools/check_consistency.py`: thêm 4 tệp M6–M8 vào danh sách bắt buộc. `tests/test_r4_report.py`: 3 test. `pytest -q`: 66 pass, log ở `results/final_v5/pytest_log.txt`.
+
+### D4 — Cập nhật tài liệu theo V5 (2026-10-30)
+- `tong_hop.md`: kết luận một dòng đổi sang 48 giờ công; bảng M8 ở mục 1; mục mới 7.9 (M6), 7.10 (M7), 7.11 (M8); mục 8 đối chiếu V4 → V5; mục 9, 10 cập nhật (thêm hạn chế 10, 11; hạn chế 5 viết lại theo M6).
+- Checker: `check_shift_staffing`, `check_p_day`, `check_surge` đối chiếu 7.9–7.11 và bảng M8 ở mục 1 (1.249 giá trị, 0 lệch).
+- `docs/bao_cao_tong_ket.md` (mục 6.3, 9.5–9.7 mới, 10), `docs/slide_thuyet_trinh.md` (slide 8, 10, 12–14, Q&A 7–8), README §13, §15.5, `docs/TONG_HOP_SO_LIEU_CHI_TIET.md` phần 1, 3–5; các tài liệu phụ trỏ sang `results/final_v5/`.
+
+### P1 — Chạy song song các lần lặp mô phỏng (2026-10-29)
+- `common.py`: các bộ sinh thời gian phục vụ đổi từ `lambda` sang class có `__call__` (pickle được); thứ tự gọi `rng` giữ nguyên.
+- `c_sim.py`: thêm `map_sim(jobs, post, post_args)` chạy song song bằng `ProcessPoolExecutor`, giữ thứ tự job; `run_reps` dùng `map_sim`. Số tiến trình `QS_WORKERS` (mặc định `min(CPU − 1, 8)`; mỗi tiến trình ~145 MB). Pool hỏng thì chạy lại lô đó tuần tự.
+- `e_robustness.py`: 4 vòng gọi `simulate` trực tiếp (S2, S4, S6, S7) chuyển sang `map_sim`; S6 rút hệ số nhân ngày trước theo đúng thứ tự cũ.
+- Kiểm chứng: toàn bộ CSV và hình của `python main.py --stage all --reps-scale 1.0` giống từng byte với `results/final_v4/`. Thời gian chạy 33.28 → 5.49 phút (`optimize` 8.0 → 1.6, `robust` 24.9 → 3.7).
+- `tests/test_p1_parallel.py`: 9 test (pickle, khớp bản lambda cũ, song song = tuần tự). `pytest -q`: 44/44 pass.
+
+### P2 — Giảm chi phí mỗi lần lặp (2026-10-29)
+- Đo profile 60 lần lặp tuần tự: `rep_stats` chiếm 0.82/2.94 s (28%, vượt ngưỡng 25% của kế hoạch); tạo `DataFrame` chỉ 0.07 s nên giữ nguyên.
+- `c_sim.rep_stats`: trích mảng NumPy một lần, dùng mặt nạ theo giờ thay cho lọc DataFrame lặp lại. Thời gian `rep_stats` 0.82 → 0.06 s.
+- Kiểm chứng: khớp từng bit với bản pandas trên 110 lần chạy (kể cả lịch có giờ 0 quầy, hệ dừng có `t_start`); toàn bộ CSV và hình `--reps-scale 1.0` vẫn giống từng byte với `results/final_v4/`.
+- Thời gian pipeline đo A/B cùng điều kiện máy: P1 9.0 phút → P2 6.55 phút. (Số tuyệt đối dao động theo tải máy; lần đo P1 lúc máy rảnh là 5.49 phút.)
+- Test `test_rep_stats_matches_pandas` giữ bản pandas làm tham chiếu.
+
+### T2 — Checker đối chiếu số trong báo cáo, slide, README (2026-10-29)
+- `tools/check_consistency.py`: thêm `check_report_numbers()` đối chiếu 132 giá trị trong `docs/bao_cao_tong_ket.md`, `docs/slide_thuyet_trinh.md`, `README.md` với 7 CSV nguồn; chuẩn hóa dấu trừ Unicode.
+- `tests/test_t2_checker.py`: tài liệu hiện tại khớp; cố ý sửa sai một số trong mỗi tài liệu thì checker báo lỗi đúng tệp.
+
+### M6 — Tối ưu trực tiếp theo giờ công ca (2026-10-29)
+- `h_staffing.py` (mới): biến quyết định là số nhân viên theo 9 loại ca (mô hình B, nghỉ trưa 11h–14h); duyệt giờ công W tăng dần, mô phỏng mọi lịch phủ có mọi giờ ≥ SIPP Erlang-A − `slack` (seed 1000, 60 lần lặp), dừng ở W nhỏ nhất có lịch khả thi; top-5 xác nhận bằng seed 50000 (300 lần lặp), biến động ngày (CV 14%) và nhu cầu +10%.
+- **Lượt thăm dò đầy đủ (`slack=1`, 3.180 lịch phủ, W = 36–48):** W ≤ 44 có 0/917 lịch khả thi (tốt nhất là lịch Erlang-A, cận dưới 0.8893) → **tối thiểu 48 giờ công**. Ở W = 48 có 33/2.258 lịch khả thi, và cả 33 đều có mọi giờ ≥ SIPP Erlang-A (không lịch nào thiếu quầy ở giờ nào khả thi; tốt nhất 0.8867) → pipeline dùng `slack=0` (95 lịch).
+- **Kết quả:** lịch tốt nhất trong 48 giờ công là `[4, 6, 6, 6, 5, 5, 6, 5, 5]` (4 ca 8h + 4 ca 4h), trùng Lịch 48 bền vững của V4, và trội hơn 4 lịch còn lại trong top-5 ở mọi chỉ số: SL 0.9579, cận dưới giờ tệ nhất 0.9327, bỏ về 3.70%, $P(SL_{\text{ngày}} \ge 90\%)$ = 94.7%, nhu cầu +10% còn 0.9146 (lịch duy nhất ≥ 0.90). Lịch phủ của Lịch 45 khi xếp ca (`[5, 5, 6, 5, 5, 5, 6, 6, 5]`) khả thi nhưng chỉ đạt 0.9069.
+- Pipeline (giai đoạn `optimize`): thêm `toi_uu_theo_ca.csv`, `toi_uu_theo_ca_top.csv`, khóa `toi_uu_theo_ca` trong `lich_khuyen_nghi.json`; cận trên W = số giờ công phủ lịch tối ưu quầy-giờ. Các CSV khác không đổi. Smoke test (`--reps-scale 0.02`) tăng lên ~2.7 phút do M6 phải duyệt tới W = 60.
+- `tests/test_m6_staffing.py`: 3 test (độ phủ nhất quán với MILP, Lịch 48 nằm trong không gian tìm kiếm, W = 44 chỉ có lịch Erlang-A).
+
+### M7 — Chọn lịch theo xác suất đạt SLA ngày (2026-10-30)
+- `h_staffing.py`: lịch khả thi khi đạt tiêu chí danh định theo giờ **và** cận dưới Wilson của $P(SL_{\text{ngày}} \ge 90\%)$ ≥ `min_p` (300 lần lặp, CV ngày 14%, seed 3000). Không gian quầy-giờ: tham lam 2 pha từ Lịch 45. Không gian theo ca: khung M6, sàng lọc P bằng 100 lần lặp, đánh giá đầy đủ top 10. Kết quả tất định được cache giữa các mức.
+- `f_scenarios.p_day_levels` → `toi_uu_xac_suat_ngay.csv` (đánh giá lại bằng seed 50000 và 14 ngày thực tế):
+
+| min_p | Quầy-giờ: lịch / q-h / giờ công ca / P / 14 ngày | Theo ca: lịch / giờ công / P / 14 ngày |
+|:---:|---|---|
+| 0.80 | `[4,5,6,5,5,5,5,5,5]` / 45 / 48 / 85.7% / 12 | `[4,5,6,6,5,5,6,6,5]` / 48 / 95.0% / 14 |
+| 0.90 | `[4,6,6,6,5,5,5,6,5]` / 48 / 52 / 95.3% / 14 | `[4,5,6,6,5,5,6,6,5]` / 48 / 95.0% / 14 |
+| 0.95 | `[5,6,6,6,6,5,5,6,5]` / 50 / 52 / 98.0% / 14 | `[4,6,7,7,5,6,6,6,5]` / 52 / 99.3% / 14 |
+
+- **Kết luận:** đạt SLA ở ≥ 90% số ngày (độ tin cậy 95%) cần **48 giờ công**; ở ≥ 95% số ngày cần **52 giờ công**. Ở 48 giờ công, lịch M7 (P 95.0%) và Lịch 48 (P 94.7%, M6) không khác biệt có ý nghĩa với 300 lần lặp; Lịch 48 tốt hơn ở giờ tệ nhất và khi nhu cầu +10%.
+- Thời gian: giai đoạn `optimize` 1.6 → 10.4 phút (chủ yếu duyệt 52 giờ công cho mức 0.95); pipeline đầy đủ ước ~15 phút, vượt mục tiêu 10 phút của P1. `pytest -q` (gồm smoke test) 7 phút.
+- Test `test_p_day_matches_definition`.
+
+### M8 — Tăng quầy trong ngày theo hàng chờ (2026-10-30)
+- `c_sim.py`: `simulate(..., surge_policy=None)`; tiến trình `surge_monitor` mỗi phút đếm khách chờ: chờ > `threshold` liên tục `window` phút thì mở thêm 1 quầy (tối đa `max_extra`, giữ ≥ `min_hold` phút), hàng về 0 thì khóa lại; trạng thái dùng chung với `counter_blocker_process` (`_CounterState`) để quầy dự phòng giữ qua ranh giới giờ. Không dùng `rng`; `surge_policy=None` cho kết quả giống hệt (toàn bộ CSV V4 vẫn giống từng byte).
+- `f_scenarios.surge_policies` → `chinh_sach_tang_quay.csv` (giai đoạn `robust`): Lịch 45 + tăng quầy so với Lịch 45/48 cố định trên danh định, biến động ngày, nhu cầu +10%, E[S] +10% (300 lần lặp) và 14 ngày thực tế (40 lần lặp/ngày).
+- Lưới tham số: ngưỡng 4–10 người, cửa sổ 10 phút gần như không kích hoạt (khách bỏ về làm hàng ngắn lại). Vùng có tác dụng là ngưỡng 1–3, cửa sổ 3–5 phút.
+- **Kết quả nổi bật:** Lịch 45 + tăng quầy (chờ > 2 trong 5 phút, tối đa +1) dùng TB 46.2–46.4 quầy-giờ mở, đạt $P(SL_{\text{ngày}} \ge 90\%)$ = 97.3% (Lịch 48: 94.0%), giờ tệ nhất khi nhu cầu +10% 0.919 (0.903), khi E[S] +10% 0.913 (0.901), 14/14 ngày. Điều kiện: luôn có 1 người dự phòng sẵn sàng ra quầy (chi phí người này không nằm trong quầy-giờ mở).
+- Khác kế hoạch: kịch bản "ngày 10" (E[S] tăng chỉ 14h–17h) cần thời gian phục vụ theo giờ, `Model` chưa hỗ trợ; thay bằng E[S] +10% cả ngày.
+- Pipeline đầy đủ (M6–M8): 9.9 phút. Test `test_surge_none_identical`, `test_surge_opens_counter`; `pytest -q` 59/59.
+
+### T3 — CI (2026-10-29)
+- `.github/workflows/ci.yml`: Python 3.12, `pytest -q -m "not slow"` và checker trên mỗi push / pull request (`QS_WORKERS=2`).
+- Kiểm chứng (2026-10-30): push `feat/v5`, CI xanh ngay lần đầu (83 pass, 1 `slow` bỏ qua, checker sạch); nâng `actions/checkout`, `actions/setup-python` lên v7 (Node 24) để hết cảnh báo Node.js 20.
+
+## v4.0 (tài liệu) — Đồng bộ toàn bộ tài liệu với `results/final_v4/` (2026-10-29)
+
+- `docs/bao_cao_tong_ket.md`, `docs/slide_thuyet_trinh.md`: viết lại theo V4 (Lịch 45, Lịch 48 bền vững, M1–M5, ca làm việc 48 q-h công). Bản cũ mang số V1–V3 (Lịch 44).
+- `docs/bao_cao_kiem_chung.md`, `docs/ngoai_mau.md` (mục 1–4), `docs/dac_ta_mo_hinh.md` (bảng tham số), README §14–15: cập nhật theo V4 và dữ liệu thật. Sửa JSQ 90.8% → 81.1%, Kiểm tra A 13.87 → 14.22, tham số mô hình 14 ngày → train.
+- `docs/uoc_luong_kiem_dinh.md`, `docs/TONG_HOP_SO_LIEU_CHI_TIET.md`: sửa phương sai ngày 7.591,8 → 7.586,7 ($p$ 3.65e-23 → 1.77e-23), số khách phục vụ train 6.388 → 6.346, $\hat\theta$ = 521/4.793,6, AIC Gamma 26.279,7, CI λ trong Excel là khoảng Poisson, sheet `Quyet_dinh` theo tham số train.
+- `tong_hop.md`: dải tải 15h–16h các ngày khác 2.88–5.33; ghi chú `chi_phi.csv` chạy riêng (150 lần lặp, seed 70000).
+- `data/xuat_thong_ke.py`: bỏ đường dẫn cứng `d:\KHDV`, nhãn Poisson 3 mức, phân phối tốt nhất "Gamma (theo AIC)", thêm sheet `qua_phan_tan`; sinh lại `docs/thong_ke_mo_ta.xlsx`, `docs/bang_tham_so.xlsx`.
+- `docs/bang_quyet_dinh.md`, `docs/doi_chieu_mo_phong.md` chuyển vào `docs/lich_su/`.
+- `tools/check_consistency.py`: quét thuật ngữ trên `README.md` và mọi `docs/*.md` hiện hành; chặn link `file:///`.
+
+## v4.0 (code) — Sửa lỗi động cơ mô phỏng và hợp nhất pipeline (2026-10-29)
+
+Theo `docs/KE_HOACH_CAI_TIEN.md`, giai đoạn 1–5. Số liệu đóng băng tại `results/final_v4/` (`python main.py --stage all --reps-scale 1.0`, 33,3 phút, 2026-10-29).
+
+**Kết quả V4 so với V3** (`results/final_v4/doi_chieu_v3_v4.csv`):
+
+| Chỉ số | V3 | V4 | Nguyên nhân |
+|---|:---:|:---:|---|
+| Lịch tối ưu | `[4, 5, 6, 5, 5, 5, 5, 5, 4]` (44 q-h) | `[4, 5, 6, 5, 5, 5, 5, 5, 5]` (45 q-h) | M3: phục vụ thực nghiệm cs² = 1,20; tối ưu với Gamma vẫn ra 44 |
+| SL toàn ngày / giờ tệ nhất (cận dưới CI95) | 0,9381 / 0,9078 | 0,9423 / 0,9236 | Lịch thêm 1 quầy ở 16h–17h |
+| Giờ tệ nhất | đổi giữa 11h–12h và 16h–17h | 11h–12h (xác suất 99,7%, R = 1.646) | M5 |
+| Tỉ lệ bỏ về / W_q | 5,35% / 0,4908 phút | 4,99% / 0,4628 phút | Lịch thêm quầy |
+| Lịch bền vững | `[5, 6, 6, 6, 5, 5, 5, 5, 5]` | `[4, 6, 6, 6, 5, 5, 6, 5, 5]` | Cùng 48 q-h, phân bổ lại |
+| Ngưỡng lưu lượng V* | 700 | 803 khách/ngày | Nội suy theo SL ≥ 90% thay cho trung bình train |
+| Ca làm việc lịch tối ưu (nghỉ 11h–14h) | phủ đúng 44 q-h (4 ca 8h + 3 ca 4h) | 48 q-h công (5 ca 8h + 2 ca 4h), không phủ đúng được 45 | Lịch 45 và Lịch 48 cùng 48 q-h công |
+| Số ngày quan sát đạt SLA | 12/14 | 12/14 | — |
+
+Kết quả mới: kiên nhẫn 15–60 phút cần 46 q-h, không bỏ về cần 48 q-h (M1); ràng buộc bỏ về ≤ 3% cần 51 q-h (M2); bất thường 15h–16h ngoài mẫu do riêng ngày 10 (M4). F1 riêng lẻ chỉ đổi SL giờ cuối 0,9706 → 0,9704.
+
+**Tài liệu và công cụ:** `tong_hop.md` viết lại theo V4; `docs/TONG_HOP_SO_LIEU_CHI_TIET.md` Phần 3–5 thay bằng tóm tắt V4 trỏ về `tong_hop.md` (bảng số chỉ còn một nơi). `tools/check_consistency.py` và `tools/build_tables.py` đọc `common.RESULTS_DIR`; checker mở rộng từ 8 lên 16 nhóm bảng (1.052 giá trị, 0 lệch). `tools/update_tong_hop_chi_tiet.py` (chép đè văn bản V3 cố định) chuyển vào `tools/archive/`. `pytest -q`: 35/35 pass, log tại `results/final_v4/pytest_log.txt`.
+
+**Lỗi động cơ mô phỏng đã sửa (`c_sim.py`):**
+- F1: sau 17h mô phỏng nhả mọi blocker nên toàn bộ `c_max` quầy xả hàng → SL giờ 16h–17h bị lạc quan. Giờ giữ số quầy của giờ cuối (`drain_policy="keep_last"`); hành vi cũ chạy lại được bằng `"all_open"` (kết quả so sánh: `doi_chieu_xa_hang.csv`).
+- F2: khoảng đến rút theo λ của giờ hiện tại kể cả khi rơi sang giờ sau. Với λ = [0,5; 3,0], code V3 sinh trung bình 174,9 khách ở giờ 2 thay vì 180 (test `test_nhpp_hourly_counts`). Giờ nhảy tới ranh giới giờ và rút lại.
+- F3: hiệu suất theo giờ gán theo giờ khách đến; giờ tính theo thời gian bận thực tế giao khung giờ.
+- Blocker chưa được cấp quầy bị `release()` vẫn nằm trong hàng đợi và có thể chiếm quầy vĩnh viễn; đổi sang `cancel()`.
+
+**Pipeline:** `main.py --stage all|data|theory|verify|optimize|robust|report --reps-scale`; logic S1–S11, C6, T1, T2, T5 từ `tools/` hợp nhất vào `a_data.py`, `d_experiments.py`, `e_robustness.py`, `chay_kiem_chung.py`; lịch tối ưu truyền qua `lich_khuyen_nghi.json`, không hard-code; một nguồn cấu hình `common.RESULTS_DIR`.
+
+**Thay đổi mô hình/phương pháp:**
+- M3: phục vụ thực nghiệm (lấy mẫu từ train, cs² = 1,20) là mô hình chính; Gamma (cs² = 0,91) chuyển sang độ nhạy.
+- M1 kịch bản kiên nhẫn 9,2 → ∞ phút; M2 ràng buộc tỉ lệ bỏ về; M5 số lần lặp cần thiết và xác suất giờ tệ nhất; M4 điều tra 15h–16h (`docs/ngoai_mau.md` mục 5).
+- Pha 3 (C6) dùng mô phỏng thay cho kiểm tra Erlang-A từng giờ.
+- KS bootstrap (S10): quy đổi thống kê KS theo cỡ mẫu (mẫu gốc n = 6.346, mẫu mô phỏng 1.000).
+- Nested bootstrap (S5) resample trực tiếp mẫu phục vụ thay vì fit lại Gamma.
+
+**Repo:** `results/final_v1`, `final_v2` → `results/archive/`; script cũ → `tools/archive/`; tài liệu lịch sử → `docs/lich_su/`; requirements ghim phiên bản; thêm 13 test (T1-a … T1-i).
+
+---
+
+## v3.1 — Rà soát đối chiếu số liệu (2026-10-23)
+
+Đối chiếu toàn bộ bảng số trong tài liệu với `data/clean/data_clean.csv` và `results/final_v3/`. Các mục ghi "KS $p = 0.482$", "100% số liệu khớp" ở phần v3 bên dưới là **sai** và đã được thay thế như sau.
+
+**Lỗi code đã sửa (và chạy lại phần liên quan):**
+- `tools/run_s5_s6_s7_s8_s9_s11.py` (S11): bước chọn "chính sách kinh tế nhất" chỉ so Lịch 44 với Lịch 48, bỏ qua Mốc 54. Đã sửa để so cả 3 chính sách. Trong `chi_phi_v3.csv`, $k = 1.0$ và $k = 2.0$ giờ ghi `Moc_co_so_54`; các giá trị chi phí không đổi.
+- `tools/run_s5_s6_s7_s8_s9_s11.py` (S8): nhãn "lap 60 lan" không được nhận diện nên Kiểm tra B dùng nhầm $n = 30$. Giờ là $n = 60$, $t = 2.0010$, nửa CI ±0.0737 (`kiem_chung_v3.csv`).
+- `a_data.py`: nhãn biểu đồ ghi cứng "AIC=37551", đổi thành AIC tính được (26280). Đã vẽ lại `fig_a_fit.png`.
+- `excel/tao_erlang_excel.py`: sheet `Quyet_dinh` dùng λ của 14 ngày, E[S]=2.88 và không có Erlang-A. Giờ đọc tham số train từ `results/final_v3/params.json`, tính Erlang C và Erlang-A bằng `b_theory.py`. Đường dẫn ghi cứng `d:\KHDV` được đổi thành đường dẫn tương đối. Đã tạo lại `excel/erlang.xlsx`.
+- `tools/check_consistency.py`: phiên bản cũ chỉ kiểm tra file có tồn tại. Bản mới đối chiếu 316 giá trị trong các bảng 2.1, 2.2, 2.4, 2.5, 3.1, 4.2, 7.3, 7.4 của `tong_hop.md` với dữ liệu và CSV, trả exit code 1 nếu lệch. Chạy trên bản cũ của tài liệu: 127 giá trị lệch.
+
+**Số liệu tài liệu đã sửa** (`tong_hop.md`, `docs/bao_cao_tong_ket.md`, `docs/TONG_HOP_SO_LIEU_CHI_TIET.md`, `docs/BAO_CAO_SUA_DOI_V2.md`, `docs/slide_thuyet_trinh.md`):
+- Kiểm định phân phối phục vụ: cả 4 phân phối đều bị KS bootstrap bác bỏ ($p < 0.001$; Gamma KS = 0.0717). Tham số và AIC của Lognormal, Weibull, Exponential được lấy lại từ `kiem_dinh_phan_phoi_chi_tiet.csv`.
+- λ theo giờ (14 ngày): $\bar N_h$, λ và CI của các giờ 2–8 lấy lại từ `khoang_tin_cay_lambda.csv` (ví dụ 10h–11h: 98.64, không phải 96.93).
+- Bảng train/test/toàn bộ: các cột Test và Toàn bộ; Wq và tỉ lệ bỏ về *quan sát thực tế* (train 0.698 phút và 7.59%; số cũ 1.0912 và 5.32% là số mô phỏng).
+- `bao_cao_tong_ket.md` §4.1: bảng Poisson train ghi "Chấp nhận Poisson" ở 9/9 giờ là sai. Thực tế 8/9 giờ bị bác bỏ; $\chi^2$ kiểm định tính cố định là 109.61 (không phải 184.20).
+- Bảng Erlang C / Erlang-A: các giá trị SL và $p_{ab}$ được tính lại; số quầy (47 / 44) không đổi.
+- Bảng độ nhạy CV ngày: cột "Số giờ $E_h < 90\%$" và "P(gộp tháng)" lấy lại từ `do_nhay_cv_ngay.csv`.
+- Pha 3: 45 phép giảm 2 quầy (không phải 36) và nêu rõ phép kiểm tra dùng Erlang-A.
+- Bổ sung mục 9 "Hạn chế" trong `tong_hop.md`: Gamma có $cs^2$ thấp hơn thực tế, KM lệch khỏi giả định mũ, sai số giữa các bộ seed, Wilson CI bỏ qua tương quan, OLS đánh giá trong mẫu (RMSE ngoài mẫu 55–64), điểm hòa vốn $k \approx 0.55$.
+
+---
 
 Tài liệu này ghi nhận chi tiết toàn bộ các thay đổi giữa kết quả ban đầu (`results/final_v1/`) và kết quả chuẩn hóa khoa học (`results/final_v2/`) theo 14 nhiệm vụ kỹ thuật được chỉ định trong `YEU_CAU_CHINH_SUA_AGENT.md`.
 

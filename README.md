@@ -5,6 +5,18 @@
 
 ---
 
+## Chạy nhanh trong 3 lệnh
+
+```bash
+pip install -r requirements-dev.txt          # thư viện đã ghim phiên bản (Python 3.12)
+pytest -q                                    # kiểm thử tự động
+python main.py --stage all                   # chạy toàn bộ pipeline, ghi vào results/final_v5/
+```
+
+Các lần lặp mô phỏng chạy song song trên `min(số CPU − 1, 8)` tiến trình (mỗi tiến trình khoảng 145 MB RAM); đặt biến môi trường `QS_WORKERS=1` để chạy tuần tự, hoặc số khác để đổi số tiến trình. Kết quả không phụ thuộc số tiến trình. Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v5/MO_TA.md`.
+
+---
+
 ## Mục lục
 
 1. [Tổng quan và mục tiêu](#1-tổng-quan-và-mục-tiêu)
@@ -21,7 +33,7 @@
 12. [Giai đoạn 8: Báo cáo và thuyết trình](#12-giai-đoạn-8-báo-cáo-và-thuyết-trình)
 13. [Cấu trúc mã nguồn và cách chạy](#13-cấu-trúc-mã-nguồn-và-cách-chạy)
 14. [Chuyển từ dữ liệu giả lập sang dữ liệu thật](#14-chuyển-từ-dữ-liệu-giả-lập-sang-dữ-liệu-thật)
-15. [Kết quả tham chiếu từ bản chạy thử](#15-kết-quả-tham-chiếu-từ-bản-chạy-thử)
+15. [Kết quả chính (V5, dữ liệu thật)](#15-kết-quả-chính-v5-dữ-liệu-thật)
 16. [Kế hoạch 3 tuần và phân công](#16-kế-hoạch-3-tuần-và-phân-công)
 17. [Rủi ro và cách xử lý](#17-rủi-ro-và-cách-xử-lý)
 18. [Câu hỏi phản biện thường gặp](#18-câu-hỏi-phản-biện-thường-gặp)
@@ -38,12 +50,13 @@ Một điểm giao dịch có khách đến ngẫu nhiên, xếp hàng và đư�
 
 ### 1.2 Cam kết dịch vụ dùng trong dự án
 
-| Nhóm khách | Cam kết |
-|---|---|
-| Khách thường | ≥ 90% khách được phục vụ trong ≤ 5 phút kể từ lúc vào hàng |
-| Khách VIP (nếu có) | ≥ 90% khách được phục vụ trong ≤ 2 phút |
+| Chỉ số | Vai trò | Ngưỡng |
+|---|---|---|
+| SL(5 phút) của **mọi khách đến** (VIP và thường) | **SLA chính**, ràng buộc khi tối ưu: trong từng khung giờ, cận dưới CI95 ≥ 90% | ≥ 90% khách được phục vụ trong ≤ 5 phút kể từ lúc vào hàng |
+| SL(5 phút) riêng khách thường | Giám sát (báo cáo, không ràng buộc) | ≥ 90% |
+| SL(2 phút) riêng khách VIP | Giám sát (báo cáo, không ràng buộc) | ≥ 90% |
 
-Định nghĩa chính xác: **SL(t) = P(khách được phục vụ và thời gian chờ ≤ t)**, tính trên **mọi khách đến**. Khách bỏ về được tính là không đạt. Đây là định nghĩa bảo thủ, cần ghi rõ trong báo cáo.
+Định nghĩa chính xác: **SL(t) = P(khách được phục vụ và thời gian chờ ≤ t)**, tính trên **mọi khách đến**. Khách bỏ về được tính là không đạt. Đây là định nghĩa bảo thủ, cần ghi rõ trong báo cáo. Hai chỉ số giám sát nằm ở `results/final_v5/sl_theo_nhom.csv` (V5.1, F6): riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h, Lịch 48 đạt ở mọi giờ.
 
 ### 1.3 Mục tiêu cụ thể
 
@@ -386,7 +399,7 @@ Lưu ý: ở tầng 3, sai lệch phản ánh cả sai số xấp xỉ của cô
 ### 11.1 Thuật toán tối ưu dựa trên mô phỏng
 
 1. Khởi tạo bằng lịch SIPP từ lý thuyết.
-2. **Pha 1 (tăng):** chạy mô phỏng với CRN. Giờ nào vi phạm SLA (cận dưới CI95 của `SL` thường hoặc `SL` VIP dưới mục tiêu) thì tăng 1 quầy. Lặp đến khi mọi giờ đạt.
+2. **Pha 1 (tăng):** chạy mô phỏng với CRN. Giờ nào vi phạm SLA (cận dưới CI95 của `SL` mọi khách dưới mục tiêu) thì tăng 1 quầy. Lặp đến khi mọi giờ đạt.
 3. **Pha 2 (giảm):** thử bớt 1 quầy ở từng giờ (bắt đầu từ giờ đang nhiều quầy nhất). Giữ lại nếu toàn bộ lịch vẫn đạt SLA.
 4. Đánh giá lịch cuối bằng nhiều lần lặp mới với seed khác.
 
@@ -446,127 +459,110 @@ Báo cáo: tổng quầy-giờ, `SL` toàn ngày, `SL` giờ tệ nhất (cận 
 ## 13. Cấu trúc mã nguồn và cách chạy
 
 ```
-queue_project/
-├── README.md        # tài liệu tổng quan và hướng dẫn
-├── common.py        # tham số chung, cấu trúc Model, bộ sinh thời gian phục vụ, hàm CI
-├── a_data.py        # [Thành viên A] đọc log, ước lượng, kiểm định, chia tập train/test
-├── b_theory.py      # [Thành viên B] M/M/c, Allen-Cunneen, Erlang-A ma trận hấp thụ, SIPP
-├── b_shifts.py      # [Thành viên B] Lập lịch theo ca MILP (Mô hình A & Mô hình B, HiGHS solver)
-├── c_sim.py         # [Thành viên C] Động cơ mô phỏng SimPy, blocker quầy động, CRN, tối ưu lịch
-├── d_experiments.py # [Cả nhóm] Kịch bản thực thi các thí nghiệm mở rộng và xuất dữ liệu
-├── main.py          # Ghép nối quy trình chuẩn
-├── tests/           # 18 ca kiểm thử đơn vị tự động (pytest)
-├── tools/           # Công cụ kiểm tra nhất quán (check_consistency.py) và tạo bảng (build_tables.py)
-├── results/final_v1/# Kết quả đóng băng đợt 1
-└── results/final_v2/# Kết quả đóng băng đợt 2 (hiệu chỉnh theo yêu cầu)
+queue-simulation/
+├── README.md, CHANGELOG.md, tong_hop.md
+├── requirements.txt       # thư viện ghim phiên bản; requirements-dev.txt thêm pytest
+├── common.py              # cấu hình chung (RESULTS_DIR, BASELINE_C, --reps-scale), Model, bộ sinh phục vụ, CI
+├── stats_utils.py         # Wilson CI, Student-t CI, Holm-Bonferroni
+├── a_data.py              # [A] đọc log, ước lượng, kiểm định (S1, T1, S10), M4 (15h-16h, số NV ước lượng)
+├── b_theory.py            # [B] M/M/c, Allen-Cunneen, Erlang-A ma trận hấp thụ, SIPP
+├── b_shifts.py            # [B] xếp ca MILP (mô hình A/B)
+├── c_sim.py               # [C] động cơ SimPy: NHPP theo giờ, blocker quầy, xả hàng, tối ưu 2 pha + Pha 3
+├── chay_kiem_chung.py     # [C] kiểm chứng 3 tầng + M/G/1 P-K + M/G/6, Welch, pooling
+├── d_experiments.py       # ngữ cảnh chung; giai đoạn theory/optimize (tối ưu, so sánh chính sách, xếp ca)
+├── e_robustness.py        # giai đoạn robust: độ nhạy, S2–S9, S11
+├── f_scenarios.py         # M1 kiên nhẫn, M2 ràng buộc bỏ về, M3 phục vụ thực nghiệm, M5 giờ tệ nhất, M7, M8 tăng quầy theo hàng chờ
+├── h_staffing.py          # M6 tối ưu theo giờ công ca, M7 chọn lịch theo xác suất đạt SLA ngày
+├── g_report.py            # giai đoạn report: doi_chieu_v4_v5.csv, MO_TA.md
+├── main.py                # điều phối: python main.py --stage ... --reps-scale ...
+├── data/  docs/  excel/  tests/
+├── docs/demo/sipp.html    # trang demo SIPP Erlang C / Erlang-A (mở trực tiếp bằng trình duyệt, chạy offline)
+├── tools/                 # check_consistency.py, build_tables.py, update_tong_hop_chi_tiet.py; archive/ = script V2/V3 cũ
+└── results/final_v5/      # kết quả hiện hành; final_v4/, final_v3/ mốc đối chiếu; archive/ = final_v1, final_v2
 ```
 
 ### 13.1 Cài đặt và chạy
 
 ```bash
-pip install -r requirements.txt
-pytest
-python main.py
-python tools/build_tables.py
-python tools/check_consistency.py
+pip install -r requirements-dev.txt
+pytest -q                       # thêm -m "not slow" để bỏ qua smoke test pipeline
+python main.py --stage all      # hoặc --stage data|theory|verify|optimize|robust|report
 ```
 
-Thời gian chạy khoảng 2 phút.
+`--reps-scale 0.1` nhân mọi số lần lặp/số kịch bản với 0,1 để chạy nhanh. Biến môi trường `QS_RESULTS_DIR` cho phép ghi kết quả ra thư mục khác (chạy thử không đụng vào bản đóng băng).
 
-### 13.2 Vai trò từng module và hàm chính
+### 13.2 Giai đoạn và tệp kết quả
 
-| Module | Hàm chính | Việc làm |
+| Giai đoạn | Hàm | Tệp chính trong `results/final_v5/` |
 |---|---|---|
-| `common.py` | `Model`, `mix_service`, `mix_moments`, `mean_ci` | Cấu trúc mô hình, bộ sinh phục vụ, tính cs² hỗn hợp, CI |
-| `a_data.py` | `generate_log`, `fit_arrivals`, `fit_service`, `fit_patience`, `estimate_all` | Tạo log giả lập, ước lượng λ theo giờ, kiểm định Poisson, fit phân phối, ước lượng θ |
-| `b_theory.py` | `mmc`, `allen_cunneen`, `mm1_random_split`, `erlang_a`, `sipp_schedule` | Công thức lý thuyết và lịch ban đầu |
-| `c_sim.py` | `simulate`, `rep_stats`, `run_reps`, `feasible`, `optimize_schedule`, `simulate_separate`, `welch_curve` | Mô phỏng, thống kê theo giờ, tối ưu, so sánh hàng riêng, Welch |
-| `main.py` | | Chạy 6 bước: dữ liệu, kiểm chứng, warm-up và pooling, tối ưu, đánh giá cuối, độ nhạy |
+| `data` | `a_data.estimate_all`, `lambda_ci_table`, `poisson_overdispersion`, `service_fit_details`, `patience_km`, `cluster_bootstrap_params`, `investigate_hour`, `estimate_concurrency` | `params.json`, `khoang_tin_cay_lambda.csv`, `kiem_dinh_poisson.csv`, `kiem_dinh_phan_phoi_chi_tiet.csv`, `dieu_tra_15h_16h.csv`, `nhan_vien_uoc_luong*.csv` |
+| `theory` | `d_experiments.run_theory` | `bang_sipp.csv`, `lich_khuyen_nghi.json` |
+| `verify` | `chay_kiem_chung.run_all_verification` | `kiem_chung.csv`, `kiem_chung_pooling.csv` |
+| `optimize` | `d_experiments.run_optimize`, `f_scenarios.run_scenarios_optimize` | `lich_toi_uu.csv`, `pha3.csv`, `so_sanh_chinh_sach*.csv`, `lich_theo_ca.csv`, `doi_chieu_xa_hang.csv`, `do_nhay_kien_nhan.csv`, `toi_uu_rang_buoc_bo_ve.csv`, `m3_dich_vu_thuc_nghiem.csv`, `toi_uu_theo_ca*.csv` (M6), `toi_uu_xac_suat_ngay.csv` (M7) |
+| `robust` | `e_robustness.run_robust`, `f_scenarios.run_scenarios_robust` | `do_nhay.csv`, `chi_so_ky_vong_dieu_kien.csv`, `ngoai_mau.csv`, `theo_14_ngay.csv`, `chi_phi.csv`, `gio_te_nhat.csv`, `chinh_sach_tang_quay.csv` (M8), … |
+| `report` | `g_report.run_report` | `doi_chieu_v4_v5.csv`, `MO_TA.md` |
 
-### 13.3 Hình và bảng sinh ra
-
-- `fig_a_fit.png`: tốc độ đến theo giờ, phân phối phục vụ, Q-Q plot theo loại giao dịch.
-- `fig_c_welch.png`: đường Welch chọn warm-up.
-- `fig_c_pooling.png`: so sánh hàng chung và hàng riêng.
-- `fig_c_lich_quay.png`: lịch quầy và SLA theo giờ.
-- `fig_c_do_nhay.png`: độ nhạy theo nhu cầu.
-- `ket_qua_kiem_chung.csv`, `ket_qua_hang_chung_vs_rieng.csv`, `ket_qua_danh_gia_chinh_sach.csv`, `ket_qua_do_nhay.csv`.
+Danh mục đầy đủ kèm mô tả từng tệp nằm trong `results/final_v5/MO_TA.md` (sinh tự động).
 
 ---
 
 ## 14. Chuyển từ dữ liệu giả lập sang dữ liệu thật
 
-Bản code hiện tại dùng **dữ liệu giả lập** (hàm `generate_log` trong `a_data.py` chạy mô phỏng một "hệ thống thật" với các tham số `TRUE_*` trong `common.py`). Khi có dữ liệu thật, thay đổi như sau.
+**Đã hoàn tất.** Pipeline hiện đọc dữ liệu thật đã làm sạch `data/clean/data_clean.csv` (sinh bởi `data/lam_sach.py` từ `data/raw/September1999.txt`), với các cột `day, t, hour, cls, vip, wait, served, svc` (ý nghĩa ở [mục 5.1](#51-biến-cần-ghi-cho-mỗi-khách)). Các thay đổi đã thực hiện so với bản giả lập:
 
-1. **Viết hàm đọc dữ liệu** `load_log(path)` trong `a_data.py`, trả về DataFrame có đúng các cột `day, t, hour, cls, vip, wait, served, svc` (ý nghĩa ở [mục 5.1](#51-biến-cần-ghi-cho-mỗi-khách)). Với Anonymous Bank, ánh xạ cột dựa vào tài liệu mô tả đi kèm bộ dữ liệu: giờ vào hàng, thời gian chờ, thời gian phục vụ, kết quả cuộc gọi (được phục vụ hay bỏ về). Chú ý đổi đơn vị sang **phút** nếu dữ liệu gốc tính bằng giây.
-2. **Chọn khung giờ và số giờ:** sửa `HOURS`, `H_LABELS` trong `common.py` theo giờ mở cửa thực tế, và để `t` tính từ giờ mở cửa.
-3. **Thay lệnh gọi trong `main.py`:** dùng `df = a_data.load_log(...)` thay cho `a_data.generate_log(...)`.
-4. **Bỏ phần "hệ thống thật":** các hàm và hằng `TRUE_*`, `true_model()`, `REF_SCHEDULE` chỉ dùng cho dữ liệu giả lập. Bước "kiểm tra trên hệ thống THẬT" trong `main.py` không còn ý nghĩa, thay bằng **kiểm tra theo ngày** (ước lượng trên một số ngày, so sánh với các ngày còn lại, xem [mục 10](#10-giai-đoạn-6-kiểm-chứng-mô-hình)).
-5. **Nếu dữ liệu không có loại giao dịch:** bỏ tách hai loại, fit một phân phối lognormal hoặc gamma duy nhất, dùng `lognorm_service(mean, cv)` trong `common.py`.
-6. **Nếu dữ liệu không ghi nhận khách bỏ về:** đặt `theta = 0` và nêu rõ đây là hạn chế.
-7. **Nếu không có VIP:** đặt `p_vip = 0` và bỏ tiêu chí VIP trong hàm `feasible`.
-8. Chạy lại toàn bộ và đối chiếu bảng quyết định tính tay (mục 8) với kết quả mô phỏng.
+1. Bỏ hàm sinh dữ liệu giả lập và các hằng "hệ thống thật" (`generate_log`, `TRUE_*`, `true_model()`, `REF_SCHEDULE`).
+2. Chia **train 10 ngày / test 4 ngày** để ước lượng và kiểm tra ngoài mẫu (thay cho bước "kiểm tra trên hệ thống thật").
+3. Dữ liệu không có loại giao dịch: dùng một phân phối phục vụ, lấy mẫu thực nghiệm từ tập train.
+4. Dữ liệu có khách bỏ về và VIP: ước lượng θ bằng MLE có kiểm duyệt, $p_{vip}$ từ tỉ lệ thực tế.
+
+Muốn chạy với một bộ dữ liệu khác (ví dụ log máy lấy số tại quầy), chỉ cần tạo `data_clean.csv` cùng định dạng cột rồi chạy `python main.py --stage all`.
 
 ---
 
-## 15. Kết quả tham chiếu từ bản chạy thử
+## 15. Kết quả chính (V5, dữ liệu thật)
 
-> **Lưu ý quan trọng:** các số dưới đây lấy từ **dữ liệu giả lập** (10 ngày, khoảng 7.900 bản ghi, chi nhánh mở 9 giờ, đỉnh khoảng 120 khách/giờ). Chúng dùng để minh họa quy trình và kiểm tra code, **không phải kết luận về một ngân hàng thật**. Khi có dữ liệu thật, nhóm cần thay bằng kết quả của mình.
+Số liệu từ `results/final_v5/` (Anonymous Bank, 14 ngày, 9.836 khách; tham số ước lượng trên 10 ngày train). Bảng đầy đủ và nguồn từng con số: [`tong_hop.md`](tong_hop.md); báo cáo: [`docs/bao_cao_tong_ket.md`](docs/bao_cao_tong_ket.md).
 
-### 15.1 Dữ liệu và ước lượng
+### 15.1 Tham số (train)
 
-- Tốc độ đến ước lượng sát giá trị thật. Số khách đến trong từng giờ khớp Poisson (p-value của kiểm định phân tán từ 0,05 đến 0,94).
-- Giả thuyết "mọi giờ cùng tốc độ" bị bác bỏ rất mạnh, nên bắt buộc dùng mô hình theo khung giờ.
-- Thời gian phục vụ gộp hai loại không khớp phân phối đơn nào (KS p ≈ 0). Tách theo loại giao dịch thì lognormal khớp tốt (KS p = 0,99 và 0,62).
-- Tỉ lệ giao dịch nhanh ước lượng 0,694. Tốc độ bỏ về `θ̂ = 0,092 ± 0,008`. Thời gian phục vụ trung bình hỗn hợp 3,24 phút, `cs² = 1,11`.
+λ theo giờ 0,99–1,54 khách/phút (đỉnh 10h–11h); E[S] = 2,92 phút, cs² = 1,20; θ = 0,1087/phút (kiên nhẫn TB 9,2 phút); VIP 35,4%; CV quy mô ngày 14,0%. 8/9 giờ bác bỏ Poisson giữa các ngày (quá phân tán). Cả 4 phân phối phục vụ tham số bị KS bác bỏ, nên mô phỏng lấy mẫu trực tiếp từ dữ liệu.
 
-### 15.2 Kiểm chứng mô phỏng và lý thuyết (hệ dừng)
+### 15.2 Kiểm chứng
 
 | Mô hình | Chỉ số | Lý thuyết | Mô phỏng | Sai lệch |
 |---|---|---|---|---|
-| M/M/c | SL = P(Wq ≤ 5) | 0,9654 | 0,9664 | +0,1% |
-| M/M/c | Wq (phút) | 0,8433 | 0,8385 | −0,6% |
-| M/M/c | Hiệu suất ρ | 0,7500 | 0,7506 | +0,1% |
-| M/M/c+M | SL (phục vụ và chờ ≤ 5) | 0,8689 | 0,8694 | +0,1% |
-| M/M/c+M | Wq (phút) | 1,1444 | 1,1334 | −1,0% |
-| M/M/c+M | Tỉ lệ bỏ về | 0,1144 | 0,1140 | −0,3% |
-| M/G/c (cv = 0,5) | Wq theo Allen–Cunneen | 0,5271 | 0,5473 | +3,8% |
-| M/G/c (cv = 1,5) | Wq theo Allen–Cunneen | 1,3704 | 1,1935 | −12,9% |
+| M/M/c | SL | 0,9654 | 0,9688 | +0,35% |
+| Erlang-A | SL | 0,8689 | 0,8695 | +0,07% |
+| Erlang-A | Tỉ lệ bỏ về | 0,1144 | 0,1142 | −0,21% |
+| M/G/1 (P-K chính xác) | Wq (phút) | 14,625 | 14,218 | −2,78% |
 
-Nhận xét: tầng 1 và 2 khớp rất tốt. Tầng 3 sai lệch tăng theo `cs²`, với cv = 1,5 sai lệch −12,9% trong khi khoảng tin cậy của mô phỏng là ±8%, nên một phần là sai số xấp xỉ của công thức Allen–Cunneen.
+### 15.3 Lịch quầy (300 lần lặp, seed đánh giá tách khỏi seed chọn lịch)
 
-### 15.3 Hàng chung và hàng riêng (6 quầy, 90 khách/giờ, phục vụ trung bình 3 phút)
+| Chính sách | Lịch (8h → 16h) | Quầy-giờ | SL ngày | Giờ tệ nhất (cận dưới CI) | Bỏ về |
+|---|---|---|---|---|---|
+| Hằng số 6 quầy | 6 × 9 | 54 | 0,976 | 0,949 | 2,2% |
+| SIPP Erlang C | 4, 6, 6, 6, 5, 5, 5, 5, 5 | 47 | 0,953 | 0,928 | 4,1% |
+| SIPP Erlang-A | 4, 5, 6, 5, 5, 5, 5, 5, 4 | 44 | 0,937 | 0,904 (sát ngưỡng) | 5,4% |
+| **Tối ưu mô phỏng** | **4, 5, 6, 5, 5, 5, 5, 5, 5** | **45** | **0,942** | **0,924** | **5,0%** |
+| Bền vững (+10%) | 4, 6, 6, 6, 5, 5, 6, 5, 5 | 48 | 0,958 | 0,933 | 3,7% |
 
-| Cách tổ chức | P(chờ ≤ 5 phút) |
-|---|---|
-| Hàng chung (M/M/6), lý thuyết | 0,965 |
-| 6 hàng riêng, chọn ngẫu nhiên, lý thuyết | 0,506 |
-| 6 hàng riêng, chọn ngẫu nhiên, mô phỏng | 0,500 |
-| 6 hàng riêng, vào hàng ngắn nhất, mô phỏng | 0,908 |
+### 15.4 Độ bền và khuyến nghị
 
-### 15.4 Lịch quầy (đánh giá 300 ngày mới, trên hệ thống "thật")
+- Lịch 45 đạt SLA 12/14 ngày thực tế và không chịu được nhu cầu +10% (giờ tệ nhất 0,879); Lịch 48 đạt 14/14 và chịu được +10% (0,909).
+- Xếp ca 8h/4h với nghỉ trưa 11h–14h: Lịch 45 cần 48 giờ công (không phủ đúng được), Lịch 48 phủ đúng 48 giờ công. Vì cùng giờ công, khuyến nghị vận hành là Lịch 48.
+- Nếu khách quầy kiên nhẫn hơn khách tổng đài, số quầy-giờ tối thiểu là 46–48.
 
-| Chính sách | Lịch (8h → 16h) | Quầy-giờ | SL toàn ngày | SL giờ tệ nhất (cận dưới CI) |
-|---|---|---|---|---|
-| Hằng số | 8 quầy cả ngày | 72 | 0,982 | 0,960 |
-| SIPP (chỉ lý thuyết) | 4, 5, 6, 7, 6, 6, 7, 7, 4 | 52 | 0,931 | 0,880 (vi phạm) |
-| Tối ưu bằng mô phỏng | 4, 5, 6, 7, 6, 6, 7, 8, 5 | 54 | 0,944 | 0,915 |
+### 15.5 Bổ sung V5: giờ công, xác suất đạt SLA ngày, tăng quầy theo hàng chờ
 
-Lịch tối ưu tiết kiệm khoảng **25%** quầy-giờ so với lịch hằng số. Lịch SIPP bỏ sót hai giờ cuối vì lý thuyết bỏ qua VIP và phân phối hỗn hợp, và mô phỏng bổ sung đúng vào hai giờ đó.
-
-### 15.5 Độ nhạy theo nhu cầu (SL của giờ tệ nhất, cận dưới CI)
-
-| Nhu cầu | Hằng số | Tối ưu bằng mô phỏng |
-|---|---|---|
-| ×0,9 | 0,974 | 0,939 |
-| ×1,0 | 0,957 | 0,903 |
-| ×1,1 | 0,935 | 0,863 |
-| ×1,2 | 0,894 | 0,793 |
-| ×1,3 | 0,847 | 0,721 |
-
-Lịch tối ưu rất sát giới hạn: nhu cầu tăng 10% là giờ tệ nhất đã xuống dưới 90%. Đây là điểm để thảo luận giữa chi phí và độ bền, và là lý do nên đề xuất thêm phương án có dự phòng.
-
-(Giá trị ×1,0 trong bảng này dùng 150 lần lặp nên hơi khác với 0,915 ở mục 15.4 dùng 300 lần lặp; sự khác biệt đến từ nhiễu mẫu.)
+- **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. Ở 44 giờ công không cách nào đạt SLA; ở 48 giờ công có 33/94 cách đạt, tốt nhất là Lịch 48 (4 ca 8h + 4 ca 4h). **Kết luận: tối thiểu 48 giờ công/ngày, xếp theo Lịch 48.**
+- **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công (Lịch 48: 94,6% [93,5%; 95,5%], xác nhận bằng 2.000 lần lặp với dải seed độc lập, V5.1); ≥ 95% số ngày cần 52 giờ công.
+- **SL theo nhóm khách (V5.1):** SLA chính tính trên mọi khách. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả SL mọi khách, SL khách thường và SL VIP (≤ 2 phút) ở mọi giờ (`sl_theo_nhom.csv`). Tối ưu lại với SLA riêng khách thường cần 47 quầy-giờ nhưng vẫn 48 giờ công (M9, `toi_uu_sla_khach_thuong.csv`).
+- **Trang demo SIPP (V5.1):** mở `docs/demo/sipp.html` bằng trình duyệt (chạy offline) để tính lịch Erlang C / Erlang-A theo giờ với tham số tùy chọn; với tham số train cho đúng `bang_sipp.csv` (44 / 47 quầy-giờ).
+- **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút: trung bình 46,17 quầy-giờ mở, đạt SLA ở 97,3% số ngày (Lịch 48 cố định: 94,0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.
+- **Kiểm tra giả định (S12, S15):** kiên nhẫn Weibull khớp dữ liệu tốt hơn mũ nhưng lịch tối ưu vẫn 45 quầy-giờ; λ theo nửa giờ chỉ khác rõ ở 8h–9h và không đổi tổng quầy-giờ; nghỉ trưa linh hoạt 9h–16h vẫn cần 48 giờ công.
+- **Ngày phục vụ chậm như ngày 10:** không lịch nào giữ được giờ tệ nhất ≥ 90%; mở thêm quầy nâng giờ tệ nhất từ 0,82 lên 0,87.
+- **Dự báo sớm lúc 10h** (fit trên train, S13) sai số ngoài mẫu 63,9 khách, bỏ lỡ cả hai ngày hụt; khuyến nghị dùng quy tắc theo hàng chờ (M8) thay cho dự báo.
+- Mọi số của V4 giữ nguyên; đối chiếu ở `results/final_v5/doi_chieu_v4_v5.csv`.
 
 ---
 
@@ -645,7 +641,7 @@ Cả nhóm cùng làm: mục 1, 2, 10 của báo cáo, slide 1, 2, 14, `main.py`
 
 ## 19. Hướng mở rộng
 
-- Ràng buộc ca làm (ví dụ ca tối thiểu 4 giờ) thay cho đổi quầy tùy ý từng giờ.
+- Kiểu ca khác (nghỉ trưa linh hoạt 9h–16h, ca 6h) cho tối ưu theo giờ công (M6 hiện chỉ xét ca 8h/4h nghỉ trưa 11h–14h).
 - Hàm chi phí: chi phí quầy cộng chi phí khách bỏ về, tìm điểm cân bằng.
 - Lịch bền vững: chọn lịch vẫn đạt SLA khi nhu cầu tăng một mức cho trước.
 - Quầy có kỹ năng khác nhau (một số quầy chuyên giao dịch phức tạp).

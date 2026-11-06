@@ -3,10 +3,69 @@ common.py: Tham so dung chung, cau truc Model, bo sinh thoi gian phuc vu,
 va cac ham tien ich thong ke cho du an mo phong hang doi.
 """
 
+import os
 from dataclasses import dataclass
 from typing import Callable, Tuple, List, Optional, Union
 import numpy as np
 import scipy.stats as stats
+
+# =============================================================================
+# CAU HINH DUONG DAN VA PHIEN BAN KET QUA (NGUON DUY NHAT)
+# =============================================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_CLEAN = os.path.join(BASE_DIR, "data", "clean", "data_clean.csv")
+RESULTS_VERSION = "final_v5"
+# QS_RESULTS_DIR: ghi ket qua ra thu muc khac (chay thu / smoke test), khong dong vao ban dong bang
+RESULTS_DIR = os.environ.get("QS_RESULTS_DIR") or os.path.join(BASE_DIR, "results", RESULTS_VERSION)
+HINH_DIR = os.path.join(RESULTS_DIR, "hinh")
+
+# Moc co so: so quay co dinh ca ngay (BASELINE_C * HOURS quay-gio)
+BASELINE_C = 6
+
+# He so nhan so lan lap (--reps-scale); 0.1 de chay nhanh khi phat trien
+REPS_SCALE = 1.0
+
+# =============================================================================
+# SO DANG KY DAI SEED (F4, docs/KE_HOACH_V5_1.md)
+# =============================================================================
+# Lan lap i cua c_sim.run_reps dung seed_base + SEED_STEP * i. Moi dai: (seed_base, so lan lap toi da).
+# Cap "chon lich / danh gia" cua cung mot thi nghiem khong duoc giao nhau (tests/test_f4_seeds.py).
+# Dai chung giua cac cau hinh khac nhau la CRN (co y), khong phai loi.
+SEED_STEP = 1000
+SEED_BANDS = {
+    "select": (1000, 60),             # optimize_schedule, Pha 3, M1-M3, S12, S15, M6 chon lich
+    "eval": (50000, 300),             # danh gia chinh sach, M6 xac nhan. Trung 11/300 voi "select";
+                                      # giu de khong doi so V5 (KE_HOACH_V5_1 F4, phuong an A)
+    "robust_day": (81000, 300),       # M6 do ben: bien dong ngay
+    "robust_demand": (131000, 150),   # M6 do ben: nhu cau +10%
+    "select_day": (3000, 300),        # M7 chon lich co bien dong ngay
+    "screen_day": (503000, 100),      # M7 sang loc
+    "eval_day": (20_000_000, 2000),   # M7 danh gia doc lap (F5)
+    "nested_boot": (60_000_000, 60),  # S5 bo bootstrap b: seed_base + NESTED_BOOT_STEP * b (F9)
+    "nested_nom": (70_000_000, 60),   # S5 danh nghia (F9)
+}
+NESTED_BOOT_STEP = 100_000  # > SEED_STEP * so lan lap toi da -> cac bo bootstrap khong chung seed
+
+
+def seed_range(name: str, n: Optional[int] = None) -> range:
+    """Cac seed thuc te cua dai `name` khi chay n lan lap (mac dinh so lan lap toi da)."""
+    base, n_max = SEED_BANDS[name]
+    return range(base, base + SEED_STEP * (n_max if n is None else n), SEED_STEP)
+
+def set_reps_scale(scale: float) -> None:
+    """Dat he so nhan so lan lap cho toan bo pipeline."""
+    global REPS_SCALE
+    REPS_SCALE = float(scale)
+
+def scaled(n: int, min_n: int = 3) -> int:
+    """So lan lap/so kich ban sau khi nhan REPS_SCALE (toi thieu min_n)."""
+    return max(min_n, int(round(n * REPS_SCALE)))
+
+def out_path(name: str, sub: str = "") -> str:
+    """Duong dan tep ket qua trong RESULTS_DIR (tu tao thu muc)."""
+    d = os.path.join(RESULTS_DIR, sub) if sub else RESULTS_DIR
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, name)
 
 # Khung gio lam viec ban ngay (8h - 17h: 9 khung gio)
 HOURS = 9
@@ -31,36 +90,96 @@ class Model:
     hour_len: float = DEFAULT_HOUR_LEN       # Do dai moi khung gio (phut)
     mean_svc: float = 2.88                   # E[S] tham chieu (phut)
     cs2_svc: float = 1.20                    # cs^2 tham chieu
+    # Mo rong V5 (mac dinh None = hanh vi va chuoi so ngau nhien cu):
+    patience: Optional[Callable[[np.random.Generator], float]] = None   # S12: bo sinh kien nhan; None = Exp(theta)
+    sub_rates: Optional[List[Optional[List[float]]]] = None            # S15: lambda cac khuc deu nhau trong gio h
+    service_by_hour: Optional[List[Optional[Callable]]] = None         # M8 ngay 10: bo sinh phuc vu rieng theo gio
 
 
 # =============================================================================
 # CAC BO SINH THOI GIAN PHUC VU (SERVICE SAMPLERS)
 # =============================================================================
 
+# Cac bo sinh la class co __call__ (khong dung lambda/closure) de pickle duoc khi
+# chay song song bang ProcessPoolExecutor tren Windows (spawn) - P1.
+# Thu tu goi rng giu nguyen nhu ban lambda cu de ket qua khong doi.
+
+class _ExpService:
+    def __init__(self, mean: float):
+        self.mean = mean
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(rng.exponential(self.mean)), 0
+
+
+class _LognormService:
+    def __init__(self, mu_log: float, sigma: float):
+        self.mu_log, self.sigma = mu_log, sigma
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(rng.lognormal(self.mu_log, self.sigma)), 0
+
+
+class _GammaService:
+    def __init__(self, shape: float, scale: float):
+        self.shape, self.scale = shape, scale
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(rng.gamma(self.shape, self.scale)), 0
+
+
+class _WeibullService:
+    def __init__(self, shape: float, scale: float):
+        self.shape, self.scale = shape, scale
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(self.scale * rng.weibull(self.shape)), 0
+
+
+class _EmpiricalService:
+    def __init__(self, samples: np.ndarray):
+        self.s = np.asarray(samples, dtype=float)
+        self.n = len(self.s)
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        return float(self.s[rng.integers(self.n)]), 0
+
+
+class _MixService:
+    def __init__(self, p_quick: float, quick_sampler, complex_sampler):
+        self.p_quick = p_quick
+        self.quick_sampler, self.complex_sampler = quick_sampler, complex_sampler
+
+    def __call__(self, rng: np.random.Generator) -> Tuple[float, int]:
+        if rng.random() < self.p_quick:
+            svc, _ = self.quick_sampler(rng)
+            return svc, 0
+        svc, _ = self.complex_sampler(rng)
+        return svc, 1
+
+
 def exp_service(mean: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi mu (Exponential) voi ky vong mean (cv = 1.0)."""
-    return lambda rng: (float(rng.exponential(mean)), 0)
+    return _ExpService(mean)
 
 def lognorm_service(mean: float, cv: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi Lognormal voi ky vong mean va he so bien thien cv."""
     sigma2 = np.log(1.0 + cv**2)
     sigma = np.sqrt(sigma2)
     mu_log = np.log(mean) - 0.5 * sigma2
-    return lambda rng: (float(rng.lognormal(mu_log, sigma)), 0)
+    return _LognormService(mu_log, sigma)
 
 def gamma_service(shape: float, scale: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi Gamma voi tham so shape (k) va scale (theta)."""
-    return lambda rng: (float(rng.gamma(shape, scale)), 0)
+    return _GammaService(shape, scale)
 
 def weibull_service(shape: float, scale: float) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Phan phoi Weibull voi tham so shape (k) va scale (lambda)."""
-    return lambda rng: (float(scale * rng.weibull(shape)), 0)
+    return _WeibullService(shape, scale)
 
 def empirical_service(samples: np.ndarray) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Lay mau co hoan lai tu du lieu thuc te (Bootstrap)."""
-    s = np.asarray(samples, dtype=float)
-    n = len(s)
-    return lambda rng: (float(s[rng.integers(n)]), 0)
+    return _EmpiricalService(samples)
 
 def mix_service(
     p_quick: float,
@@ -68,14 +187,36 @@ def mix_service(
     complex_sampler: Callable[[np.random.Generator], Tuple[float, int]]
 ) -> Callable[[np.random.Generator], Tuple[float, int]]:
     """Hon hop hai loai dich vu: nhanh (cls=0) va phuc tap (cls=1)."""
-    def sampler(rng: np.random.Generator) -> Tuple[float, int]:
-        if rng.random() < p_quick:
-            svc, _ = quick_sampler(rng)
-            return svc, 0
-        else:
-            svc, _ = complex_sampler(rng)
-            return svc, 1
-    return sampler
+    return _MixService(p_quick, quick_sampler, complex_sampler)
+
+
+# =============================================================================
+# BO SINH KIEN NHAN (S12)
+# =============================================================================
+
+class _ExpPatience:
+    """Kien nhan ~ Exp(theta); cung loi goi rng nhu mac dinh trong c_sim."""
+    def __init__(self, theta: float):
+        self.theta = theta
+
+    def __call__(self, rng: np.random.Generator) -> float:
+        return float(rng.exponential(1.0 / self.theta)) if self.theta > 0 else float("inf")
+
+
+class _WeibullPatience:
+    def __init__(self, shape: float, scale: float):
+        self.shape, self.scale = shape, scale
+
+    def __call__(self, rng: np.random.Generator) -> float:
+        return float(self.scale * rng.weibull(self.shape))
+
+
+def exp_patience(theta: float) -> Callable[[np.random.Generator], float]:
+    return _ExpPatience(theta)
+
+def weibull_patience(shape: float, scale: float) -> Callable[[np.random.Generator], float]:
+    """Kien nhan Weibull: S(t) = exp(-(t/scale)^shape)."""
+    return _WeibullPatience(shape, scale)
 
 
 # =============================================================================

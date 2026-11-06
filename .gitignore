@@ -43,3 +43,10 @@ ENV/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# pytest
+.pytest_cache/
+
+# Du lieu tho Anonymous Bank: khong phan phoi lai (F8), xem data/raw/README.md
+data/raw/*
+!data/raw/README.md

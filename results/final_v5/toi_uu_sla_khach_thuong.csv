@@ -1,0 +1,4 @@
+﻿chinh_sach,lich_quay,quay_gio,n_reps,sl_toan_ngay,sl_ci_half,sl_2p,sl_3p,gio_te_nhat,sl_gio_te_nhat,sl_gio_te_nhat_low,sl_vip,ti_le_bo_ve,ti_le_bo_ve_ci_half,wq_phut,wq_ci_half,hieu_suat_rho,rho_ci_half,dat_sla,gio_te_nhat_khach_thuong,sl_khach_thuong_gio_te_nhat_low,dat_sla_khach_thuong,gio_cong_ca
+Lich 45 (SLA moi khach),"[4, 5, 6, 5, 5, 5, 5, 5, 5]",45,300,0.9423,0.0022,0.8898,0.9198,3,0.9305,0.9236,0.9558,0.0499,0.0016,0.4628,0.015,0.7085,0.0039,Y,3,0.8997,N,48
+Toi uu SLA khach thuong,"[4, 6, 6, 6, 5, 5, 5, 5, 5]",47,300,0.953,0.0019,0.9107,0.9355,6,0.9338,0.9276,0.9635,0.041,0.0014,0.3807,0.0131,0.6847,0.0039,Y,6,0.9056,Y,48
+Lich 48,"[4, 6, 6, 6, 5, 5, 6, 5, 5]",48,300,0.9579,0.0017,0.9204,0.9425,7,0.939,0.9327,0.9674,0.037,0.0013,0.3432,0.0123,0.6733,0.0039,Y,7,0.9133,Y,48

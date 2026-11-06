@@ -1,7 +1,7 @@
-# Báo cáo Ước lượng và Kiểm định Phân phối Thống kê (Phiên bản Hiệu chỉnh v2.0)
+# Báo cáo Ước lượng và Kiểm định Phân phối Thống kê (cập nhật theo V4)
 
 **Người phụ trách:** Thành viên A  
-**Ngày cập nhật:** 23/10/2026  
+**Ngày cập nhật:** 29/10/2026 (tham số chính thức: `results/final_v5/params.json`)  
 **Dự án:** Mô phỏng hàng đợi và xác định số quầy phục vụ tối ưu  
 
 ---
@@ -53,36 +53,36 @@ $$[690, 776, 826, 634, 580, 600, 539, 820, 715, 687, 740, 748, 753, 728]$$
 Các chỉ số thống kê quá phân tán:
 - **Số ngày quan sát:** $n = 14$ ngày.
 - **Số khách trung bình mỗi ngày ($\mu$):** $702.6$ khách/ngày.
-- **Phương sai thực tế ($\sigma^2$):** $7.591,8$.
+- **Phương sai thực tế ($\sigma^2$):** $7.586,7$.
 - **Độ lệch chuẩn thực tế ($\sigma$):** $87.1$ khách.
 - **Độ lệch chuẩn theo phân phối Poisson thuần ($\sqrt{\mu}$):** $26.5$ khách.
 - **Tỉ số Phương sai / Trung bình ($\text{Var}/\text{Mean}$):** $10.8 \gg 1$.
 - **Hệ số biến thiên thực tế ($CV_{\text{ngày}}$):** $12.4\%$.
 - **Kiểm định quá phân tán cho tổng ngày:**
-  $$D = \sum_{d=1}^{14} \frac{(N_d - \mu)^2}{\mu} = 140.4 \implies p\text{-value} = 3.65 \times 10^{-23} \ll 0.01 \implies \text{\textbf{Bác bỏ triệt để Poisson}}.$$
+  $$D = \sum_{d=1}^{14} \frac{(N_d - \mu)^2}{\mu} = 140.4 \implies p\text{-value} = 1.77 \times 10^{-23} \ll 0.01 \implies \text{\textbf{Bác bỏ triệt để Poisson}}.$$
 - **Ước lượng $CV_{\text{ngày}}$ sau khi trừ nhiễu Poisson:**
-  $$CV_{\text{ngày}}^2 = \frac{\text{Var}(N_d) - \mu}{\mu^2} = \frac{7591.8 - 702.6}{702.6^2} = 0.0139 \implies CV_{\text{ngày}} \approx 11.8\%.$$
+  $$CV_{\text{ngày}}^2 = \frac{\text{Var}(N_d) - \mu}{\mu^2} = \frac{7586.7 - 702.6}{702.6^2} = 0.0139 \implies CV_{\text{ngày}} \approx 11.8\%.$$
 
 **Hệ quả mô hình hóa:**  
-Trong phiên bản hiệu chỉnh v2.0, mô hình bổ sung hệ số nhân ngày $m_d \sim \text{Gamma}(\text{shape}=1/CV^2, \text{scale}=CV^2)$ với $CV = 11.8\%$ vào động cơ SimPy để đánh giá độ bền vững thực tế của các chính sách định biên.
+Mô hình bổ sung hệ số nhân ngày $m_d \sim \text{Gamma}(\text{shape}=1/CV^2, \text{scale}=CV^2)$ vào động cơ SimPy. Con số 11.8% ở trên tính trên cả 14 ngày (mô tả dữ liệu); mô phỏng V4 dùng $CV = 14.0\%$ ước lượng trên 10 ngày train (`params.json`, `day_cv`), để đánh giá độ bền vững thực tế của các chính sách định biên.
 
 ---
 
 ## 3. Phân phối Thời gian Phục vụ (Service Time)
 
 ### 3.1 Thống kê mô tả (Tập Train 10 ngày)
-- Số lượng khách phục vụ thành công: 6.388 lượt.
+- Số lượng khách phục vụ thành công: 6.346 lượt.
 - Thời gian phục vụ trung bình: $E[S] = 2.9236$ phút ($\approx 175.4$ giây).
 - Độ lệch chuẩn: $\sigma_S = 3.2051$ phút.
 - Hệ số biến thiên: $cv = \frac{\sigma}{E[S]} = 1.0963 \implies cs^2 = 1.2018$.
-- Phân phối Gamma khớp tốt nhất theo chỉ số AIC ($26.314,2$), với tham số $\text{shape} = 1.0955$, $\text{scale} = 2.6688$.
+- Phân phối Gamma có AIC thấp nhất ($26.279,7$), với tham số $\text{shape} = 1.0955$, $\text{scale} = 2.6688$ ($cs^2 = 0.91$). Cả 4 phân phối (Gamma, Weibull, Exponential, Lognormal) đều bị KS bootstrap bác bỏ; từ V4 mô hình chính lấy mẫu trực tiếp từ 6.346 thời gian phục vụ train ($cs^2 = 1.20$), Gamma chỉ dùng cho phân tích độ nhạy.
 
 ---
 
 ## 4. Hành vi Khách hàng Bỏ về (Abandonment Behavior)
 
 Ước lượng hợp lý cực đại (MLE) trên tập Train 10 ngày:
-$$\hat{\theta} = \frac{479}{4.406,6 \text{ phút}} = \mathbf{0.1087\ \text{khách/phút}} \implies \text{Thời gian kiên nhẫn TB } \frac{1}{\hat{\theta}} = \mathbf{9.20\ \text{phút}}.$$
+$$\hat{\theta} = \frac{521}{4.793,6 \text{ phút}} = \mathbf{0.1087\ \text{khách/phút}} \implies \text{Thời gian kiên nhẫn TB } \frac{1}{\hat{\theta}} = \mathbf{9.20\ \text{phút}}.$$
 
 ---
 

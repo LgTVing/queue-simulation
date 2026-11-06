@@ -22,10 +22,13 @@ Mô hình mô phỏng sự kiện rời rạc (*Discrete-Event Simulation - DES*
 $$SL(t) = P(\text{Khách được phục vụ VÀ thời gian chờ } \le t)$$
 tính trên **toàn bộ khách đến hệ thống**. Khách hàng mất kiên nhẫn bỏ về được tính là vi phạm SLA ($SL = 0$).
 
-| Đối tượng khách hàng | Ngưỡng thời gian chờ $t$ | Mục tiêu cam kết ($SL$) | Tiêu chí đánh giá thống kê |
+| Chỉ số | Ngưỡng thời gian chờ $t$ | Mục tiêu ($SL$) | Vai trò |
 |---|---|---|---|
-| Khách thường (`vip = 0`) | $\le 5.0$ phút | $\ge 90.0\%$ | Cận dưới khoảng tin cậy 95% ($CI_{low} \ge 90\%$) |
-| Khách ưu tiên / VIP (`vip = 1`) | $\le 2.0$ phút | $\ge 90.0\%$ | Cận dưới khoảng tin cậy 95% ($CI_{low} \ge 90\%$) |
+| Mọi khách đến (VIP và thường) | $\le 5.0$ phút | $\ge 90.0\%$ | **SLA chính**: ràng buộc khi tối ưu, cận dưới CI95 theo từng giờ ($CI_{low} \ge 90\%$) |
+| Riêng khách thường (`vip = 0`) | $\le 5.0$ phút | $\ge 90.0\%$ | Giám sát: báo cáo ở `sl_theo_nhom.csv`, không ràng buộc |
+| Riêng khách ưu tiên / VIP (`vip = 1`) | $\le 2.0$ phút | $\ge 90.0\%$ | Giám sát: báo cáo ở `sl_theo_nhom.csv`, không ràng buộc |
+
+Lý do chọn SL gộp làm SLA chính (V5.1, F6 trong `docs/KE_HOACH_V5_1.md`): công thức Erlang C, Erlang-A và lịch SIPP không tách nhóm khách, nên chuỗi lý thuyết → kiểm chứng → tối ưu chỉ nhất quán với định nghĩa gộp. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 (khuyến nghị cuối) đạt cả ba chỉ số ở mọi giờ.
 
 ---
 
@@ -92,25 +95,31 @@ flowchart TD
 
 ---
 
-## 6. Tham số đầu vào (Từ kết quả bàn giao của Thành viên A)
+## 6. Tham số đầu vào (tập train 10 ngày, `results/final_v5/params.json`)
 
 | Tham số | Ký hiệu | Giá trị thực tế | Nguồn dữ liệu |
 |---|---|---|---|
-| Tốc độ đến theo giờ | $\lambda_h$ | `[1.019, 1.433, 1.644, 1.439, 1.239, 1.243, 1.321, 1.305, 1.066]` | `bang_tham_so.xlsx` (`theo_gio`) |
-| Thời gian phục vụ trung bình | $E[S]$ | $2.88$ phút ($\mu = 0.3475$ khách/phút) | `bang_tham_so.xlsx` (`chung`) |
-| Hệ số biến thiên phục vụ | $cv$ | $1.095$ ($cs^2 = 1.20$) | `bang_tham_so.xlsx` (`chung`) |
-| Phân phối phục vụ | Dist | Lognormal / Gamma ($\text{scale}=2.68, \text{shape}=1.08$) | Kiểm định phân phối |
-| Tốc độ bỏ về | $\theta$ | $0.1123$ (1/phút) $\implies$ Kiên nhẫn TB = $8.91$ phút | `bang_tham_so.xlsx` (`chung`) |
-| Tỉ lệ khách VIP | $p_{\text{vip}}$ | $33.85\%$ | `bang_tham_so.xlsx` (`chung`) |
+| Tốc độ đến theo giờ | $\lambda_h$ | `[0.990, 1.377, 1.535, 1.390, 1.240, 1.202, 1.338, 1.317, 1.057]` | `params.json` (`rates_per_min`) |
+| Thời gian phục vụ trung bình | $E[S]$ | $2.9236$ phút ($\mu = 0.3420$ khách/phút) | `params.json` (`service.mean`) |
+| Hệ số biến thiên phục vụ | $cv$ | $1.0963$ ($cs^2 = 1.2018$) | `params.json` (`service.cv`) |
+| Phân phối phục vụ | Dist | Thực nghiệm: lấy mẫu có hoàn lại từ 6.346 thời gian phục vụ train. Gamma (shape 1.0955, scale 2.6688, $cs^2 = 0.91$) chỉ dùng cho độ nhạy | `kiem_dinh_phan_phoi_chi_tiet.csv` |
+| Tốc độ bỏ về | $\theta$ | $0.1087$ (1/phút) $\implies$ Kiên nhẫn TB = $9.20$ phút | `params.json` (`theta`) |
+| Tỉ lệ khách VIP | $p_{\text{vip}}$ | $35.43\%$ | `params.json` (`p_vip`) |
+| Biến động quy mô ngày | $CV_{\text{ngày}}$ | $14.0\%$ (hệ số nhân $m_d \sim$ Gamma) | `params.json` (`day_cv`) |
+
+Các giá trị 14 ngày trong `bang_tham_so.xlsx` ($E[S] = 2.88$, $\theta = 0.1123$, $p_{vip} = 33.85\%$) chỉ dùng để mô tả dữ liệu, không đưa vào mô hình.
 
 ---
 
 ## 7. Các giả định mô hình và cơ sở chấp nhận
 
-1. **Tốc độ đến không đổi trong từng block 1 giờ:** Kiểm định phân tán $\chi^2$ cho thấy dòng khách trong từng giờ riêng lẻ không bác bỏ phân phối Poisson.
+1. **Tốc độ đến không đổi trong từng block 1 giờ:** đây là giả định làm việc. Kiểm định phân tán bác bỏ Poisson giữa các ngày ở 8/9 giờ (quá phân tán), nên mô hình bổ sung hệ số nhân ngày $m_d$ để tính phần biến động này.
 2. **Quầy có năng suất đồng nhất:** Các giao dịch viên có kỹ năng tương đương nhau trên cùng nghiệp vụ chuẩn `PS`.
 3. **Không ngắt quãng phục vụ (Non-preemptive):** Khách VIP được ưu tiên đứng đầu hàng chờ nhưng không ngắt quãng khách thường đang ngồi tại quầy.
 4. **Hệ thống mở cửa trống (Empty system at opening):** 8h00 sáng mở cửa không có khách tồn đọng từ hôm trước.
+5. **Xả hàng sau giờ đóng cửa (V4, sửa F1):** Sau giờ đóng cửa không nhận khách mới; số quầy giữ như giờ cuối (16h–17h) đến khi phục vụ xong khách đã vào hàng. Bản V1–V3 vô tình mở toàn bộ `c_max` quầy khi xả hàng, làm SL giờ 16h–17h bị lạc quan; hành vi cũ vẫn chạy được bằng `drain_policy="all_open"` để đối chiếu.
+6. **Quá trình đến không đồng nhất (V4, sửa F2):** Khách đến theo quá trình Poisson với $\lambda_h$ hằng số trong từng giờ. Khi khoảng đến rút ra vượt qua ranh giới giờ, mô phỏng nhảy tới ranh giới và rút lại với $\lambda_{h+1}$ (hợp lệ nhờ tính không nhớ của phân phối mũ). Bản V1–V3 rút khoảng đến theo $\lambda$ của giờ hiện tại kể cả khi lần đến rơi sang giờ sau, làm đầu giờ có $\lambda$ tăng bị thiếu khách.
+7. **Hiệu suất theo giờ (V4, sửa F3):** $\rho_h$ = thời gian bận thực tế của các quầy giao với khung giờ $[h \cdot 60, (h+1) \cdot 60)$ chia cho $c_h \cdot 60$ (thời gian bận sau giờ đóng cửa báo cáo riêng). Bản V1–V3 gán toàn bộ thời gian phục vụ vào giờ khách đến.
 
 ---
 
