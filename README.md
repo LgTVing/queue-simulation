@@ -15,6 +15,30 @@ python main.py --stage all                   # chạy toàn bộ pipeline, ghi v
 
 Các lần lặp mô phỏng chạy song song trên `min(số CPU − 1, 8)` tiến trình (mỗi tiến trình khoảng 145 MB RAM); đặt biến môi trường `QS_WORKERS=1` để chạy tuần tự, hoặc số khác để đổi số tiến trình. Kết quả không phụ thuộc số tiến trình. Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v5/MO_TA.md`.
 
+### Hướng dẫn chạy trang Demo tương tác (`docs/demo/sipp.html`)
+
+Trang demo tương tác tại [`docs/demo/sipp.html`](docs/demo/sipp.html) (kèm thư viện tính toán [`docs/demo/sipp_math.js`](docs/demo/sipp_math.js)) chạy hoàn toàn độc lập trên trình duyệt (offline, không cần backend):
+
+```bash
+# Cách 1: Mở trực tiếp tệp HTML bằng trình duyệt mặc định
+Start-Process docs/demo/sipp.html            # Windows (PowerShell)
+open docs/demo/sipp.html                     # macOS
+xdg-open docs/demo/sipp.html                 # Linux
+
+# Cách 2: Chạy qua máy chủ HTTP nội bộ của Python
+python -m http.server 8000                   # mở http://localhost:8000/docs/demo/sipp.html
+
+# Kiểm thử tự động bộ tính toán JS (yêu cầu có Node.js)
+pytest tests/test_d5_demo.py -v
+```
+
+**Cách sử dụng Demo:**
+- **Cột trái (Tham số đầu vào):** điều chỉnh hệ số nhu cầu, thời gian phục vụ trung bình `E[S]`, tốc độ bỏ về `θ`, ngưỡng chờ `t`, mục tiêu SLA và tốc độ đến `λ` của 9 khung giờ (`8h–17h`), hoặc bấm nút **Tham số chuẩn V5** / **Nhu cầu +10%**.
+- **Cột phải (Đầu ra của các phương pháp/mô hình):** tự động tính toán và hiển thị kết quả theo đúng 3 bước:
+  1. **Bước 1 · Lý thuyết giải tích SIPP:** `SIPP Erlang C` (`47` quầy-giờ) và `SIPP Erlang-A` (`44` quầy-giờ, `[4, 5, 6, 5, 5, 5, 5, 5, 4]`).
+  2. **Bước 2 · Tối ưu hóa lặp 3 pha (Pha 1 Tăng → Pha 2 Giảm → Pha 3 Kiểm tra lân cận):** **`45` quầy-giờ** (`[4, 5, 6, 5, 5, 5, 5, 5, 5]`, nghiệm tối thiểu cục bộ).
+  3. **Bước 3 · Xếp ca MILP & Tối ưu theo giờ công (M6):** **`48` giờ công** (xếp ca MILP cho Lịch 45 tốn `48` giờ công với độ phủ `[5, 5, 6, 5, 5, 5, 6, 6, 5]`; tối ưu thẳng theo giờ công M6 khuyến nghị **Lịch 48** `[4, 6, 6, 6, 5, 5, 6, 5, 5]` phủ khít `48` giờ công).
+
 ---
 
 ## Mục lục
@@ -476,7 +500,7 @@ queue-simulation/
 ├── g_report.py            # giai đoạn report: doi_chieu_v4_v5.csv, MO_TA.md
 ├── main.py                # điều phối: python main.py --stage ... --reps-scale ...
 ├── data/  docs/  excel/  tests/
-├── docs/demo/sipp.html    # trang demo SIPP Erlang C / Erlang-A (mở trực tiếp bằng trình duyệt, chạy offline)
+├── docs/demo/sipp.html    # trang demo tính số quầy & xếp ca (SIPP -> Lặp 3 pha -> MILP/M6, mở trực tiếp bằng trình duyệt)
 ├── tools/                 # check_consistency.py, build_tables.py, update_tong_hop_chi_tiet.py; archive/ = script V2/V3 cũ
 └── results/final_v5/      # kết quả hiện hành; final_v4/, final_v3/ mốc đối chiếu; archive/ = final_v1, final_v2
 ```
@@ -557,7 +581,7 @@ Số liệu từ `results/final_v5/` (Anonymous Bank, 14 ngày, 9.836 khách; th
 - **Tối ưu theo giờ công (M6):** liệt kê mọi cách xếp ca 8h/4h phủ SIPP Erlang-A. Ở 44 giờ công không cách nào đạt SLA; ở 48 giờ công có 33/94 cách đạt, tốt nhất là Lịch 48 (4 ca 8h + 4 ca 4h). **Kết luận: tối thiểu 48 giờ công/ngày, xếp theo Lịch 48.**
 - **Xác suất đạt SLA ngày (M7):** đạt SLA ở ≥ 90% số ngày cần 48 giờ công (Lịch 48: 94,6% [93,5%; 95,5%], xác nhận bằng 2.000 lần lặp với dải seed độc lập, V5.1); ≥ 95% số ngày cần 52 giờ công.
 - **SL theo nhóm khách (V5.1):** SLA chính tính trên mọi khách. Riêng khách thường, Lịch 45 không đạt 90% ở 11h–12h; Lịch 48 đạt cả SL mọi khách, SL khách thường và SL VIP (≤ 2 phút) ở mọi giờ (`sl_theo_nhom.csv`). Tối ưu lại với SLA riêng khách thường cần 47 quầy-giờ nhưng vẫn 48 giờ công (M9, `toi_uu_sla_khach_thuong.csv`).
-- **Trang demo SIPP (V5.1):** mở `docs/demo/sipp.html` bằng trình duyệt (chạy offline) để tính lịch Erlang C / Erlang-A theo giờ với tham số tùy chọn; với tham số train cho đúng `bang_sipp.csv` (44 / 47 quầy-giờ).
+- **Trang demo tương tác (V5.1):** mở `docs/demo/sipp.html` bằng trình duyệt (chạy offline) để tính trực tiếp lịch SIPP Erlang C (`47` quầy-giờ), SIPP Erlang-A (`44` quầy-giờ), tối ưu hóa lặp 3 pha (`45` quầy-giờ) và xếp ca MILP / M6 (`48` giờ công) với tham số tùy chọn; với tham số train khớp `bang_sipp.csv`, `lich_toi_uu.csv` và `lich_theo_ca.csv`.
 - **Mở thêm quầy theo hàng chờ (M8):** Lịch 45 + mở thêm 1 quầy khi hơn 2 người chờ liên tục 5 phút: trung bình 46,17 quầy-giờ mở, đạt SLA ở 97,3% số ngày (Lịch 48 cố định: 94,0%), 14/14 ngày thực tế. Cần 1 nhân viên dự phòng.
 - **Kiểm tra giả định (S12, S15):** kiên nhẫn Weibull khớp dữ liệu tốt hơn mũ nhưng lịch tối ưu vẫn 45 quầy-giờ; λ theo nửa giờ chỉ khác rõ ở 8h–9h và không đổi tổng quầy-giờ; nghỉ trưa linh hoạt 9h–16h vẫn cần 48 giờ công.
 - **Ngày phục vụ chậm như ngày 10:** không lịch nào giữ được giờ tệ nhất ≥ 90%; mở thêm quầy nâng giờ tệ nhất từ 0,82 lên 0,87.
