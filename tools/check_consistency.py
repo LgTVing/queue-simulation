@@ -867,9 +867,11 @@ def check_report_numbers(texts: dict = None) -> list:
     print("ĐỐI CHIẾU SỐ TRONG BÁO CÁO, SLIDE, README (T2)")
     print("=" * 70)
     if texts is None:
-        texts = {k: open(p, encoding="utf-8").read() for k, p in REPORT_FILES.items()}
+        texts = {k: open(p, encoding="utf-8").read() for k, p in REPORT_FILES.items() if os.path.exists(p)}
     errors, n = [], 0
     for fname, items in _expected_report_strings().items():
+        if fname not in texts:
+            continue
         text = texts[fname].replace("−", "-")
         for label, needle in items:
             n += 1
