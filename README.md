@@ -15,30 +15,6 @@ python main.py --stage all                   # chạy toàn bộ pipeline, ghi v
 
 Các lần lặp mô phỏng chạy song song trên `min(số CPU − 1, 8)` tiến trình (mỗi tiến trình khoảng 145 MB RAM); đặt biến môi trường `QS_WORKERS=1` để chạy tuần tự, hoặc số khác để đổi số tiến trình. Kết quả không phụ thuộc số tiến trình. Chạy thử nhanh khi phát triển: `python main.py --stage all --reps-scale 0.1`. Chạy riêng một giai đoạn: `--stage data|theory|verify|optimize|robust|report`. Thời gian chạy và danh mục tệp kết quả được ghi tự động trong `results/final_v5/MO_TA.md`.
 
-### Hướng dẫn chạy trang Demo tương tác (`docs/demo/sipp.html`)
-
-Trang demo tương tác tại [`docs/demo/sipp.html`](docs/demo/sipp.html) (kèm thư viện tính toán [`docs/demo/sipp_math.js`](docs/demo/sipp_math.js)) chạy hoàn toàn độc lập trên trình duyệt (offline, không cần backend):
-
-```bash
-# Cách 1: Mở trực tiếp tệp HTML bằng trình duyệt mặc định
-Start-Process docs/demo/sipp.html            # Windows (PowerShell)
-open docs/demo/sipp.html                     # macOS
-xdg-open docs/demo/sipp.html                 # Linux
-
-# Cách 2: Chạy qua máy chủ HTTP nội bộ của Python
-python -m http.server 8000                   # mở http://localhost:8000/docs/demo/sipp.html
-
-# Kiểm thử tự động bộ tính toán JS (yêu cầu có Node.js)
-pytest tests/test_d5_demo.py -v
-```
-
-**Cách sử dụng Demo:**
-- **Cột trái (Tham số đầu vào):** điều chỉnh hệ số nhu cầu, thời gian phục vụ trung bình `E[S]`, tốc độ bỏ về `θ`, ngưỡng chờ `t`, mục tiêu SLA và tốc độ đến `λ` của 9 khung giờ (`8h–17h`), hoặc bấm nút **Tham số chuẩn V5** / **Nhu cầu +10%**.
-- **Cột phải (Đầu ra của các phương pháp/mô hình):** tự động tính toán và hiển thị kết quả theo đúng 3 bước:
-  1. **Bước 1 · Lý thuyết giải tích SIPP:** `SIPP Erlang C` (`47` quầy-giờ) và `SIPP Erlang-A` (`44` quầy-giờ, `[4, 5, 6, 5, 5, 5, 5, 5, 4]`).
-  2. **Bước 2 · Tối ưu hóa lặp 3 pha (Pha 1 Tăng → Pha 2 Giảm → Pha 3 Kiểm tra lân cận):** **`45` quầy-giờ** (`[4, 5, 6, 5, 5, 5, 5, 5, 5]`, nghiệm tối thiểu cục bộ).
-  3. **Bước 3 · Xếp ca MILP & Tối ưu theo giờ công (M6):** **`48` giờ công** (xếp ca MILP cho Lịch 45 tốn `48` giờ công với độ phủ `[5, 5, 6, 5, 5, 5, 6, 6, 5]`; tối ưu thẳng theo giờ công M6 khuyến nghị **Lịch 48** `[4, 6, 6, 6, 5, 5, 6, 5, 5]` phủ khít `48` giờ công).
-
 ---
 
 ## Mục lục
@@ -63,6 +39,7 @@ pytest tests/test_d5_demo.py -v
 18. [Câu hỏi phản biện thường gặp](#18-câu-hỏi-phản-biện-thường-gặp)
 19. [Hướng mở rộng](#19-hướng-mở-rộng)
 20. [Tài liệu tham khảo](#20-tài-liệu-tham-khảo)
+21. [Hướng dẫn chạy trang Demo tương tác](#21-hướng-dẫn-chạy-trang-demo-tương-tác)
 
 ---
 
@@ -685,3 +662,29 @@ Cả nhóm cùng làm: mục 1, 2, 10 của báo cáo, slide 1, 2, 14, `main.py`
 6. Allen, A. O. (1990). *Probability, Statistics, and Queueing Theory with Computer Science Applications.* Academic Press (xấp xỉ Allen–Cunneen).
 
 > Ghi chú: các sách ở mục 3, 4, 6 là tài liệu kinh điển về lý thuyết hàng đợi và mô phỏng; nhóm nên kiểm tra thông tin xuất bản chính xác (năm, lần xuất bản) trước khi ghi vào báo cáo.
+
+---
+
+## 21. Hướng dẫn chạy trang Demo tương tác
+
+Trang demo tương tác tại [`docs/demo/sipp.html`](docs/demo/sipp.html) (kèm thư viện tính toán [`docs/demo/sipp_math.js`](docs/demo/sipp_math.js)) chạy hoàn toàn độc lập trên trình duyệt (offline, không cần backend):
+
+```bash
+# Cách 1: Mở trực tiếp tệp HTML bằng trình duyệt mặc định
+Start-Process docs/demo/sipp.html            # Windows (PowerShell)
+open docs/demo/sipp.html                     # macOS
+xdg-open docs/demo/sipp.html                 # Linux
+
+# Cách 2: Chạy qua máy chủ HTTP nội bộ của Python
+python -m http.server 8000                   # mở http://localhost:8000/docs/demo/sipp.html
+
+# Kiểm thử tự động bộ tính toán JS (yêu cầu có Node.js)
+pytest tests/test_d5_demo.py -v
+```
+
+**Cách sử dụng Demo:**
+- **Cột trái (Tham số đầu vào):** điều chỉnh hệ số nhu cầu, thời gian phục vụ trung bình `E[S]`, tốc độ bỏ về `θ`, ngưỡng chờ `t`, mục tiêu SLA và tốc độ đến `λ` của 9 khung giờ (`8h–17h`), hoặc bấm nút **Tham số chuẩn V5** / **Nhu cầu +10%**.
+- **Cột phải (Đầu ra của các phương pháp/mô hình):** tự động tính toán và hiển thị kết quả theo đúng 3 bước:
+  1. **Bước 1 · Lý thuyết giải tích SIPP:** `SIPP Erlang C` (`47` quầy-giờ) và `SIPP Erlang-A` (`44` quầy-giờ, `[4, 5, 6, 5, 5, 5, 5, 5, 4]`).
+  2. **Bước 2 · Tối ưu hóa lặp 3 pha (Pha 1 Tăng → Pha 2 Giảm → Pha 3 Kiểm tra lân cận):** **`45` quầy-giờ** (`[4, 5, 6, 5, 5, 5, 5, 5, 5]`, nghiệm tối thiểu cục bộ).
+  3. **Bước 3 · Xếp ca MILP & Tối ưu theo giờ công (M6):** **`48` giờ công** (xếp ca MILP cho Lịch 45 tốn `48` giờ công với độ phủ `[5, 5, 6, 5, 5, 5, 6, 6, 5]`; tối ưu thẳng theo giờ công M6 khuyến nghị **Lịch 48** `[4, 6, 6, 6, 5, 5, 6, 5, 5]` phủ khít `48` giờ công).
