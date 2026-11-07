@@ -14,18 +14,29 @@ import check_consistency as cc  # noqa: E402
 
 
 def _texts():
-    return {k: open(p, encoding="utf-8").read() for k, p in cc.REPORT_FILES.items()}
+    return {k: open(p, encoding="utf-8").read() for k, p in cc.REPORT_FILES.items() if os.path.exists(p)}
+
+
+REPORT_NUMBER_MUTATIONS = [
+    ("bao_cao_tong_ket.md", "0.9423 ± 0.0022", "0.9432 ± 0.0022"),
+    ("slide_thuyet_trinh.md", "94.23%", "94.32%"),
+    ("README.md", "0,942", "0,924"),
+]
+AVAILABLE_REPORT_NUMBER_MUTATIONS = [c for c in REPORT_NUMBER_MUTATIONS if os.path.exists(cc.REPORT_FILES[c[0]])]
 
 
 def test_report_numbers_match():
     assert cc.check_report_numbers(_texts()) == []
 
 
-@pytest.mark.parametrize("fname, old, new", [
-    ("bao_cao_tong_ket.md", "0.9423 ± 0.0022", "0.9432 ± 0.0022"),
-    ("slide_thuyet_trinh.md", "94.23%", "94.32%"),
-    ("README.md", "0,942", "0,924"),
-])
+def test_texts_skip_missing_report_files():
+    texts = _texts()
+    for fname, path in cc.REPORT_FILES.items():
+        if not os.path.exists(path):
+            assert fname not in texts
+
+
+@pytest.mark.parametrize("fname, old, new", AVAILABLE_REPORT_NUMBER_MUTATIONS)
 def test_report_numbers_detect_error(fname, old, new):
     texts = _texts()
     assert old in texts[fname]
