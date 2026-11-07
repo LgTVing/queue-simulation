@@ -1,6 +1,6 @@
 /*
  * docs/demo/sipp_math.js: Erlang C, Erlang-A va lich SIPP cho trang demo D5.
- * Port tu b_theory.py (mmc, erlang_a, sipp_schedule), cung tham so cat K = 200, M = 80.
+ * Port tu b_theory.py (mmc, erlang_a, sipp_schedule) va b_shifts.py (xep ca mo hinh B), cung tham so cat K = 200, M = 80.
  * SL(t) cua Erlang-A: P(vao phuc vu truoc t) tu trang thai j khach dung truoc, tinh bang
  * uniformization tren chuoi hap thu (b_theory dung expm); hai cach trung nhau den sai so may.
  * Dung duoc trong trinh duyet (window.SippMath) va Node (module.exports) cho tests/test_d5_demo.py.
@@ -87,7 +87,53 @@
     });
   }
 
-  const api = { mmc: mmc, erlangA: erlangA, sippSchedule: sippSchedule };
+  // ---- Xep ca (port b_shifts.py, mo hinh B): min gio cong s.t. do phu >= req moi gio ----
+  // Ca 8h co mat suot 9 gio, nghi 1 gio o gio l trong [lunchLo, lunchHi] (chi so gio, mac dinh 3..5 = 11h-14h);
+  // ca 4h bat dau o gio 0..n-4. Gio cong: ca 8h = 8, ca 4h = 4.
+  // Duyet so ca 8h theo tung gio nghi; phan con thieu phu bang ca 4h (phu doan do dai 4, tham lam tu trai
+  // la toi uu), nen cho cung tri toi uu voi MILP cua b_shifts.solve_shift_scheduling.
+  function shiftSchedule(req, lunchLo, lunchHi) {
+    const n = req.length;
+    lunchLo = lunchLo === undefined ? 3 : lunchLo;
+    lunchHi = lunchHi === undefined ? 5 : lunchHi;
+    const lunches = [];
+    for (let l = lunchLo; l <= Math.min(lunchHi, n - 1); l++) lunches.push(l);
+    const mx = Math.max.apply(null, req.concat([0]));
+    const counts = new Array(lunches.length).fill(0);
+    let best = null;
+
+    function eval8() {
+      const cov = new Array(n).fill(0);
+      lunches.forEach(function (l, i) { for (let h = 0; h < n; h++) if (h !== l) cov[h] += counts[i]; });
+      const n4 = new Array(Math.max(n - 3, 0)).fill(0);
+      const res = cov.slice();
+      for (let h = 0; h < n; h++) {
+        const need = req[h] - res[h];
+        if (need > 0) {
+          const s = Math.min(h, n - 4);
+          if (s < 0) return;                        // khong du gio de xep ca 4h
+          n4[s] += need;
+          for (let k = s; k < s + 4; k++) res[k] += need;
+        }
+      }
+      const k8 = counts.reduce(function (a, b) { return a + b; }, 0);
+      const k4 = n4.reduce(function (a, b) { return a + b; }, 0);
+      const work = 8 * k8 + 4 * k4, staff = k8 + k4;
+      if (!best || work < best.work || (work === best.work && staff < best.staff)) {
+        best = { work: work, staff: staff, n8: counts.slice(), n4: n4.slice(), coverage: res.slice() };
+      }
+    }
+    (function rec(i) {
+      if (i === lunches.length) { eval8(); return; }
+      for (let v = 0; v <= mx; v++) { counts[i] = v; rec(i + 1); }
+      counts[i] = 0;
+    })(0);
+    if (!best) return null;
+    return { work: best.work, staff: best.staff, coverage: best.coverage, lunches: lunches, n8: best.n8, n4: best.n4,
+             waste: best.work - req.reduce(function (a, b) { return a + b; }, 0) };
+  }
+
+  const api = { mmc: mmc, erlangA: erlangA, sippSchedule: sippSchedule, shiftSchedule: shiftSchedule };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.SippMath = api;
 })(typeof window !== "undefined" ? window : this);

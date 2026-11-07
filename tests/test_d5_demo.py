@@ -60,3 +60,18 @@ def test_js_reproduces_bang_sipp():
     js = _node([(lam, mu, THETA, int(c), 5.0) for lam, c in zip(b["lambda"], b["c_erlang_a"])])
     np.testing.assert_allclose([x["SL"] for x in js], b["sl_erlang_a"], atol=5e-4)
     np.testing.assert_allclose([x["p_ab"] for x in js], b["p_ab_erlang_a"], atol=5e-4)
+
+
+def test_js_shift_schedule_matches_milp():
+    """Xep ca JS (bước 2 của demo) cho cùng giờ công tối thiểu và độ phủ với b_shifts.solve_shift_scheduling."""
+    import b_shifts
+    reqs = [[4, 5, 6, 5, 5, 5, 5, 5, 4], [4, 5, 6, 5, 5, 5, 5, 5, 5], [4, 6, 6, 6, 5, 5, 6, 5, 5],
+            [5, 6, 6, 6, 6, 5, 6, 6, 5], [2, 3, 4, 4, 3, 3, 4, 3, 2]]
+    code = (f"const m = require({json.dumps(JS)});"
+            f"console.log(JSON.stringify({json.dumps(reqs)}.map(r => m.shiftSchedule(r, 3, 5))));")
+    out = json.loads(subprocess.run([NODE, "-e", code], capture_output=True, text=True, check=True).stdout)
+    for req, js in zip(reqs, out):
+        py = b_shifts.solve_shift_scheduling(req, "B", (3, 5))
+        assert js["work"] == py["total_work_hours"], req
+        assert all(c >= r for c, r in zip(js["coverage"], req)), req
+        assert js["work"] == 8 * sum(js["n8"]) + 4 * sum(js["n4"])

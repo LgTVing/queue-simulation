@@ -131,9 +131,9 @@
     <section aria-labelledby="h-out">
       <h2 id="h-out">Kết quả</h2>
       <div class="kpis">
-        <div class="kpi"><span>Quầy-giờ, Erlang-A</span><b id="k-a">–</b></div>
-        <div class="kpi"><span>Quầy-giờ, Erlang C</span><b id="k-c">–</b></div>
-        <div class="kpi"><span>Tỉ lệ bỏ về TB, Erlang-A</span><b id="k-ab">–</b></div>
+        <div class="kpi"><span>Quầy-giờ SIPP, Erlang-A</span><b id="k-a">–</b></div>
+        <div class="kpi"><span>Quầy-giờ SIPP, Erlang C</span><b id="k-c">–</b></div>
+        <div class="kpi"><span>Giờ công sau khi xếp ca (Erlang-A)</span><b id="k-w">–</b></div>
       </div>
       <div class="chart">
         <div class="legend"><span><i style="background:var(--c-bar)"></i>Erlang C</span><span><i style="background:var(--a-bar)"></i>Erlang-A</span><span>Số quầy theo khung giờ</span></div>
@@ -150,7 +150,21 @@
         </table>
       </div>
       <p class="note" id="warn"></p>
-      <p class="note callout"><strong>Đọc kết quả thế nào:</strong> SIPP bỏ qua quán tính giữa các giờ (khách tồn từ giờ trước) và coi phục vụ có phân phối mũ, nên chỉ là lịch khởi đầu. Mô phỏng SimPy với dữ liệu thật cho lịch tối ưu 45 quầy-giờ, và khuyến nghị cuối là <strong>Lịch 48</strong> <code>[4, 6, 6, 6, 5, 5, 6, 5, 5]</code> (48 giờ công, 4 ca 8h + 4 ca 4h); xem <code>tong_hop.md</code> mục 1, 4.1, 7.9.</p>
+
+      <h2 style="margin-top:22px">Bước 2: xếp ca (quy hoạch nguyên, mô hình B)</h2>
+      <p class="note" style="margin-top:0">Chi phí thật là <strong>giờ công</strong>, không phải quầy-giờ mở: ca 8h nghỉ trưa 1 giờ trong 11h–14h, ca 4h bắt đầu từ 8h–13h. Tìm ít giờ công nhất sao cho độ phủ mỗi giờ ≥ số quầy SIPP Erlang-A (cùng bài toán <code>b_shifts.py</code>).</p>
+      <div class="kpis">
+        <div class="kpi"><span>Giờ công tối thiểu</span><b id="s-w">–</b></div>
+        <div class="kpi"><span>Số nhân viên</span><b id="s-n">–</b></div>
+        <div class="kpi"><span>Giờ công dư so với SIPP</span><b id="s-x">–</b></div>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr id="s-head"></tr></thead>
+          <tbody id="s-rows"></tbody>
+        </table>
+      </div>
+      <p class="note" id="s-list"></p>
     </section>
   </div>
 </main>
@@ -181,6 +195,36 @@
 
   function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : NaN; }
 
+  var HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16];
+
+  // Buoc 2: xep ca cho lich SIPP Erlang-A, roi tinh lai SL / bo ve theo do phu that (>= c SIPP)
+  function renderShifts(rates, sa, mu, theta, t, target) {
+    var req = sa.map(function (o) { return o.c; });
+    var sh = SippMath.shiftSchedule(req, 3, 5);
+    if (!sh) { $("s-rows").innerHTML = ""; $("s-list").innerHTML = '<span class="warn">Không xếp được ca cho lịch này.</span>'; return; }
+    var sumReq = req.reduce(function (a, b) { return a + b; }, 0);
+    $("k-w").textContent = sh.work; $("s-w").textContent = sh.work;
+    $("s-n").textContent = sh.staff; $("s-x").textContent = sh.work - sumReq;
+    $("s-head").innerHTML = "<th>Khung giờ</th><th>Cần (SIPP)</th><th>Phủ bằng ca</th><th>Dư</th><th>SL A</th><th>Bỏ về A</th>";
+    var rows = "", abArr = 0, lamTot = 0;
+    rates.forEach(function (lam, h) {
+      var cov = sh.coverage[h], e = SippMath.erlangA(lam, mu, theta, cov, t);
+      abArr += e.p_ab * lam; lamTot += lam;
+      rows += "<tr><td>" + LABELS[h] + "</td><td>" + req[h] + "</td><td><strong>" + cov + "</strong>" + bars(cov) + "</td><td>" +
+              (cov - req[h]) + "</td><td>" + pct(e.SL) + "</td><td>" + pct(e.p_ab) + "</td></tr>";
+    });
+    $("s-rows").innerHTML = rows;
+    var parts = [];
+    sh.lunches.forEach(function (l, i) {
+      if (sh.n8[i] > 0) parts.push(sh.n8[i] + " ca 8h (nghỉ " + HOURS[l] + "h–" + (HOURS[l] + 1) + "h)");
+    });
+    sh.n4.forEach(function (n, s) { if (n > 0) parts.push(n + " ca 4h (" + HOURS[s] + "h–" + (HOURS[s] + 4) + "h)"); });
+    $("s-list").innerHTML = "<strong>Ca cần tuyển:</strong> " + parts.join("; ") + ". Tỉ lệ bỏ về TB theo độ phủ thật: <strong>" +
+      (lamTot > 0 ? pct(abArr / lamTot) : "–") + "</strong>." +
+      (sh.work - sumReq > 0 ? " Lịch SIPP thô (" + sumReq + " quầy-giờ) không phủ đúng bằng ca nên cần thêm " + (sh.work - sumReq) +
+        " giờ công." : "");
+  }
+
   function render() {
     var mult = num("mult"), es = num("es"), theta = num("theta"), t = num("t"), target = num("target") / 100;
     var rates = LABELS.map(function (_, h) { return num("r" + h) * mult; });
@@ -210,7 +254,7 @@
     $("chart").innerHTML = ch;
     $("f-a").textContent = totA; $("f-c").textContent = totC;
     $("k-a").textContent = totA; $("k-c").textContent = totC;
-    $("k-ab").textContent = lamTot > 0 ? pct(abArr / lamTot) : "–";
+    renderShifts(rates, sa, mu, theta, t, target);
     $("warn").innerHTML = notFound.length
       ? '<span class="warn">Không đạt mục tiêu với tối đa 40 giá trị c ở: ' + notFound.join(", ") + " (hiển thị c dự phòng).</span>" : "";
   }
