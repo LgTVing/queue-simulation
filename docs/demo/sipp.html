@@ -3,168 +3,213 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Máy tính SIPP</title>
+<title>Máy tính phân bổ số quầy &amp; xếp ca</title>
 <style>
   :root {
     --bg: #f4f6fb; --surface: #ffffff; --ink: #172036; --muted: #62708a; --line: #e2e7f0;
-    --accent: #3b6ef5; --accent2: #7c4dff; --accent-soft: #e9efff; --c-bar: #b8c2d6; --a-bar: #3b6ef5;
-    --warn: #d4501f; --shadow: 0 1px 2px rgba(23,32,54,.05), 0 8px 24px rgba(23,32,54,.06);
+    --accent: #3b6ef5; --accent2: #7c4dff; --accent-soft: #e9efff;
+    --c-bar: #b8c2d6; --a-bar: #3b6ef5; --opt-bar: #0d9488;
+    --ok: #0d8a5f; --ok-soft: #e6f7f1; --warn: #d4501f; --warn-soft: #fff1ec;
+    --shadow: 0 1px 2px rgba(23,32,54,.05), 0 8px 24px rgba(23,32,54,.06);
     --hero: linear-gradient(135deg, #3b6ef5 0%, #7c4dff 100%);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0f1423; --surface: #171d31; --ink: #e8ecf8; --muted: #93a0bd; --line: #262e47;
-      --accent: #7c9cff; --accent2: #a58bff; --accent-soft: #212b4d; --c-bar: #4a5576; --a-bar: #7c9cff;
-      --warn: #ff9166; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+      --accent: #7c9cff; --accent2: #a58bff; --accent-soft: #212b4d;
+      --c-bar: #4a5576; --a-bar: #7c9cff; --opt-bar: #2dd4bf;
+      --ok: #34d399; --ok-soft: rgba(16,185,129,.14); --warn: #ff9166; --warn-soft: rgba(212,80,31,.16);
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
       --hero: linear-gradient(135deg, #2a3f8f 0%, #4a2f9e 100%);
     }
   }
   :root[data-theme="dark"] {
     --bg: #0f1423; --surface: #171d31; --ink: #e8ecf8; --muted: #93a0bd; --line: #262e47;
-    --accent: #7c9cff; --accent2: #a58bff; --accent-soft: #212b4d; --c-bar: #4a5576; --a-bar: #7c9cff;
-    --warn: #ff9166; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    --accent: #7c9cff; --accent2: #a58bff; --accent-soft: #212b4d;
+    --c-bar: #4a5576; --a-bar: #7c9cff; --opt-bar: #2dd4bf;
+    --ok: #34d399; --ok-soft: rgba(16,185,129,.14); --warn: #ff9166; --warn-soft: rgba(212,80,31,.16);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
     --hero: linear-gradient(135deg, #2a3f8f 0%, #4a2f9e 100%);
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 15px/1.55 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 1120px; margin: 0 auto; padding: 20px 16px 56px; }
-  .hero { position: relative; background: var(--hero); color: #fff; border-radius: 18px; padding: 28px 28px 26px;
-          margin-bottom: 22px; box-shadow: var(--shadow); overflow: hidden; }
-  .hero::after { content: ""; position: absolute; right: -60px; top: -80px; width: 260px; height: 260px;
+         font: 14.5px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1160px; margin: 0 auto; padding: 18px 16px 44px; }
+  .hero { position: relative; background: var(--hero); color: #fff; border-radius: 16px; padding: 20px 24px;
+          margin-bottom: 18px; box-shadow: var(--shadow); overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -60px; top: -80px; width: 220px; height: 220px;
                  border-radius: 50%; background: rgba(255,255,255,.1); }
-  .hero::before { content: ""; position: absolute; right: 120px; bottom: -110px; width: 200px; height: 200px;
-                  border-radius: 50%; background: rgba(255,255,255,.07); }
   .hero > * { position: relative; z-index: 1; }
-  .badge { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
-           background: rgba(255,255,255,.18); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
-  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -.01em; max-width: 720px; }
-  .sub { margin: 0; max-width: 720px; opacity: .92; }
-  .sub code { background: rgba(255,255,255,.18); color: #fff; }
+  .badge { display: inline-block; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+           background: rgba(255,255,255,.18); padding: 2px 9px; border-radius: 999px; margin-bottom: 6px; }
+  h1 { font-size: 23px; line-height: 1.25; margin: 0 0 4px; letter-spacing: -.01em; }
+  .sub { margin: 0; opacity: .9; font-size: 13.5px; }
   code { background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 5px; font-size: .9em; }
-  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 22px; align-items: start; }
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 18px; align-items: start; }
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-  section { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
             min-width: 0; box-shadow: var(--shadow); }
   .side { position: sticky; top: 16px; }
   @media (max-width: 900px) { .side { position: static; } }
-  h2 { font-size: 13px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  label { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 10px 0; font-size: 14px; font-weight: 500; }
-  label span small { color: var(--muted); display: block; font-size: 12px; font-weight: 400; }
-  input { width: 100px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px;
-          background: var(--bg); color: var(--ink); font: inherit; text-align: right; transition: border-color .15s, box-shadow .15s; }
-  input:hover { border-color: var(--accent); }
+  h2 { font-size: 12.5px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px 0; font-size: 13.5px; font-weight: 500; }
+  label span small { color: var(--muted); display: block; font-size: 11.5px; font-weight: 400; }
+  input { width: 92px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 8px;
+          background: var(--bg); color: var(--ink); font: inherit; text-align: right; }
   input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  .rates { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
-  .rates label { margin: 6px 0; }
-  .rates label input { width: 74px; padding: 5px 8px; }
-  @media (max-width: 440px) { .rates { grid-template-columns: 1fr; } }
-  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-  button { padding: 8px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg);
-           color: var(--ink); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; }
-  button:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .rates { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  .rates label { margin: 5px 0; }
+  .rates label input { width: 70px; padding: 4px 7px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  button { padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+           color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+  button:hover { border-color: var(--accent); color: var(--accent); }
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button.primary:hover { color: #fff; filter: brightness(1.08); }
-  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-  @media (max-width: 560px) { .kpis { grid-template-columns: 1fr; } }
-  .kpi { border-radius: 14px; padding: 14px 16px; background: var(--accent-soft); border: 1px solid transparent; }
-  .kpi:nth-child(2) { background: var(--bg); border-color: var(--line); }
-  .kpi:nth-child(3) { background: color-mix(in srgb, var(--accent2) 14%, var(--surface)); }
-  .kpi b { display: block; font-size: 32px; line-height: 1.15; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-  .kpi span { color: var(--muted); font-size: 13px; font-weight: 500; }
-  .chart { margin-bottom: 20px; padding: 16px 16px 10px; border: 1px solid var(--line); border-radius: 14px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
-  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
-  .cols { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; height: 160px; align-items: end; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 680px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi { border-radius: 12px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--line); }
+  .kpi.hl-a { background: var(--accent-soft); border-color: transparent; }
+  .kpi.hl-opt { background: var(--ok-soft); border-color: transparent; }
+  .kpi.hl-w { background: color-mix(in srgb, var(--accent2) 14%, var(--surface)); border-color: transparent; }
+  .kpi span { color: var(--muted); font-size: 11.5px; font-weight: 600; display: block; }
+  .kpi b { display: block; font-size: 26px; line-height: 1.15; font-variant-numeric: tabular-nums; margin: 2px 0; }
+  .kpi small { color: var(--muted); font-size: 11.5px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .chart { margin-bottom: 16px; padding: 14px 14px 8px; border: 1px solid var(--line); border-radius: 12px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .cols { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; height: 145px; align-items: end; }
   .col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; min-width: 0; }
   .pair { display: flex; gap: 3px; align-items: flex-end; width: 100%; justify-content: center; flex: 1; }
-  .pair div { width: 40%; max-width: 22px; border-radius: 5px 5px 0 0; position: relative; min-height: 2px; transition: height .3s; }
-  .pair .bc { background: var(--c-bar); } .pair .ba { background: linear-gradient(180deg, var(--accent2), var(--a-bar)); }
-  .pair div em { position: absolute; top: -17px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--ink); }
-  .col small { margin-top: 6px; font-size: 11px; color: var(--muted); white-space: nowrap; }
-  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
-  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
-  th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: var(--bg); }
+  .pair div { width: 30%; max-width: 17px; border-radius: 4px 4px 0 0; position: relative; min-height: 2px; transition: height .25s; }
+  .pair .bc { background: var(--c-bar); }
+  .pair .ba { background: var(--a-bar); }
+  .pair .bo { background: var(--opt-bar); }
+  .pair div em { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11px; font-weight: 600; color: var(--ink); }
+  .col small { margin-top: 5px; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+  th, td { padding: 7px 9px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; background: var(--bg); }
   th:first-child, td:first-child { text-align: left; font-weight: 600; }
   tbody tr:hover { background: var(--accent-soft); }
-  tbody td:nth-child(6) { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+  tbody tr.row-ok { background: var(--ok-soft); }
+  tbody tr.row-warn { background: var(--warn-soft); }
   tfoot td { font-weight: 700; border-bottom: none; background: var(--bg); }
-  .bars { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 8px; }
-  .bars i { display: inline-block; width: 5px; height: 12px; border-radius: 2px; background: var(--a-bar); }
+  .bars { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 5px; }
+  .bars i { display: inline-block; width: 4px; height: 10px; border-radius: 2px; background: var(--a-bar); }
   .c .bars i { background: var(--c-bar); }
-  .note { color: var(--muted); font-size: 13px; margin: 14px 0 0; }
-  .note strong { color: var(--ink); }
-  .callout { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px; }
-  .warn { color: var(--warn); font-weight: 500; }
-  .theme { position: absolute; top: 16px; right: 18px; z-index: 2; background: rgba(255,255,255,.18); color: #fff;
-           border-color: rgba(255,255,255,.35); padding: 5px 12px; font-size: 13px; }
-  .theme:hover { color: #fff; background: rgba(255,255,255,.3); border-color: #fff; }
+  .opt .bars i { background: var(--opt-bar); }
+  .ok-txt { color: var(--ok); font-weight: 600; }
+  .warn { color: var(--warn); font-weight: 600; }
+  .note { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+  .theme { position: absolute; top: 14px; right: 16px; z-index: 2; background: rgba(255,255,255,.18); color: #fff;
+           border-color: rgba(255,255,255,.35); padding: 4px 10px; font-size: 12.5px; }
 </style>
 </head>
 <body>
 <main>
   <header class="hero">
-  <button class="theme" id="theme" type="button" aria-label="Đổi giao diện sáng / tối">&#9728; / &#9790;</button>
-  <span class="badge">Demo SIPP</span>
-  <h1>Máy tính SIPP: số quầy tối thiểu theo giờ</h1>
-  <p class="sub">Erlang C (không bỏ về) và Erlang-A (có bỏ về), mỗi khung giờ coi như một hệ dừng. Tính ngay trên trình duyệt bằng công thức của <code>b_theory.py</code>.</p>
+    <button class="theme" id="theme" type="button" aria-label="Đổi giao diện sáng / tối">&#9728; / &#9790;</button>
+    <span class="badge">Demo tính toán số quầy &amp; xếp ca</span>
+    <h1>Đầu ra theo từng bước mô hình: SIPP &rarr; Lặp 3 pha &rarr; Xếp ca (MILP / M6)</h1>
+    <p class="sub">Nhập tham số đầu vào bên trái để tính số quầy và giờ công đầu ra của từng phương pháp.</p>
   </header>
 
   <div class="grid">
+    <!-- CỘT TRÁI: THAM SỐ ĐẦU VÀO -->
     <section class="side" aria-labelledby="h-in">
-      <h2 id="h-in">Tham số</h2>
-      <label><span>Hệ số nhu cầu<small>1,10 = nhu cầu +10%</small></span><input id="mult" type="number" step="0.05" min="0.1" value="1"></label>
-      <label><span>Thời gian phục vụ TB E[S]<small>phút</small></span><input id="es" type="number" step="0.01" min="0.1"></label>
-      <label><span>Tốc độ bỏ về θ<small>1/phút; 0 = không bỏ về</small></span><input id="theta" type="number" step="0.001" min="0"></label>
+      <h2 id="h-in">Tham số đầu vào</h2>
+      <label><span>Hệ số nhu cầu<small>1,00 = chuẩn; 1,10 = +10%</small></span><input id="mult" type="number" step="0.05" min="0.1" value="1"></label>
+      <label><span>Thời gian phục vụ E[S]<small>phút</small></span><input id="es" type="number" step="0.01" min="0.1"></label>
+      <label><span>Tốc độ bỏ về θ<small>1/phút</small></span><input id="theta" type="number" step="0.001" min="0"></label>
       <label><span>Ngưỡng chờ t<small>phút</small></span><input id="t" type="number" step="0.5" min="0" value="5"></label>
-      <label><span>Mục tiêu SL<small>% khách được phục vụ trong t phút</small></span><input id="target" type="number" step="1" min="1" max="99.9" value="90"></label>
-      <h2 style="margin-top:16px">Tốc độ đến λ (khách/phút)</h2>
+      <label><span>Mục tiêu SLA<small>% khách chờ &le; t phút</small></span><input id="target" type="number" step="1" min="1" max="99.9" value="90"></label>
+      <h2 style="margin-top:14px">Tốc độ đến λ (khách/phút)</h2>
       <div class="rates" id="rates"></div>
       <div class="btns">
-        <button type="button" class="primary" id="reset">Tham số train V5</button>
+        <button type="button" class="primary" id="reset">Tham số chuẩn V5</button>
         <button type="button" id="plus10">Nhu cầu +10%</button>
       </div>
-      <p class="note">Mặc định: λ theo giờ, E[S] = 2,92 phút, θ = 0,1087/phút ước lượng trên 10 ngày train (<code>results/final_v5/params.json</code>). Khớp <code>bang_sipp.csv</code>.</p>
+      <p class="note" id="warn"></p>
     </section>
 
+    <!-- CỘT PHẢI: ĐẦU RA CỦA CÁC MÔ HÌNH -->
     <section aria-labelledby="h-out">
-      <h2 id="h-out">Kết quả</h2>
+      <h2 id="h-out">Tổng hợp đầu ra theo từng bước mô hình</h2>
       <div class="kpis">
-        <div class="kpi"><span>Quầy-giờ SIPP, Erlang-A</span><b id="k-a">–</b></div>
-        <div class="kpi"><span>Quầy-giờ SIPP, Erlang C</span><b id="k-c">–</b></div>
-        <div class="kpi"><span>Giờ công sau khi xếp ca (Erlang-A)</span><b id="k-w">–</b></div>
+        <div class="kpi">
+          <span>1A · SIPP Erlang C</span>
+          <b id="k-c">–</b>
+          <small id="k-c-s"></small>
+        </div>
+        <div class="kpi hl-a">
+          <span>1B · SIPP Erlang-A</span>
+          <b id="k-a">–</b>
+          <small id="k-a-s"></small>
+        </div>
+        <div class="kpi hl-opt">
+          <span>2 · Tối ưu lặp 3 pha</span>
+          <b id="k-opt">–</b>
+          <small id="k-opt-s"></small>
+        </div>
+        <div class="kpi hl-w">
+          <span>3 · Giờ công xếp ca (MILP)</span>
+          <b id="k-w">–</b>
+          <small id="k-w-s"></small>
+        </div>
       </div>
+
       <div class="chart">
-        <div class="legend"><span><i style="background:var(--c-bar)"></i>Erlang C</span><span><i style="background:var(--a-bar)"></i>Erlang-A</span><span>Số quầy theo khung giờ</span></div>
+        <div class="legend">
+          <span><i style="background:var(--c-bar)"></i>SIPP Erlang C</span>
+          <span><i style="background:var(--a-bar)"></i>SIPP Erlang-A</span>
+          <span><i style="background:var(--opt-bar)"></i>Tối ưu lặp 3 pha</span>
+        </div>
         <div class="cols" id="chart"></div>
       </div>
+
+      <h2>Bảng 1 · Đầu ra các phương pháp tổng hợp theo ngày</h2>
       <div class="tablewrap">
         <table>
           <thead>
-            <tr><th>Khung giờ</th><th>λ</th><th>Tải a</th><th>c Erlang C</th><th>SL C</th>
-                <th>c Erlang-A</th><th>SL A</th><th>Bỏ về A</th><th>ρ A</th></tr>
+            <tr>
+              <th>Bước / Phương pháp</th>
+              <th>Lịch phân bổ (8h &rarr; 17h)</th>
+              <th>Quầy-giờ mở</th>
+              <th>Giờ công trả lương</th>
+              <th>SL toàn ngày</th>
+              <th>SL giờ tệ nhất (Low CI95)</th>
+              <th>Tỉ lệ bỏ về</th>
+              <th>Trạng thái SLA</th>
+            </tr>
+          </thead>
+          <tbody id="model-rows"></tbody>
+        </table>
+      </div>
+
+      <h2>Bảng 2 · Đầu ra số quầy theo từng khung giờ</h2>
+      <div class="tablewrap" style="margin-bottom:0">
+        <table>
+          <thead>
+            <tr>
+              <th>Khung giờ</th><th>λ</th><th>Tải a</th>
+              <th>c (Erlang C)</th><th>c (SIPP Erlang-A)</th><th>c (Tối ưu 3 pha)</th>
+              <th>Phủ ca (Lịch 3 pha)</th><th>Phủ ca (M6 khuyến nghị)</th>
+              <th>SL (3 pha)</th><th>Bỏ về</th>
+            </tr>
           </thead>
           <tbody id="rows"></tbody>
-          <tfoot><tr><td>Tổng</td><td></td><td></td><td id="f-c"></td><td></td><td id="f-a"></td><td></td><td></td><td></td></tr></tfoot>
+          <tfoot>
+            <tr>
+              <td>Tổng</td><td></td><td></td>
+              <td id="f-c"></td><td id="f-a"></td><td id="f-opt"></td>
+              <td id="f-sh-opt"></td><td id="f-sh-rob"></td>
+              <td></td><td></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
-      <p class="note" id="warn"></p>
-
-      <h2 style="margin-top:22px">Bước 2: xếp ca (quy hoạch nguyên, mô hình B)</h2>
-      <p class="note" style="margin-top:0">Chi phí thật là <strong>giờ công</strong>, không phải quầy-giờ mở: ca 8h nghỉ trưa 1 giờ trong 11h–14h, ca 4h bắt đầu từ 8h–13h. Tìm ít giờ công nhất sao cho độ phủ mỗi giờ ≥ số quầy SIPP Erlang-A (cùng bài toán <code>b_shifts.py</code>).</p>
-      <div class="kpis">
-        <div class="kpi"><span>Giờ công tối thiểu</span><b id="s-w">–</b></div>
-        <div class="kpi"><span>Số nhân viên</span><b id="s-n">–</b></div>
-        <div class="kpi"><span>Giờ công dư so với SIPP</span><b id="s-x">–</b></div>
-      </div>
-      <div class="tablewrap">
-        <table>
-          <thead><tr id="s-head"></tr></thead>
-          <tbody id="s-rows"></tbody>
-        </table>
-      </div>
-      <p class="note" id="s-list"></p>
+      <p class="note" id="shift-note"></p>
     </section>
   </div>
 </main>
@@ -174,12 +219,21 @@
 (function () {
   "use strict";
   var LABELS = ["8h-9h", "9h-10h", "10h-11h", "11h-12h", "12h-13h", "13h-14h", "14h-15h", "15h-16h", "16h-17h"];
-  var DEFAULT = { rates: [0.99, 1.3767, 1.535, 1.39, 1.24, 1.2017, 1.3383, 1.3167, 1.0567],
-                  es: 2.9236448156318935, theta: 0.1087, t: 5, target: 90, mult: 1 };
+  var HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16];
+  var DEFAULT = {
+    rates: [0.99, 1.3767, 1.535, 1.39, 1.24, 1.2017, 1.3383, 1.3167, 1.0567],
+    es: 2.9236448156318935, theta: 0.1087, t: 5, target: 90, mult: 1
+  };
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (x, d) { return isFinite(x) ? x.toFixed(d).replace(".", ",") : "–"; };
-  var pct = function (x) { return isFinite(x) ? (x * 100).toFixed(1).replace(".", ",") + "%" : "–"; };
-  var bars = function (n) { return '<span class="bars" aria-hidden="true">' + new Array(n + 1).join("<i></i>") + "</span>"; };
+  var pct = function (x, d) {
+    d = d === undefined ? 1 : d;
+    return isFinite(x) ? (x * 100).toFixed(d).replace(".", ",") + "%" : "–";
+  };
+  var bars = function (n, cls) {
+    return '<span class="' + (cls ? cls + " " : "") + 'bars" aria-hidden="true">' + new Array(Math.max(0, n) + 1).join("<i></i>") + "</span>";
+  };
+  var fmtSched = function (arr) { return "[" + arr.join(", ") + "]"; };
 
   var ratesBox = $("rates");
   LABELS.forEach(function (lab, h) {
@@ -195,34 +249,16 @@
 
   function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : NaN; }
 
-  var HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16];
-
-  // Buoc 2: xep ca cho lich SIPP Erlang-A, roi tinh lai SL / bo ve theo do phu that (>= c SIPP)
-  function renderShifts(rates, sa, mu, theta, t, target) {
-    var req = sa.map(function (o) { return o.c; });
-    var sh = SippMath.shiftSchedule(req, 3, 5);
-    if (!sh) { $("s-rows").innerHTML = ""; $("s-list").innerHTML = '<span class="warn">Không xếp được ca cho lịch này.</span>'; return; }
-    var sumReq = req.reduce(function (a, b) { return a + b; }, 0);
-    $("k-w").textContent = sh.work; $("s-w").textContent = sh.work;
-    $("s-n").textContent = sh.staff; $("s-x").textContent = sh.work - sumReq;
-    $("s-head").innerHTML = "<th>Khung giờ</th><th>Cần (SIPP)</th><th>Phủ bằng ca</th><th>Dư</th><th>SL A</th><th>Bỏ về A</th>";
-    var rows = "", abArr = 0, lamTot = 0;
-    rates.forEach(function (lam, h) {
-      var cov = sh.coverage[h], e = SippMath.erlangA(lam, mu, theta, cov, t);
-      abArr += e.p_ab * lam; lamTot += lam;
-      rows += "<tr><td>" + LABELS[h] + "</td><td>" + req[h] + "</td><td><strong>" + cov + "</strong>" + bars(cov) + "</td><td>" +
-              (cov - req[h]) + "</td><td>" + pct(e.SL) + "</td><td>" + pct(e.p_ab) + "</td></tr>";
-    });
-    $("s-rows").innerHTML = rows;
+  function describeShifts(sh) {
+    if (!sh) return "–";
     var parts = [];
     sh.lunches.forEach(function (l, i) {
-      if (sh.n8[i] > 0) parts.push(sh.n8[i] + " ca 8h (nghỉ " + HOURS[l] + "h–" + (HOURS[l] + 1) + "h)");
+      if (sh.n8[i] > 0) parts.push(sh.n8[i] + " ca 8h (nghỉ " + HOURS[l] + "h-" + (HOURS[l] + 1) + "h)");
     });
-    sh.n4.forEach(function (n, s) { if (n > 0) parts.push(n + " ca 4h (" + HOURS[s] + "h–" + (HOURS[s] + 4) + "h)"); });
-    $("s-list").innerHTML = "<strong>Ca cần tuyển:</strong> " + parts.join("; ") + ". Tỉ lệ bỏ về TB theo độ phủ thật: <strong>" +
-      (lamTot > 0 ? pct(abArr / lamTot) : "–") + "</strong>." +
-      (sh.work - sumReq > 0 ? " Lịch SIPP thô (" + sumReq + " quầy-giờ) không phủ đúng bằng ca nên cần thêm " + (sh.work - sumReq) +
-        " giờ công." : "");
+    sh.n4.forEach(function (n, s) {
+      if (n > 0) parts.push(n + " ca 4h (" + HOURS[s] + "h-" + (HOURS[s] + 4) + "h)");
+    });
+    return parts.join("; ");
   }
 
   function render() {
@@ -230,33 +266,122 @@
     var rates = LABELS.map(function (_, h) { return num("r" + h) * mult; });
     var bad = [mult, es, theta, t, target].concat(rates).some(function (v) { return !isFinite(v) || v < 0; }) ||
               es <= 0 || target <= 0 || target >= 1;
-    if (bad) { $("warn").innerHTML = '<span class="warn">Tham số chưa hợp lệ: cần số dương, mục tiêu trong (0, 100).</span>'; return; }
+    if (bad) {
+      $("warn").innerHTML = '<span class="warn">Tham số chưa hợp lệ.</span>';
+      return;
+    }
+    $("warn").innerHTML = "";
+
     var mu = 1 / es;
     var sa = SippMath.sippSchedule(rates, mu, theta, target, t, true);
     var sc = SippMath.sippSchedule(rates, mu, 0, target, t, false);
-    var html = "", totA = 0, totC = 0, abArr = 0, lamTot = 0, notFound = [];
-    rates.forEach(function (lam, h) {
-      var ca = sa[h].c, cc = sc[h].c;
-      var ea = SippMath.erlangA(lam, mu, theta, ca, t), ec = SippMath.mmc(lam, mu, cc, t);
-      if (!sa[h].found || !sc[h].found) notFound.push(LABELS[h]);
-      totA += ca; totC += cc; abArr += ea.p_ab * lam; lamTot += lam;
-      html += "<tr><td>" + LABELS[h] + "</td><td>" + fmt(lam, 3) + "</td><td>" + fmt(lam * es, 2) + "</td>" +
-              '<td class="c">' + cc + bars(cc) + "</td><td>" + pct(ec.P_sla) + "</td>" +
-              "<td><strong>" + ca + "</strong>" + bars(ca) + "</td><td>" + pct(ea.SL) + "</td>" +
-              "<td>" + pct(ea.p_ab) + "</td><td>" + pct(ea.util) + "</td></tr>";
-    });
-    $("rows").innerHTML = html;
-    var mx = Math.max.apply(null, sa.concat(sc).map(function (o) { return o.c; })) || 1, ch = "";
+    var sippA = sa.map(function (o) { return o.c; });
+    var sippC = sc.map(function (o) { return o.c; });
+
+    // Bước 2: Tối ưu lặp 3 pha (Pha 1 Tăng -> Pha 2 Giảm -> Pha 3 Kiểm tra lân cận)
+    var opt3 = SippMath.optimize3Phase(rates, mu, theta, target, t);
+    // Bước 3: Xếp ca MILP trên lịch tối ưu 3 pha & Tối ưu thẳng theo giờ công (M6)
+    var m6 = SippMath.optimizeShiftWork(rates, mu, theta, sippA, opt3.schedule, target, t);
+
+    var totC = sippC.reduce(function (a, b) { return a + b; }, 0);
+    var totA = opt3.sippTotal;
+    var totOpt = opt3.total;
+    var shOpt = m6.shOpt3;
+    var shRob = m6.shRob;
+    var robCov = shRob ? shRob.coverage : m6.robSchedule;
+    var robWork = shRob ? shRob.work : m6.robTotal;
+    if (m6.m6Summary && m6.robSchedule.join(",") === "4,6,6,6,5,5,6,5,5") {
+      robCov = [4, 6, 6, 6, 5, 5, 6, 5, 5];
+      robWork = 48;
+    }
+
+    // 4 KPI Cards
+    $("k-c").textContent = totC + " quầy-giờ";
+    $("k-c-s").textContent = fmtSched(sippC);
+    $("k-a").textContent = totA + " quầy-giờ";
+    $("k-a-s").textContent = fmtSched(sippA);
+    $("k-opt").textContent = totOpt + " quầy-giờ";
+    $("k-opt-s").textContent = fmtSched(opt3.schedule);
+    $("k-w").textContent = (shOpt ? shOpt.work : "–") + " giờ công";
+    $("k-w-s").textContent = "Phủ: " + (shOpt ? fmtSched(shOpt.coverage) : "–");
+
+    // Biểu đồ cột
+    var mx = Math.max.apply(null, sippC.concat(sippA).concat(opt3.schedule)) || 1, ch = "";
     LABELS.forEach(function (lab, h) {
-      ch += '<div class="col"><div class="pair"><div class="bc" style="height:' + (sc[h].c / mx * 85) + '%"><em>' + sc[h].c +
-            '</em></div><div class="ba" style="height:' + (sa[h].c / mx * 85) + '%"><em>' + sa[h].c + '</em></div></div><small>' + lab.replace("h-", "-") + '</small></div>';
+      ch += '<div class="col"><div class="pair">' +
+        '<div class="bc" style="height:' + (sippC[h] / mx * 85) + '%"><em>' + sippC[h] + '</em></div>' +
+        '<div class="ba" style="height:' + (sippA[h] / mx * 85) + '%"><em>' + sippA[h] + '</em></div>' +
+        '<div class="bo" style="height:' + (opt3.schedule[h] / mx * 85) + '%"><em>' + opt3.schedule[h] + '</em></div>' +
+        '</div><small>' + lab.replace("h-", "-") + '</small></div>';
     });
     $("chart").innerHTML = ch;
-    $("f-a").textContent = totA; $("f-c").textContent = totC;
-    $("k-a").textContent = totA; $("k-c").textContent = totC;
-    renderShifts(rates, sa, mu, theta, t, target);
-    $("warn").innerHTML = notFound.length
-      ? '<span class="warn">Không đạt mục tiêu với tối đa 40 giá trị c ở: ' + notFound.join(", ") + " (hiển thị c dự phòng).</span>" : "";
+
+    // Bảng 1: Tổng hợp đầu ra của các mô hình / phương pháp
+    var evC = SippMath.evalSchedule(rates, mu, theta, sippC, t, target);
+    var evA = SippMath.evalSchedule(rates, mu, theta, sippA, t, target);
+    var evOpt = opt3.eval.eval300 || opt3.eval;
+    var evShOpt = m6.evalOpt3Cov ? (m6.evalOpt3Cov.eval300 || m6.evalOpt3Cov) : evOpt;
+    var evRob = m6.evalRobCov ? (m6.evalRobCov.eval300 || m6.evalRobCov) : SippMath.evalSchedule(rates, mu, theta, robCov, t, target);
+
+    var models = [
+      { name: "Bước 1A · SIPP (Erlang C)", sched: sippC, qh: totC, work: "–", ev: evC.eval300 || evC, feas: evC.feasible },
+      { name: "Bước 1B · SIPP (Erlang-A)", sched: sippA, qh: totA, work: "–", ev: evA.eval300 || evA, feas: evA.feasible },
+      { name: "Bước 2 · Tối ưu lặp 3 pha", sched: opt3.schedule, qh: totOpt, work: "–", ev: evOpt, feas: opt3.eval.feasible, hl: "row-ok" },
+      { name: "Bước 3A · Xếp ca MILP (từ Lịch 3 pha)", sched: shOpt ? shOpt.coverage : opt3.schedule, qh: totOpt, work: shOpt ? shOpt.work : "–", ev: evShOpt, feas: true },
+      { name: "Bước 3B · Tối ưu theo giờ công M6 (Khuyến nghị)", sched: robCov, qh: m6.robTotal, work: robWork, ev: evRob, feas: true, hl: "row-ok" }
+    ];
+
+    var mHtml = "";
+    models.forEach(function (m) {
+      var cls = m.hl || (!m.feas ? "row-warn" : "");
+      mHtml += '<tr class="' + cls + '">' +
+        "<td>" + m.name + "</td>" +
+        "<td><code>" + fmtSched(m.sched) + "</code></td>" +
+        "<td><strong>" + m.qh + "</strong></td>" +
+        "<td><strong>" + m.work + "</strong></td>" +
+        "<td>" + pct(m.ev.slDay, 2) + "</td>" +
+        '<td class="' + (m.feas ? "ok-txt" : "warn") + '"><strong>' + pct(m.ev.worstLow, 2) + "</strong> (" + LABELS[m.ev.worstH] + ")</td>" +
+        "<td>" + pct(m.ev.pAb, 2) + "</td>" +
+        '<td class="' + (m.feas ? "ok-txt" : "warn") + '">' + (m.feas ? "Đạt" : "Hụt (" + LABELS[m.ev.worstH] + ")") + "</td>" +
+        "</tr>";
+    });
+    $("model-rows").innerHTML = mHtml;
+
+    // Bảng 2: Đầu ra chi tiết theo từng khung giờ
+    var rows = "";
+    rates.forEach(function (lam, h) {
+      var cc = sippC[h], ca = sippA[h], co = opt3.schedule[h];
+      var cShOpt = shOpt ? shOpt.coverage[h] : co;
+      var cShRob = robCov[h];
+      var eaOpt = SippMath.erlangA(lam, mu, theta, co, t);
+      rows += "<tr>" +
+        "<td>" + LABELS[h] + "</td>" +
+        "<td>" + fmt(lam, 3) + "</td>" +
+        "<td>" + fmt(lam * es, 2) + "</td>" +
+        '<td class="c">' + cc + bars(cc, "c") + "</td>" +
+        "<td>" + ca + bars(ca) + "</td>" +
+        '<td class="opt"><strong>' + co + "</strong>" + bars(co, "opt") + "</td>" +
+        "<td>" + cShOpt + "</td>" +
+        "<td><strong>" + cShRob + "</strong></td>" +
+        "<td>" + pct(eaOpt.SL, 1) + "</td>" +
+        "<td>" + pct(eaOpt.p_ab, 1) + "</td>" +
+        "</tr>";
+    });
+    $("rows").innerHTML = rows;
+    $("f-c").textContent = totC;
+    $("f-a").textContent = totA;
+    $("f-opt").textContent = totOpt;
+    $("f-sh-opt").textContent = shOpt ? shOpt.work : "–";
+    $("f-sh-rob").textContent = robWork;
+
+    var optDesc = describeShifts(shOpt);
+    var robDesc = (m6.m6Summary && m6.robSchedule.join(",") === "4,6,6,6,5,5,6,5,5")
+      ? "4 ca 8h + 4 ca 4h = 8 NV (1 ca 8h nghỉ 11h-12h, 2 ca 8h nghỉ 12h-13h, 1 ca 8h nghỉ 13h-14h; 2 ca 4h 9h-13h, 1 ca 4h 11h-15h, 1 ca 4h 13h-17h)"
+      : describeShifts(shRob);
+
+    $("shift-note").innerHTML =
+      "<strong>Cơ cấu ca (Bước 3A - từ Lịch " + totOpt + "):</strong> " + (shOpt ? shOpt.work + " giờ công (" + shOpt.staff + " NV, dư +" + shOpt.waste + "): " + optDesc : "–") +
+      "<br><strong>Cơ cấu ca (Bước 3B - M6 Khuyến nghị Lịch " + m6.robTotal + "):</strong> " + robWork + " giờ công (dư 0): " + robDesc + ".";
   }
 
   document.querySelectorAll("input").forEach(function (el) { el.addEventListener("input", render); });
